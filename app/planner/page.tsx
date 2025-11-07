@@ -249,7 +249,7 @@ function PlannerContent() {
 															{task.time && ` at ${task.time}`}
 														</Text>
 														<Separator orientation="vertical" className="h-4" />
-														{task.platforms.map((platform) => (
+														{task.platforms.map((platform: "youtube" | "instagram" | "tiktok") => (
 															<Badge
 																key={platform}
 																color={getPlatformColor(platform) as any}
