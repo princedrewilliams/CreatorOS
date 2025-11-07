@@ -39,8 +39,8 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>()(
-	persist(
-		(set) => ({
+    persist(
+        (set, get) => ({
 			isPro: false,
 			setIsPro: (isPro) => set({ isPro }),
 			sidebarOpen: false,
@@ -68,10 +68,7 @@ export const useAppStore = create<AppState>()(
 				set((state) => ({
 					tasks: state.tasks.filter((task) => task.id !== id),
 				})),
-			getTasksByDate: (date) => {
-				const state = useAppStore.getState();
-				return state.tasks.filter((task) => task.date === date);
-			},
+            getTasksByDate: (date) => get().tasks.filter((task) => task.date === date),
 			socialConnections: [
 				{ platform: "youtube", connected: false },
 				{ platform: "instagram", connected: false },
