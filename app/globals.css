@@ -1,0 +1,134 @@
+@layer theme, base, frosted_ui, components, utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "@whop/react/styles.css" layer(frosted_ui);
+
+/* biome-ignore lint/suspicious/noUnknownAtRules: this rule is imported from whop */
+@config '../tailwind.config.ts';
+
+body {
+	background: var(--background);
+	color: var(--foreground);
+	font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+}
+
+/* Ensure proper theme-aware backgrounds */
+* {
+	transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Prevent text duplication/overlap issues */
+p, h1, h2, h3, h4, h5, h6 {
+	position: relative;
+	display: block;
+}
+
+/* Fix for mobile sidebar text overlap */
+aside nav {
+	position: relative;
+	overflow: visible;
+}
+
+aside > div:first-child {
+	position: relative;
+	overflow: visible;
+}
+
+/* Prevent text rendering issues */
+nav,
+aside {
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+/* Fix navbar - prevent text overlap */
+nav > div {
+	position: relative;
+}
+
+/* Ensure Link components render properly */
+nav a {
+	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+	color: inherit;
+}
+
+/* Prevent text duplication from pseudo-elements */
+nav a::before,
+nav a::after {
+	content: none !important;
+}
+
+/* Ensure span text is visible and not duplicated */
+nav a > span {
+	display: inline-block;
+	position: relative;
+	visibility: visible !important;
+	opacity: 1 !important;
+	color: inherit !important;
+}
+
+/* Ensure navbar text is always visible */
+nav span {
+	visibility: visible !important;
+	opacity: 1 !important;
+}
+
+/* Fix input and textarea text visibility - ensure text is always visible */
+input:not([type="file"]):not([type="hidden"]),
+textarea,
+select {
+	color: var(--gray-12) !important;
+}
+
+/* Light mode: white backgrounds for inputs */
+@media (prefers-color-scheme: light) {
+	input:not([type="file"]):not([type="hidden"]),
+	textarea,
+	select {
+		background-color: white !important;
+		color: var(--gray-12) !important;
+	}
+
+	input::placeholder,
+	textarea::placeholder {
+		color: var(--gray-9) !important;
+	}
+}
+
+/* Dark mode: darker backgrounds for inputs with light text */
+@media (prefers-color-scheme: dark) {
+	input:not([type="file"]):not([type="hidden"]),
+	textarea,
+	select {
+		background-color: var(--gray-a3) !important;
+		color: var(--gray-12) !important;
+		border-color: var(--gray-a6) !important;
+	}
+
+	input::placeholder,
+	textarea::placeholder {
+		color: var(--gray-10) !important;
+	}
+}
+
+/* Ensure all text is visible in dark mode */
+@media (prefers-color-scheme: dark) {
+	.text-gray-12,
+	[class*="text-gray-12"] {
+		color: var(--gray-12) !important;
+	}
+
+	.text-gray-11,
+	[class*="text-gray-11"] {
+		color: var(--gray-11) !important;
+	}
+
+	/* Ensure headings are visible */
+	h1, h2, h3, h4, h5, h6 {
+		color: var(--gray-12) !important;
+	}
+}
