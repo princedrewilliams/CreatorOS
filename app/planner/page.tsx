@@ -6,7 +6,7 @@ import { Heading, Text, Card, Button, Badge, Separator } from "@whop/react/compo
 import { ArrowLeftIcon, PlusIcon, CheckIcon, Pencil1Icon, TrashIcon, PaperPlaneIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAppStore, type Task } from "@/lib/store";
+import { useAppStore, type Task, type SocialConnection } from "@/lib/store";
 import { Calendar } from "@/components/Calendar";
 import { TaskModal } from "@/components/TaskModal";
 import { SocialConnections } from "@/components/SocialConnections";
@@ -57,9 +57,9 @@ function PlannerContent() {
 	};
 
 	const handlePost = async (task: Task) => {
-		const connectedPlatforms = socialConnections.filter((conn) => conn.connected);
+		const connectedPlatforms = socialConnections.filter((conn: SocialConnection) => conn.connected);
 		const taskPlatforms = task.platforms.filter((platform) =>
-			connectedPlatforms.some((conn) => conn.platform === platform)
+			connectedPlatforms.some((conn: SocialConnection) => conn.platform === platform)
 		);
 
 		if (taskPlatforms.length === 0) {
