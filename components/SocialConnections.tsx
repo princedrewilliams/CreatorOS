@@ -4,7 +4,7 @@ import { useEffect, Suspense } from "react";
 import { Card, Button, Badge, Text, Heading } from "@whop/react/components";
 import { CheckIcon, Cross2Icon } from "@radix-ui/react-icons";
 import { motion } from "framer-motion";
-import { useAppStore } from "@/lib/store";
+import { useAppStore, type SocialConnection } from "@/lib/store";
 import { useSearchParams } from "next/navigation";
 
 function SocialConnectionsContent() {
@@ -77,7 +77,7 @@ function SocialConnectionsContent() {
 			</Text>
 			<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
 				{platforms.map((platform) => {
-					const connection = socialConnections.find((c) => c.platform === platform.key);
+					const connection = socialConnections.find((c: SocialConnection) => c.platform === platform.key);
 					const isConnected = connection?.connected || false;
 
 					return (
