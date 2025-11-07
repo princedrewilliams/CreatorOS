@@ -122,7 +122,7 @@ function PlannerContent() {
 	};
 
 	// Filter tasks
-	const filteredTasks = tasks.filter((task) => {
+	const filteredTasks = tasks.filter((task: Task) => {
 		if (filterPlatform !== "all" && !task.platforms.includes(filterPlatform)) {
 			return false;
 		}
@@ -133,7 +133,7 @@ function PlannerContent() {
 	});
 
 	// Sort tasks by date
-	const sortedTasks = [...filteredTasks].sort((a, b) => {
+	const sortedTasks = [...filteredTasks].sort((a: Task, b: Task) => {
 		const dateA = new Date(`${a.date} ${a.time || "00:00"}`);
 		const dateB = new Date(`${b.date} ${b.time || "00:00"}`);
 		return dateA.getTime() - dateB.getTime();
