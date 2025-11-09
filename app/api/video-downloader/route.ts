@@ -1,7 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const MOCK_VIDEO_URL =
-	"https://files.creatos-cdn.com/demos/creatoros-sample-shorts.mp4";
+const PLACEHOLDER_RESPONSE_URL = "https://samplelib.com/lib/preview/mp4/sample-5s.mp4";
+
+const PLATFORM_ENDPOINTS: Record<string, string> = {
+	tiktok: "/download",
+	instagram: "/download",
+	youtube: "/download",
+};
+
+const RAPIDAPI_HOST = process.env.RAPIDAPI_VIDEO_HOST;
+const RAPIDAPI_KEY = process.env.RAPIDAPI_VIDEO_KEY;
+const RAPIDAPI_BASE_URL =
+	process.env.RAPIDAPI_VIDEO_BASE_URL ||
+	(RAPIDAPI_HOST ? `https://${RAPIDAPI_HOST}` : undefined);
 
 export async function POST(request: NextRequest) {
 	try {
@@ -24,10 +35,11 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		// In production, call your downloader service here. For MVP we return a mock asset.
+		const downloadUrl = await resolveDownloadUrl(platform, url);
+
 		return NextResponse.json({
 			message: "Success! Download link generated.",
-			downloadUrl: MOCK_VIDEO_URL,
+			downloadUrl,
 		});
 	} catch (error) {
 		console.error("Video download error:", error);
@@ -53,6 +65,69 @@ function isUrlValidForPlatform(url: string, platform: string): boolean {
 		return false;
 	} catch {
 		return false;
+	}
+}
+
+async function resolveDownloadUrl(platform: string, url: string): Promise<string> {
+	if (!RAPIDAPI_BASE_URL || !RAPIDAPI_KEY || !RAPIDAPI_HOST) {
+		console.warn(
+			"[video-downloader] RapidAPI credentials missing. Falling back to placeholder response."
+		);
+		return PLACEHOLDER_RESPONSE_URL;
+	}
+
+	const endpoint = PLATFORM_ENDPOINTS[platform];
+	if (!endpoint) {
+		throw new Error("Unsupported platform.");
+	}
+
+	const requestUrl = new URL(endpoint, RAPIDAPI_BASE_URL);
+	requestUrl.searchParams.set("url", url);
+	requestUrl.searchParams.set("platform", platform);
+
+	const response = await fetch(requestUrl.toString(), {
+		method: "GET",
+		headers: {
+			"X-RapidAPI-Key": RAPIDAPI_KEY,
+			"X-RapidAPI-Host": RAPIDAPI_HOST,
+		},
+		cache: "no-store",
+	});
+
+	const payload = await parseJsonSafely(response);
+
+	if (!response.ok) {
+		throw new Error(
+			(payload?.error as string) ||
+				(payload?.message as string) ||
+				"Could not generate download link."
+		);
+	}
+
+	const candidate =
+		payload?.downloadUrl ||
+		payload?.download_link ||
+		payload?.url ||
+		payload?.video_url ||
+		payload?.data?.download_url;
+
+	if (typeof candidate === "string" && candidate.startsWith("http")) {
+		return candidate;
+	}
+
+	console.warn(
+		"[video-downloader] Received unexpected payload shape from RapidAPI. Falling back to placeholder.",
+		payload
+	);
+
+	return PLACEHOLDER_RESPONSE_URL;
+}
+
+async function parseJsonSafely(response: Response): Promise<any> {
+	try {
+		return await response.json();
+	} catch {
+		return null;
 	}
 }
 
