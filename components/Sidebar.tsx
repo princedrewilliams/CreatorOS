@@ -1,7 +1,16 @@
 "use client";
 
 import { Button, Text, Separator } from "@whop/react/components";
-import { Cross2Icon, HomeIcon, CalendarIcon, VideoIcon, ImageIcon, FileTextIcon, BarChartIcon } from "@radix-ui/react-icons";
+import {
+	Cross2Icon,
+	HomeIcon,
+	CalendarIcon,
+	VideoIcon,
+	ImageIcon,
+	FileTextIcon,
+	BarChartIcon,
+	DownloadIcon,
+} from "@radix-ui/react-icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAppStore } from "@/lib/store";
@@ -13,6 +22,7 @@ const navItems = [
 	{ href: "/autoclip", label: "Auto Clip", icon: VideoIcon },
 	{ href: "/thumbnail", label: "Thumbnail Gen", icon: ImageIcon },
 	{ href: "/sponsors", label: "Sponsors", icon: FileTextIcon },
+	{ href: "/video-downloader", label: "Video Downloader", icon: DownloadIcon },
 	{ href: "/analytics", label: "Analytics", icon: BarChartIcon },
 ];
 

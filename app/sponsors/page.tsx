@@ -1,38 +1,100 @@
 "use client";
 
-import { Heading, Text, Card, Button, Badge, Separator, Table } from "@whop/react/components";
-import { ArrowLeftIcon, PlusIcon, FileTextIcon, SymbolIcon } from "@radix-ui/react-icons";
+import { FormEvent, ReactNode, useMemo, useState } from "react";
+import { Heading, Text, Card, Button } from "@whop/react/components";
+import { ArrowLeftIcon, PlusIcon, FileTextIcon, SymbolIcon, TrashIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useAppStore, type SponsorDeal, type SponsorStatus } from "@/lib/store";
 
-const deals = [
-	{
-		id: 1,
-		brand: "TechCorp",
-		amount: "$5,000",
-		status: "active",
-		deadline: "2024-11-15",
-		type: "Video Sponsorship",
-	},
-	{
-		id: 2,
-		brand: "BrandX",
-		amount: "$2,500",
-		status: "pending",
-		deadline: "2024-11-20",
-		type: "Product Placement",
-	},
-	{
-		id: 3,
-		brand: "StartupY",
-		amount: "$8,000",
-		status: "completed",
-		deadline: "2024-11-05",
-		type: "Multiple Videos",
-	},
-];
+const statusOptions: SponsorStatus[] = ["active", "pending", "completed"];
+
+const currencyFormatter = new Intl.NumberFormat("en-US", {
+	style: "currency",
+	currency: "USD",
+	maximumFractionDigits: 0,
+});
+
+interface DraftSponsor {
+	brand: string;
+	type: string;
+	amount: string;
+	status: SponsorStatus;
+	deadline: string;
+	notes: string;
+}
+
+const initialDraft: DraftSponsor = {
+	brand: "",
+	type: "",
+	amount: "",
+	status: "active",
+	deadline: "",
+	notes: "",
+};
+
+function FormField({ label, children, className }: { label: string; children: ReactNode; className?: string }) {
+	return (
+		<label className={`flex flex-col gap-2 ${className ?? ""}`}>
+			<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
+				{label}
+			</Text>
+			{children}
+		</label>
+	);
+}
 
 export default function SponsorsPage() {
+	const { sponsors, addSponsor, updateSponsor, removeSponsor } = useAppStore();
+	const [isFormOpen, setIsFormOpen] = useState(false);
+	const [draft, setDraft] = useState<DraftSponsor>(initialDraft);
+	const [error, setError] = useState<string | null>(null);
+
+	const stats = useMemo(() => {
+		const totalRevenue = sponsors.reduce((sum, deal) => sum + deal.amount, 0);
+		const activeCount = sponsors.filter((deal) => deal.status === "active").length;
+		const pendingValue = sponsors
+			.filter((deal) => deal.status === "pending")
+			.reduce((sum, deal) => sum + deal.amount, 0);
+
+		return {
+			totalRevenue,
+			activeCount,
+			pendingValue,
+		};
+	}, [sponsors]);
+
+	const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+
+		const amountValue = Number.parseFloat(draft.amount.replace(/[^0-9.]/g, ""));
+		if (!draft.brand || !draft.type || Number.isNaN(amountValue)) {
+			setError("Please provide a brand name, sponsorship type, and amount.");
+			return;
+		}
+
+		addSponsor({
+			brand: draft.brand,
+			type: draft.type,
+			amount: amountValue,
+			status: draft.status,
+			deadline: draft.deadline || new Date().toISOString().slice(0, 10),
+			notes: draft.notes.trim() || undefined,
+		});
+
+		setDraft(initialDraft);
+		setIsFormOpen(false);
+		setError(null);
+	};
+
+	const onUpdateDraft = <Key extends keyof DraftSponsor>(key: Key, value: DraftSponsor[Key]) => {
+		setDraft((prev) => ({ ...prev, [key]: value }));
+	};
+
+	const handleStatusChange = (deal: SponsorDeal, status: SponsorStatus) => {
+		updateSponsor(deal.id, { status });
+	};
+
 	return (
 		<div className="space-y-8">
 			<div className="flex items-center justify-between">
@@ -50,11 +112,97 @@ export default function SponsorsPage() {
 						Track deals, revenue, and invoices
 					</Text>
 				</div>
-				<Button color="green" size="3" variant="solid">
+				<Button color="green" size="3" variant="solid" onClick={() => setIsFormOpen((prev) => !prev)}>
 					<PlusIcon className="mr-2" />
-					New Deal
+					{isFormOpen ? "Close" : "New Deal"}
 				</Button>
 			</div>
+
+			{isFormOpen && (
+				<Card size="3" variant="surface" className="p-6">
+					<Heading size="5" as="h2" className="mb-4 text-gray-12 dark:text-gray-12">
+						Add a sponsor deal
+					</Heading>
+					<form className="grid grid-cols-1 gap-4 sm:grid-cols-2" onSubmit={handleSubmit}>
+	<FormField label="Brand">
+		<input
+			type="text"
+			placeholder="Acme Co."
+			value={draft.brand}
+			onChange={(event) => onUpdateDraft("brand", event.target.value)}
+			required
+			className="w-full rounded-lg border border-gray-a4 dark:border-gray-a6 bg-surface-1 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-8"
+		/>
+	</FormField>
+	<FormField label="Sponsorship type">
+		<input
+			type="text"
+			placeholder="Podcast read, integration..."
+			value={draft.type}
+			onChange={(event) => onUpdateDraft("type", event.target.value)}
+			required
+			className="w-full rounded-lg border border-gray-a4 dark:border-gray-a6 bg-surface-1 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-8"
+		/>
+	</FormField>
+	<FormField label="Amount (USD)">
+		<input
+			type="number"
+			min="0"
+			step="100"
+			value={draft.amount}
+			onChange={(event) => onUpdateDraft("amount", event.target.value)}
+			required
+			className="w-full rounded-lg border border-gray-a4 dark:border-gray-a6 bg-surface-1 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-8"
+		/>
+	</FormField>
+	<FormField label="Deadline">
+		<input
+			type="date"
+			value={draft.deadline}
+			onChange={(event) => onUpdateDraft("deadline", event.target.value)}
+			className="w-full rounded-lg border border-gray-a4 dark:border-gray-a6 bg-surface-1 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-8"
+		/>
+	</FormField>
+	<FormField label="Status">
+		<select
+			value={draft.status}
+			onChange={(event) => onUpdateDraft("status", event.target.value as SponsorStatus)}
+			className="w-full rounded-lg border border-gray-a4 dark:border-gray-a6 bg-surface-1 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-8"
+		>
+			{statusOptions.map((option) => (
+				<option key={option} value={option}>
+					{option.charAt(0).toUpperCase() + option.slice(1)}
+				</option>
+			))}
+		</select>
+	</FormField>
+	<FormField label="Internal notes" className="sm:col-span-2">
+		<textarea
+			placeholder="Key talking points, deliverables, flight dates..."
+			value={draft.notes}
+			onChange={(event) => onUpdateDraft("notes", event.target.value)}
+			rows={3}
+			className="w-full rounded-lg border border-gray-a4 dark:border-gray-a6 bg-surface-1 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-8"
+		/>
+	</FormField>
+						<div className="sm:col-span-2 flex items-center justify-between gap-3">
+							{error && (
+								<Text size="2" color="red" className="text-red-10">
+									{error}
+								</Text>
+							)}
+							<div className="ml-auto flex gap-3">
+								<Button variant="ghost" size="2" color="gray" onClick={() => setDraft(initialDraft)} type="button">
+									Clear
+								</Button>
+								<Button color="green" size="3" variant="solid" type="submit">
+									Save Deal
+								</Button>
+							</div>
+						</div>
+					</form>
+				</Card>
+			)}
 
 			{/* Revenue Stats */}
 			<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -65,10 +213,10 @@ export default function SponsorsPage() {
 						</div>
 						<div>
 							<Text size="2" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
-								Total Revenue
+								Total pipeline value
 							</Text>
 							<Heading size="5" weight="bold" className="text-gray-12 dark:text-gray-12">
-								$15,500
+								{currencyFormatter.format(stats.totalRevenue)}
 							</Heading>
 						</div>
 					</div>
@@ -80,10 +228,10 @@ export default function SponsorsPage() {
 						</div>
 						<div>
 							<Text size="2" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
-								Active Deals
+								Active deals
 							</Text>
 							<Heading size="5" weight="bold" className="text-gray-12 dark:text-gray-12">
-								2
+								{stats.activeCount}
 							</Heading>
 						</div>
 					</div>
@@ -95,10 +243,10 @@ export default function SponsorsPage() {
 						</div>
 						<div>
 							<Text size="2" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
-								Pending
+								Pending value
 							</Text>
 							<Heading size="5" weight="bold" className="text-gray-12 dark:text-gray-12">
-								$2,500
+								{currencyFormatter.format(stats.pendingValue)}
 							</Heading>
 						</div>
 					</div>
@@ -139,6 +287,11 @@ export default function SponsorsPage() {
 										Deadline
 									</Text>
 								</th>
+								<th className="text-left py-3 px-4">
+									<Text size="2" weight="bold" color="gray">
+										Notes
+									</Text>
+								</th>
 								<th className="text-right py-3 px-4">
 									<Text size="2" weight="bold" color="gray">
 										Actions
@@ -147,12 +300,12 @@ export default function SponsorsPage() {
 							</tr>
 						</thead>
 						<tbody>
-							{deals.map((deal, index) => (
+							{sponsors.map((deal, index) => (
 								<motion.tr
 									key={deal.id}
 									initial={{ opacity: 0, y: 10 }}
 									animate={{ opacity: 1, y: 0 }}
-									transition={{ delay: index * 0.1 }}
+									transition={{ delay: index * 0.05 }}
 									className="border-b border-gray-a4 dark:border-gray-a6 hover:bg-gray-a2 dark:hover:bg-gray-a3 transition-colors"
 								>
 									<td className="py-3 px-4">
@@ -167,32 +320,41 @@ export default function SponsorsPage() {
 									</td>
 									<td className="py-3 px-4">
 										<Text size="3" weight="bold" className="text-gray-12 dark:text-gray-12">
-											{deal.amount}
+											{currencyFormatter.format(deal.amount)}
 										</Text>
 									</td>
 									<td className="py-3 px-4">
-										<Badge
-											color={
-												deal.status === "active"
-													? "green"
-													: deal.status === "pending"
-														? "amber"
-														: "gray"
-											}
-											size="1"
-											variant="soft"
+										<select
+											value={deal.status}
+											onChange={(event) => handleStatusChange(deal, event.target.value as SponsorStatus)}
+											className="rounded-lg border border-gray-a4 dark:border-gray-a6 bg-surface-1 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-8"
 										>
-											{deal.status}
-										</Badge>
+											{statusOptions.map((option) => (
+												<option key={option} value={option}>
+													{option.charAt(0).toUpperCase() + option.slice(1)}
+												</option>
+											))}
+										</select>
 									</td>
 									<td className="py-3 px-4">
 										<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
-											{deal.deadline}
+											{new Date(deal.deadline).toLocaleDateString()}
+										</Text>
+									</td>
+									<td className="py-3 px-4">
+										<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11 line-clamp-2">
+											{deal.notes ?? "—"}
 										</Text>
 									</td>
 									<td className="py-3 px-4 text-right">
-										<Button variant="ghost" size="1">
-											View
+										<Button
+											variant="ghost"
+											size="1"
+											color="red"
+											onClick={() => removeSponsor(deal.id)}
+											title="Remove deal"
+										>
+											<TrashIcon />
 										</Button>
 									</td>
 								</motion.tr>
@@ -200,8 +362,12 @@ export default function SponsorsPage() {
 						</tbody>
 					</table>
 				</div>
+				{!sponsors.length && (
+					<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11 mt-4">
+						No sponsorship deals yet. Add your first partnership using the “New Deal” button.
+					</Text>
+				)}
 			</Card>
 		</div>
 	);
 }
-

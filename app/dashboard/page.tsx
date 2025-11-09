@@ -1,7 +1,15 @@
 "use client";
 
 import { Heading, Text, Card, Button, Badge } from "@whop/react/components";
-import { CalendarIcon, VideoIcon, ImageIcon, FileTextIcon, BarChartIcon, ArrowRightIcon } from "@radix-ui/react-icons";
+import {
+	CalendarIcon,
+	VideoIcon,
+	ImageIcon,
+	FileTextIcon,
+	BarChartIcon,
+	ArrowRightIcon,
+	DownloadIcon,
+} from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
@@ -26,6 +34,13 @@ const features = [
 		icon: ImageIcon,
 		href: "/thumbnail",
 		color: "violet" as const,
+	},
+	{
+		title: "Video Downloader",
+		description: "Download TikTok, IG Reels, and YouTube Shorts",
+		icon: DownloadIcon,
+		href: "/video-downloader",
+		color: "blue" as const,
 	},
 	{
 		title: "Sponsor Management",

@@ -1,7 +1,7 @@
 import { Button } from "@whop/react/components";
 import { headers } from "next/headers";
 import Link from "next/link";
-import { whopsdk } from "@/lib/whop-sdk";
+import { whopsdk, isWhopConfigured } from "@/lib/whop-sdk";
 
 export default async function ExperiencePage({
 	params,
@@ -9,6 +9,20 @@ export default async function ExperiencePage({
 	params: Promise<{ experienceId: string }>;
 }) {
 	const { experienceId } = await params;
+	if (!isWhopConfigured || !whopsdk) {
+		return (
+			<div className="flex flex-col items-center justify-center min-h-screen p-8 text-center">
+				<h1 className="text-8 font-bold text-gray-12 mb-4">Whop integration unavailable</h1>
+				<p className="text-4 text-gray-10 mb-6">
+					Add <code>WHOP_API_KEY</code> and related credentials to enable experience data previews.
+				</p>
+				<Button variant="classic" size="3" asChild>
+					<Link href="/">Go Home</Link>
+				</Button>
+			</div>
+		);
+	}
+
 	// Ensure the user is logged in on whop.
 	const { userId } = await whopsdk.verifyUserToken(await headers());
 

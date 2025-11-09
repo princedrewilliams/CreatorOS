@@ -1,9 +1,13 @@
 import { waitUntil } from "@vercel/functions";
 import type { Payment } from "@whop/sdk/resources.js";
 import type { NextRequest } from "next/server";
-import { whopsdk } from "@/lib/whop-sdk";
+import { whopsdk, isWhopConfigured } from "@/lib/whop-sdk";
 
 export async function POST(request: NextRequest): Promise<Response> {
+	if (!isWhopConfigured || !whopsdk) {
+		return new Response("Whop integration is not configured.", { status: 503 });
+	}
+
 	// Validate the webhook to ensure it's from Whop
 	const requestBodyText = await request.text();
 	const headers = Object.fromEntries(request.headers);

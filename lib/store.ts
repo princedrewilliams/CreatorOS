@@ -23,6 +23,27 @@ export interface SocialConnection {
 	userId?: string;
 }
 
+export type SponsorStatus = "active" | "pending" | "completed";
+
+export interface SponsorDeal {
+	id: string;
+	brand: string;
+	type: string;
+	amount: number;
+	status: SponsorStatus;
+	deadline: string;
+	notes?: string;
+	createdAt: string;
+	updatedAt: string;
+}
+
+const generateId = () => {
+	if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+		return crypto.randomUUID();
+	}
+	return `id-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+};
+
 interface AppState {
 	isPro: boolean;
 	setIsPro: (isPro: boolean) => void;
@@ -36,6 +57,10 @@ interface AppState {
 	socialConnections: SocialConnection[];
 	setSocialConnection: (connection: SocialConnection) => void;
 	removeSocialConnection: (platform: "youtube" | "instagram" | "tiktok") => void;
+	sponsors: SponsorDeal[];
+	addSponsor: (deal: Omit<SponsorDeal, "id" | "createdAt" | "updatedAt">) => void;
+	updateSponsor: (id: string, updates: Partial<SponsorDeal>) => void;
+	removeSponsor: (id: string) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -87,6 +112,61 @@ export const useAppStore = create<AppState>()(
 							? { platform, connected: false }
 							: conn
 					),
+				})),
+			sponsors: [
+				{
+					id: "deal-1",
+					brand: "TechCorp",
+					type: "Video Sponsorship",
+					amount: 5000,
+					status: "active",
+					deadline: "2024-11-15",
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
+				},
+				{
+					id: "deal-2",
+					brand: "BrandX",
+					type: "Product Placement",
+					amount: 2500,
+					status: "pending",
+					deadline: "2024-11-20",
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
+				},
+				{
+					id: "deal-3",
+					brand: "StartupY",
+					type: "Series Sponsorship",
+					amount: 8000,
+					status: "completed",
+					deadline: "2024-11-05",
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
+				},
+			],
+			addSponsor: (deal) =>
+				set((state) => {
+					const now = new Date().toISOString();
+					const newDeal: SponsorDeal = {
+						...deal,
+						id: generateId(),
+						createdAt: now,
+						updatedAt: now,
+					};
+					return { sponsors: [newDeal, ...state.sponsors] };
+				}),
+			updateSponsor: (id, updates) =>
+				set((state) => ({
+					sponsors: state.sponsors.map((deal) =>
+						deal.id === id
+							? { ...deal, ...updates, updatedAt: new Date().toISOString() }
+							: deal
+					),
+				})),
+			removeSponsor: (id) =>
+				set((state) => ({
+					sponsors: state.sponsors.filter((deal) => deal.id !== id),
 				})),
 		}),
 		{
