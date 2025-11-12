@@ -10,6 +10,7 @@ import { useSearchParams } from "next/navigation";
 function SocialConnectionsContent() {
 	const { socialConnections, setSocialConnection, removeSocialConnection } = useAppStore();
 	const searchParams = useSearchParams();
+	const youtubeOAuthEnabled = process.env.NEXT_PUBLIC_YOUTUBE_OAUTH_ENABLED === "true";
 
 	// Check for OAuth callback success
 	useEffect(() => {
@@ -29,7 +30,11 @@ function SocialConnectionsContent() {
 		}
 
 		if (error) {
-			alert(`OAuth error: ${error}`);
+			if (error === "youtube_oauth_disabled") {
+				alert("YouTube OAuth is disabled in this environment.");
+			} else {
+				alert(`OAuth error: ${error}`);
+			}
 			// Clean up URL
 			window.history.replaceState({}, "", window.location.pathname);
 		}
@@ -79,6 +84,8 @@ function SocialConnectionsContent() {
 				{platforms.map((platform) => {
 					const connection = socialConnections.find((c: SocialConnection) => c.platform === platform.key);
 					const isConnected = connection?.connected || false;
+					const isYoutube = platform.key === "youtube";
+					const oauthAvailable = !isYoutube || youtubeOAuthEnabled;
 
 					return (
 						<motion.div
@@ -120,7 +127,7 @@ function SocialConnectionsContent() {
 												Disconnect
 											</Button>
 										</>
-									) : (
+									) : oauthAvailable ? (
 										<Button
 											color={platform.color}
 											size="2"
@@ -130,6 +137,10 @@ function SocialConnectionsContent() {
 										>
 											Connect {platform.name}
 										</Button>
+									) : (
+										<Text size="2" color="gray" className="text-center text-gray-11 dark:text-gray-11">
+											YouTube OAuth is not available in this environment.
+										</Text>
 									)}
 								</div>
 							</Card>

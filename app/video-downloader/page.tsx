@@ -18,6 +18,10 @@ interface DownloadResult {
 	status: "idle" | "loading" | "success" | "error";
 	message?: string;
 	downloadUrl?: string;
+	formatInfo?: {
+		mime?: string;
+		hasOpus?: boolean;
+	};
 }
 
 const platforms: Array<{
@@ -99,6 +103,10 @@ export default function VideoDownloaderPage() {
 				downloadUrl?: string;
 				message?: string;
 				error?: string;
+				formatInfo?: {
+					mime?: string;
+					hasOpus?: boolean;
+				};
 			};
 
 			if (!response.ok || data.error) {
@@ -111,6 +119,7 @@ export default function VideoDownloaderPage() {
 					status: "success",
 					message: data.message ?? "Link is ready.",
 					downloadUrl: data.downloadUrl,
+					formatInfo: data.formatInfo,
 				},
 			}));
 		} catch (error) {
@@ -231,6 +240,14 @@ export default function VideoDownloaderPage() {
 									</Button>
 								)}
 							</div>
+
+							{result.status === "success" && result.formatInfo?.hasOpus && (
+								<Card size="1" variant="surface" className="p-3 bg-yellow-a2 dark:bg-yellow-a3 border-yellow-a5">
+									<Text size="2" className="text-yellow-11 dark:text-yellow-10">
+										⚠️ <strong>Audio format notice:</strong> This video uses Opus audio codec. Some players (like Windows Media Player) may not play audio. Use VLC, MPV, or modern browsers for best compatibility.
+									</Text>
+								</Card>
+							)}
 
 							{result.status !== "idle" && (
 								<Text

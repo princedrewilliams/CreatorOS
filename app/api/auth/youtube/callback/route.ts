@@ -30,10 +30,12 @@ export async function GET(request: NextRequest) {
 		const clientId = process.env.YOUTUBE_CLIENT_ID;
 		const clientSecret = process.env.YOUTUBE_CLIENT_SECRET;
 		const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/auth/youtube/callback`;
+		const oauthEnabled =
+			process.env.NEXT_PUBLIC_YOUTUBE_OAUTH_ENABLED === "true" && !!clientId && !!clientSecret;
 
-		if (!clientId || !clientSecret) {
+		if (!oauthEnabled) {
 			return NextResponse.redirect(
-				new URL("/planner?error=oauth_not_configured", request.url)
+				new URL("/planner?error=youtube_oauth_disabled", request.url)
 			);
 		}
 

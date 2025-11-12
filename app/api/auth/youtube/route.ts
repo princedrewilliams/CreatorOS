@@ -6,12 +6,14 @@ export async function GET(request: NextRequest) {
 		const clientId = process.env.YOUTUBE_CLIENT_ID;
 		const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/auth/youtube/callback`;
 		const scope = "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube";
+		const oauthEnabled =
+			process.env.NEXT_PUBLIC_YOUTUBE_OAUTH_ENABLED === "true" && !!clientId;
 
-		if (!clientId) {
-			return NextResponse.json(
-				{ error: "YouTube OAuth is not configured. Please add YOUTUBE_CLIENT_ID to your .env.local file." },
-				{ status: 500 }
-			);
+		if (!oauthEnabled) {
+			const fallback = request.headers.get("referer") || `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/planner`;
+			const redirectTarget = new URL(fallback);
+			redirectTarget.searchParams.set("error", "youtube_oauth_disabled");
+			return NextResponse.redirect(redirectTarget);
 		}
 
 		// Generate state for CSRF protection
