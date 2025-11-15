@@ -55,9 +55,35 @@ function SocialConnectionsContent() {
 	}, [searchParams, setSocialConnection]);
 
 	const handleConnect = async (platform: "youtube" | "instagram" | "tiktok") => {
-		// Always use OAuth redirect flow (works on both HTTP and HTTPS)
-		// Facebook SDK is only used in production with proper HTTPS setup
-		window.location.href = `/api/auth/${platform}`;
+		// For Instagram, handle iframe restrictions by redirecting top-level window
+		// Instagram blocks OAuth in iframes for security
+		if (platform === "instagram") {
+			try {
+				// Try to redirect the top-level window (works if not in iframe)
+				if (window.top && window.top !== window.self) {
+					// We're in an iframe - try to redirect parent
+					window.top.location.href = `/api/auth/${platform}`;
+				} else {
+					// Not in iframe, normal redirect
+					window.location.href = `/api/auth/${platform}`;
+				}
+			} catch (error) {
+				// If we can't access top window (cross-origin), open in new window
+				console.warn("Cannot redirect top window, opening in new window:", error);
+				const width = 600;
+				const height = 700;
+				const left = (window.screen.width - width) / 2;
+				const top = (window.screen.height - height) / 2;
+				window.open(
+					`/api/auth/${platform}`,
+					"Instagram OAuth",
+					`width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+				);
+			}
+		} else {
+			// For other platforms, use normal redirect
+			window.location.href = `/api/auth/${platform}`;
+		}
 	};
 
 	const handleInstagramLogin = () => {
