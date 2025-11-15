@@ -70,43 +70,12 @@ export async function GET(request: NextRequest) {
 		instagramOAuthUrl.searchParams.set("state", state);
 		
 		const oauthUrl = instagramOAuthUrl.toString();
-		const escapedOAuthUrl = oauthUrl.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-		const jsonOAuthUrl = JSON.stringify(oauthUrl);
 		
-		// Return HTML that redirects top-level window to avoid iframe blocking
-		// Instagram blocks OAuth in iframes, so we need to redirect the parent window
-		const html = `<!DOCTYPE html>
-<html>
-<head>
-	<meta charset="utf-8">
-	<title>Redirecting to Instagram...</title>
-	<script>
-		// Redirect top-level window to avoid iframe restrictions
-		try {
-			if (window.top !== window.self) {
-				// We're in an iframe - redirect parent window
-				window.top.location.href = ${jsonOAuthUrl};
-			} else {
-				// Not in iframe - normal redirect
-				window.location.href = ${jsonOAuthUrl};
-			}
-		} catch (e) {
-			// Cross-origin iframe - use meta refresh as fallback
-			document.write('<meta http-equiv="refresh" content="0;url=${escapedOAuthUrl}">');
-		}
-	</script>
-</head>
-<body>
-	<p>Redirecting to Instagram...</p>
-	<p>If you are not redirected, <a href="${escapedOAuthUrl}">click here</a>.</p>
-</body>
-</html>`;
-		
-		const response = new NextResponse(html, {
-			status: 200,
-			headers: {
-				"Content-Type": "text/html; charset=utf-8",
-			},
+		// Use a direct HTTP redirect instead of HTML page
+		// This avoids "temporary redirect" messages and works better
+		// For iframe contexts, the client-side code will handle opening a new window
+		const response = NextResponse.redirect(oauthUrl, {
+			status: 302,
 		});
 		
 		response.cookies.set("instagram_oauth_state", state, {

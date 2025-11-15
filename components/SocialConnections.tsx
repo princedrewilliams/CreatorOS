@@ -59,21 +59,31 @@ function SocialConnectionsContent() {
 	}, [searchParams, setSocialConnection]);
 
 	const handleConnect = async (platform: "youtube" | "instagram" | "tiktok") => {
-		// For Instagram, handle iframe restrictions by redirecting top-level window
-		// Instagram blocks OAuth in iframes for security
+		// For Instagram, handle iframe restrictions
+		// Instagram blocks OAuth in iframes, so we need special handling
 		if (platform === "instagram") {
 			try {
-				// Try to redirect the top-level window (works if not in iframe)
-				if (window.top && window.top !== window.self) {
-					// We're in an iframe - try to redirect parent
-					window.top.location.href = `/api/auth/${platform}`;
+				// Check if we're in an iframe
+				const isInIframe = window.self !== window.top;
+				
+				if (isInIframe) {
+					// In iframe - open in new window to avoid blocking
+					const width = 600;
+					const height = 700;
+					const left = (window.screen.width - width) / 2;
+					const top = (window.screen.height - height) / 2;
+					window.open(
+						`/api/auth/${platform}`,
+						"Instagram OAuth",
+						`width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+					);
 				} else {
-					// Not in iframe, normal redirect
+					// Not in iframe - use direct redirect (will use HTTP 302)
 					window.location.href = `/api/auth/${platform}`;
 				}
 			} catch (error) {
-				// If we can't access top window (cross-origin), open in new window
-				console.warn("Cannot redirect top window, opening in new window:", error);
+				// Fallback: open in new window if we can't determine iframe status
+				console.warn("Cannot determine iframe status, opening in new window:", error);
 				const width = 600;
 				const height = 700;
 				const left = (window.screen.width - width) / 2;
