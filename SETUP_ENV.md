@@ -17,6 +17,32 @@ REPLICATE_API_TOKEN=your_replicate_api_token_here
 YOUTUBE_CLIENT_ID=your_youtube_client_id
 YOUTUBE_CLIENT_SECRET=your_youtube_client_secret
 YOUTUBE_API_KEY=your_youtube_api_key
+
+# Instagram OAuth & API access
+INSTAGRAM_CLIENT_ID=your_instagram_client_id
+INSTAGRAM_CLIENT_SECRET=your_instagram_client_secret
+INSTAGRAM_ACCESS_TOKEN=your_instagram_access_token
+NEXT_PUBLIC_INSTAGRAM_OAUTH_ENABLED=true
+
+# App URL (REQUIRED for Instagram OAuth redirect URI)
+# Set this to your production domain (e.g., https://your-app.vercel.app)
+# For localhost, this can be omitted (will use request origin)
+NEXT_PUBLIC_APP_URL=https://your-production-domain.com
+
+# Facebook SDK (for Instagram OAuth)
+NEXT_PUBLIC_FACEBOOK_APP_ID=824615367407370
+
+# TikTok Analytics (RapidAPI)
+RAPIDAPI_TIKTOK_ANALYTICS_KEY=your_rapidapi_tiktok_key
+RAPIDAPI_TIKTOK_ANALYTICS_HOST=tikapi5.p.rapidapi.com
+
+# Video Downloader APIs (RapidAPI)
+RAPIDAPI_TIKTOK_KEY=your_rapidapi_tiktok_key
+RAPIDAPI_TIKTOK_HOST=tiktok-video-no-watermark2.p.rapidapi.com
+RAPIDAPI_INSTAGRAM_KEY=your_rapidapi_instagram_key
+RAPIDAPI_INSTAGRAM_HOST=instagram120.p.rapidapi.com
+RAPIDAPI_YOUTUBE_KEY=your_rapidapi_youtube_key
+RAPIDAPI_YOUTUBE_HOST=youtube-video-fast-downloader-24-7.p.rapidapi.com
 ```
 
 ## Setup Instructions

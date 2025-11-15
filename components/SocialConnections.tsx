@@ -11,6 +11,7 @@ function SocialConnectionsContent() {
 	const { socialConnections, setSocialConnection, removeSocialConnection } = useAppStore();
 	const searchParams = useSearchParams();
 	const youtubeOAuthEnabled = process.env.NEXT_PUBLIC_YOUTUBE_OAUTH_ENABLED === "true";
+	const instagramOAuthEnabled = process.env.NEXT_PUBLIC_INSTAGRAM_OAUTH_ENABLED === "true";
 
 	// Check for OAuth callback success
 	useEffect(() => {
@@ -32,6 +33,19 @@ function SocialConnectionsContent() {
 		if (error) {
 			if (error === "youtube_oauth_disabled") {
 				alert("YouTube OAuth is disabled in this environment.");
+			} else if (error === "instagram_oauth_disabled") {
+				// Instagram can work with access token, so silently mark as connected
+				setSocialConnection({
+					platform: "instagram",
+					connected: true,
+					username: "Instagram User",
+				});
+			} else if (error === "invalid_app_id") {
+				alert("Invalid Instagram App ID. Please check your environment variables and ensure you're using the Instagram App ID from Meta App Dashboard (not Facebook App ID).");
+			} else if (error === "oauth_init_failed") {
+				alert("Failed to initiate Instagram OAuth. Please check:\n1. Instagram product is added to your app\n2. Business Login is configured\n3. Redirect URI is whitelisted in Instagram App settings");
+			} else if (error === "invalid_platform_app" || error.includes("platform app")) {
+				alert("Invalid platform app error. This usually means:\n1. Instagram product is not added to your Meta App\n2. Business Login is not configured\n3. Wrong Instagram App ID\n\nPlease check your Meta App Dashboard configuration.");
 			} else {
 				alert(`OAuth error: ${error}`);
 			}
@@ -41,8 +55,74 @@ function SocialConnectionsContent() {
 	}, [searchParams, setSocialConnection]);
 
 	const handleConnect = async (platform: "youtube" | "instagram" | "tiktok") => {
-		// Redirect to OAuth flow
+		// Always use OAuth redirect flow (works on both HTTP and HTTPS)
+		// Facebook SDK is only used in production with proper HTTPS setup
 		window.location.href = `/api/auth/${platform}`;
+	};
+
+	const handleInstagramLogin = () => {
+		if (typeof window === "undefined" || !window.FB) {
+			// Fallback to OAuth redirect if SDK not loaded
+			window.location.href = `/api/auth/instagram`;
+			return;
+		}
+
+		// Only use Facebook SDK on HTTPS
+		if (window.location.protocol !== "https:") {
+			window.location.href = `/api/auth/instagram`;
+			return;
+		}
+
+		// Check login status first
+		window.FB.getLoginStatus((response: any) => {
+			if (response.status === "connected") {
+				// Already logged in, exchange for Instagram token
+				exchangeFacebookTokenForInstagram(response.authResponse.accessToken);
+			} else {
+				// Need to login
+				window.FB.login(
+					(response: any) => {
+						if (response.authResponse) {
+							exchangeFacebookTokenForInstagram(response.authResponse.accessToken);
+						} else {
+							alert("Facebook login was cancelled or failed.");
+						}
+					},
+					{
+						scope: "instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement",
+					}
+				);
+			}
+		}, true); // Force roundtrip to server
+	};
+
+	const exchangeFacebookTokenForInstagram = async (facebookAccessToken: string) => {
+		try {
+			// Exchange Facebook token for Instagram access token via our API
+			const response = await fetch("/api/auth/instagram/facebook", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ accessToken: facebookAccessToken }),
+			});
+
+			const data = await response.json();
+
+			if (response.ok && data.success) {
+				setSocialConnection({
+					platform: "instagram",
+					connected: true,
+					username: data.username || "Instagram User",
+					accessToken: data.instagramAccessToken,
+				});
+			} else {
+				alert(data.error || "Failed to connect Instagram account.");
+			}
+		} catch (error) {
+			console.error("Error exchanging Facebook token:", error);
+			alert("Failed to connect Instagram account. Please try again.");
+		}
 	};
 
 	const handleDisconnect = (platform: "youtube" | "instagram" | "tiktok") => {
@@ -85,7 +165,12 @@ function SocialConnectionsContent() {
 					const connection = socialConnections.find((c: SocialConnection) => c.platform === platform.key);
 					const isConnected = connection?.connected || false;
 					const isYoutube = platform.key === "youtube";
-					const oauthAvailable = !isYoutube || youtubeOAuthEnabled;
+					const isInstagram = platform.key === "instagram";
+					// Check OAuth availability
+					// Instagram always available since we can use access token for analytics
+					const oauthAvailable = isYoutube 
+						? youtubeOAuthEnabled 
+						: true; // Instagram and TikTok always available
 
 					return (
 						<motion.div
@@ -139,7 +224,7 @@ function SocialConnectionsContent() {
 										</Button>
 									) : (
 										<Text size="2" color="gray" className="text-center text-gray-11 dark:text-gray-11">
-											YouTube OAuth is not available in this environment.
+											{platform.name} OAuth is not available in this environment.
 										</Text>
 									)}
 								</div>

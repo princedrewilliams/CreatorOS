@@ -2,6 +2,69 @@ import { NextRequest, NextResponse } from "next/server";
 
 const PLACEHOLDER_RESPONSE_URL = "https://samplelib.com/lib/preview/mp4/sample-5s.mp4";
 
+// Type definitions for API responses
+interface TikTokApiResponse {
+	data?: {
+		play?: string;
+		hdplay?: string;
+		wmplay?: string;
+	};
+	play?: string;
+	hdplay?: string;
+	message?: string;
+	error?: string;
+}
+
+interface InstagramUrlItem {
+	url?: string;
+	videoUrl?: string;
+	video_url?: string;
+	downloadUrl?: string;
+	video?: string;
+}
+
+interface InstagramApiResponse {
+	urls?: InstagramUrlItem[];
+	data?: {
+		videoUrl?: string;
+		video_url?: string;
+		downloadUrl?: string;
+		items?: Array<{
+			video_versions?: Array<{ url?: string }>;
+			videoUrl?: string;
+		}>;
+	};
+	items?: Array<{
+		video_versions?: Array<{ url?: string }>;
+		videoUrl?: string;
+	}>;
+	videoUrl?: string;
+	video_url?: string;
+	downloadUrl?: string;
+	message?: string;
+	error?: string;
+}
+
+interface YouTubeApiResponse {
+	file?: string;
+	reserved_file?: string;
+	mime?: string;
+	data?: {
+		file?: string;
+		reserved_file?: string;
+		url?: string;
+		downloadUrl?: string;
+		videoUrl?: string;
+		mime?: string;
+	};
+	url?: string;
+	downloadUrl?: string;
+	videoUrl?: string;
+	link?: string;
+	message?: string;
+	error?: string;
+}
+
 const RAPIDAPI_TIKTOK_HOST =
 	process.env.RAPIDAPI_TIKTOK_HOST || "tiktok-video-no-watermark2.p.rapidapi.com";
 const RAPIDAPI_TIKTOK_KEY = process.env.RAPIDAPI_TIKTOK_KEY;
@@ -114,7 +177,7 @@ async function resolveTikTokDownload(
 		cache: "no-store",
 	});
 
-	const payload = await parseJsonSafely(response);
+	const payload = (await parseJsonSafely(response)) as TikTokApiResponse | null;
 
 	if (!response.ok) {
 		const errorMsg = payload?.message || payload?.error || `RapidAPI returned ${response.status}`;
@@ -126,12 +189,16 @@ async function resolveTikTokDownload(
 		throw new Error(`Failed to download TikTok video: ${errorMsg}`);
 	}
 
+	if (!payload) {
+		throw new Error("TikTok API returned an invalid response.");
+	}
+
 	const candidate =
-		payload?.data?.play ||
-		payload?.data?.hdplay ||
-		payload?.data?.wmplay ||
-		payload?.play ||
-		payload?.hdplay;
+		payload.data?.play ||
+		payload.data?.hdplay ||
+		payload.data?.wmplay ||
+		payload.play ||
+		payload.hdplay;
 
 	if (typeof candidate === "string" && candidate.startsWith("http")) {
 		return { downloadUrl: candidate };
@@ -160,9 +227,10 @@ async function resolveInstagramDownload(
 		cache: "no-store",
 	});
 
-	let payload = await parseJsonSafely(response);
+	let payloadRaw = await parseJsonSafely(response);
 
 	if (!response.ok) {
+		const payload = payloadRaw as InstagramApiResponse | null;
 		const errorMsg = payload?.message || payload?.error || `RapidAPI returned ${response.status}`;
 		console.error("[video-downloader] Instagram RapidAPI error", {
 			status: response.status,
@@ -173,15 +241,18 @@ async function resolveInstagramDownload(
 	}
 
 	// Handle case where response might be an array
-	if (Array.isArray(payload) && payload.length > 0) {
-		payload = payload[0];
+	let payload: InstagramApiResponse;
+	if (Array.isArray(payloadRaw) && payloadRaw.length > 0) {
+		payload = payloadRaw[0] as InstagramApiResponse;
+	} else {
+		payload = (payloadRaw as InstagramApiResponse) || {};
 	}
 
 	// Try various possible response formats from the /api/instagram/links endpoint
 	// The response has a urls array, check that first
 	let candidate: string | undefined;
 	
-	if (Array.isArray(payload?.urls) && payload.urls.length > 0) {
+	if (Array.isArray(payload.urls) && payload.urls.length > 0) {
 		const firstUrl = payload.urls[0];
 		// Try common field names for the video URL
 		candidate = firstUrl?.url || firstUrl?.videoUrl || firstUrl?.video_url || firstUrl?.downloadUrl || firstUrl?.video;
@@ -195,16 +266,16 @@ async function resolveInstagramDownload(
 	// Fallback to other possible locations
 	if (!candidate) {
 		candidate =
-			payload?.data?.videoUrl ||
-			payload?.data?.video_url ||
-			payload?.data?.downloadUrl ||
-			payload?.data?.items?.[0]?.video_versions?.[0]?.url ||
-			payload?.data?.items?.[0]?.videoUrl ||
-			payload?.videoUrl ||
-			payload?.video_url ||
-			payload?.downloadUrl ||
-			payload?.items?.[0]?.video_versions?.[0]?.url ||
-			payload?.items?.[0]?.videoUrl;
+			payload.data?.videoUrl ||
+			payload.data?.video_url ||
+			payload.data?.downloadUrl ||
+			payload.data?.items?.[0]?.video_versions?.[0]?.url ||
+			payload.data?.items?.[0]?.videoUrl ||
+			payload.videoUrl ||
+			payload.video_url ||
+			payload.downloadUrl ||
+			payload.items?.[0]?.video_versions?.[0]?.url ||
+			payload.items?.[0]?.videoUrl;
 	}
 
 	if (typeof candidate === "string" && candidate.startsWith("http")) {
@@ -242,7 +313,7 @@ async function resolveYouTubeDownload(
 		cache: "no-store",
 	});
 
-	const payload = await parseJsonSafely(response);
+	const payload = (await parseJsonSafely(response)) as YouTubeApiResponse | null;
 
 	if (!response.ok) {
 		const errorMsg = payload?.message || payload?.error || `RapidAPI returned ${response.status}`;
@@ -254,24 +325,28 @@ async function resolveYouTubeDownload(
 		throw new Error(`Failed to download YouTube video: ${errorMsg}`);
 	}
 
+	if (!payload) {
+		throw new Error("YouTube API returned an invalid response.");
+	}
+
 	// Try various possible response formats
 	// The API returns 'file' and 'reserved_file' fields with the download URLs
 	const candidate =
-		payload?.file ||
-		payload?.reserved_file ||
-		payload?.data?.file ||
-		payload?.data?.reserved_file ||
-		payload?.data?.url ||
-		payload?.data?.downloadUrl ||
-		payload?.data?.videoUrl ||
-		payload?.url ||
-		payload?.downloadUrl ||
-		payload?.videoUrl ||
-		payload?.link;
+		payload.file ||
+		payload.reserved_file ||
+		payload.data?.file ||
+		payload.data?.reserved_file ||
+		payload.data?.url ||
+		payload.data?.downloadUrl ||
+		payload.data?.videoUrl ||
+		payload.url ||
+		payload.downloadUrl ||
+		payload.videoUrl ||
+		payload.link;
 
 	if (typeof candidate === "string" && candidate.startsWith("http")) {
 		// Check for Opus audio in the mime type or other indicators
-		const mime = payload?.mime || payload?.data?.mime;
+		const mime = payload.mime || payload.data?.mime;
 		let hasOpus = false;
 		
 		if (mime && typeof mime === "string") {
@@ -337,7 +412,7 @@ function extractYouTubeVideoId(url: string): string | null {
 	}
 }
 
-async function parseJsonSafely(response: Response): Promise<any> {
+async function parseJsonSafely(response: Response): Promise<unknown> {
 	try {
 		return await response.json();
 	} catch {

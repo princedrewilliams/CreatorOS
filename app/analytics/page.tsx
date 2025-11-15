@@ -54,8 +54,21 @@ export default function AnalyticsPage() {
 		setError(null);
 
 		try {
-			const query = connectedPlatforms.map((platform) => `platform=${platform}`).join("&");
-			const response = await fetch(`/api/analytics?${query}`, { cache: "no-store" });
+			// Get TikTok sec_uid from connection if available
+			const tiktokConnection = socialConnections.find(
+				(conn) => conn.platform === "tiktok" && conn.connected
+			);
+			const tiktokSecUid = tiktokConnection?.userId; // Store sec_uid in userId field
+			
+			const queryParams = new URLSearchParams();
+			connectedPlatforms.forEach((platform) => {
+				queryParams.append("platform", platform);
+			});
+			if (tiktokSecUid) {
+				queryParams.set("tiktok_sec_uid", tiktokSecUid);
+			}
+			
+			const response = await fetch(`/api/analytics?${queryParams.toString()}`, { cache: "no-store" });
 
 			if (!response.ok) {
 				throw new Error("Failed to load analytics data");
@@ -77,7 +90,7 @@ export default function AnalyticsPage() {
 		} finally {
 			setLoading(false);
 		}
-	}, [connectedPlatforms]);
+	}, [connectedPlatforms, socialConnections]);
 
 	useEffect(() => {
 		void fetchAnalytics();

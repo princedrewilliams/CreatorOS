@@ -95,25 +95,27 @@ function PlannerContent() {
 		}
 	};
 
-	const getPlatformColor = (platform: string) => {
+	const getPlatformColor = (platform: string): "red" | "purple" | "cyan" | "gray" | "blue" => {
 		switch (platform) {
 			case "youtube":
 				return "red";
 			case "instagram":
 				return "purple";
 			case "tiktok":
-				return "gray";
+				return "cyan";
 			default:
 				return "blue";
 		}
 	};
 
-	const getStatusColor = (status: string) => {
+	const getStatusColor = (status: string): "blue" | "yellow" | "green" | "red" | "gray" => {
 		switch (status) {
+			case "planned":
+				return "blue";
+			case "scheduled":
+				return "yellow";
 			case "posted":
 				return "green";
-			case "scheduled":
-				return "blue";
 			case "cancelled":
 				return "red";
 			default:
@@ -252,7 +254,7 @@ function PlannerContent() {
 														{task.platforms.map((platform: "youtube" | "instagram" | "tiktok") => (
 															<Badge
 																key={platform}
-																color={getPlatformColor(platform) as any}
+																color={getPlatformColor(platform)}
 																size="1"
 																variant="soft"
 																className="capitalize"
@@ -261,7 +263,7 @@ function PlannerContent() {
 															</Badge>
 														))}
 														<Badge
-															color={getStatusColor(task.status) as any}
+															color={getStatusColor(task.status)}
 															size="1"
 															variant="soft"
 															className="capitalize"

@@ -29,7 +29,11 @@ export async function GET(request: NextRequest) {
 
 		const clientId = process.env.INSTAGRAM_CLIENT_ID;
 		const clientSecret = process.env.INSTAGRAM_CLIENT_SECRET;
-		const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/auth/instagram/callback`;
+		// Use the same base URL logic as the authorization route
+		// The redirect URI MUST match exactly what was sent in the authorization request
+		const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+		const cleanBaseUrl = baseUrl.replace(/\/$/, "");
+		const redirectUri = `${cleanBaseUrl}/api/auth/instagram/callback`;
 
 		if (!clientId || !clientSecret) {
 			return NextResponse.redirect(
@@ -37,7 +41,9 @@ export async function GET(request: NextRequest) {
 			);
 		}
 
-		// Exchange code for tokens
+		// Exchange authorization code for short-lived Instagram access token
+		// Endpoint: https://api.instagram.com/oauth/access_token
+		// Response format: { "data": [{ "access_token": "...", "user_id": "...", "permissions": "..." }] }
 		const tokenResponse = await fetch("https://api.instagram.com/oauth/access_token", {
 			method: "POST",
 			headers: {
@@ -53,36 +59,106 @@ export async function GET(request: NextRequest) {
 		});
 
 		if (!tokenResponse.ok) {
-			const errorData = await tokenResponse.json();
-			console.error("Token exchange error:", errorData);
+			const errorText = await tokenResponse.text();
+			let errorData;
+			try {
+				errorData = JSON.parse(errorText);
+			} catch {
+				errorData = { error_message: errorText };
+			}
+			
+			console.error("[Instagram OAuth] Token exchange error:", {
+				status: tokenResponse.status,
+				statusText: tokenResponse.statusText,
+				error: errorData,
+			});
+			
+			// Check for specific error types
+			const errorMessage = errorData.error_message || errorData.error || "";
+			if (errorMessage.includes("platform app") || errorMessage.includes("Invalid platform")) {
+				return NextResponse.redirect(
+					new URL("/planner?error=invalid_platform_app", request.url)
+				);
+			}
+			
 			return NextResponse.redirect(
 				new URL("/planner?error=token_exchange_failed", request.url)
 			);
 		}
 
-		const tokens = await tokenResponse.json();
+		const tokenData = (await tokenResponse.json()) as {
+			data?: Array<{
+				access_token: string;
+				user_id: string;
+				permissions?: string;
+			}>;
+			error_type?: string;
+			code?: number;
+			error_message?: string;
+		};
 
-		// Get user info
-		let username = "Instagram User";
-		if (tokens.user_id) {
-			const userResponse = await fetch(
-				`https://graph.instagram.com/${tokens.user_id}?fields=username&access_token=${tokens.access_token}`
+		// Instagram API returns data in a "data" array
+		const tokenInfo = tokenData.data?.[0];
+		const shortLivedToken = tokenInfo?.access_token;
+		const userId = tokenInfo?.user_id;
+
+		if (!shortLivedToken) {
+			console.error("No access token in response:", tokenData);
+			return NextResponse.redirect(
+				new URL("/planner?error=no_access_token", request.url)
 			);
-			if (userResponse.ok) {
-				const userInfo = await userResponse.json();
-				username = userInfo.username || username;
+		}
+
+		// Exchange short-lived token for long-lived token (valid for 60 days)
+		// Endpoint: https://graph.instagram.com/access_token
+		const longLivedTokenResponse = await fetch(
+			`https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret=${clientSecret}&access_token=${shortLivedToken}`,
+			{ method: "GET" }
+		);
+
+		let instagramAccessToken: string | null = shortLivedToken; // Fallback to short-lived if exchange fails
+		let username = "Instagram User";
+
+		if (longLivedTokenResponse.ok) {
+			const longLivedData = (await longLivedTokenResponse.json()) as {
+				access_token?: string;
+				token_type?: string;
+				expires_in?: number;
+			};
+			instagramAccessToken = longLivedData.access_token || shortLivedToken;
+		} else {
+			console.warn("Failed to exchange for long-lived token, using short-lived token");
+		}
+
+		// Get Instagram account info using the access token
+		if (userId && instagramAccessToken) {
+			try {
+				const accountInfoResponse = await fetch(
+					`https://graph.instagram.com/${userId}?fields=username,account_type&access_token=${instagramAccessToken}`
+				);
+				if (accountInfoResponse.ok) {
+					const accountInfo = (await accountInfoResponse.json()) as {
+						username?: string;
+						account_type?: string;
+					};
+					username = accountInfo.username || username;
+				}
+			} catch (error) {
+				console.warn("Failed to fetch Instagram account info:", error);
 			}
 		}
 
 		// Store tokens
 		const response = NextResponse.redirect(new URL("/planner?connected=instagram", request.url));
 		
-		response.cookies.set("instagram_access_token", tokens.access_token, {
-			httpOnly: true,
-			secure: process.env.NODE_ENV === "production",
-			sameSite: "lax",
-			maxAge: 60 * 60 * 24 * 60, // 60 days (Instagram token lifetime)
-		});
+		if (instagramAccessToken) {
+			response.cookies.set("instagram_access_token", instagramAccessToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "lax",
+				maxAge: 60 * 60 * 24 * 60, // 60 days
+			});
+		}
 
 		// Clear state cookie
 		response.cookies.delete("instagram_oauth_state");

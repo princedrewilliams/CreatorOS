@@ -78,9 +78,15 @@ export async function POST(request: NextRequest) {
 			} else if (Array.isArray(output) && output.length > 0) {
 				// Handle array output
 				const firstOutput = output[0];
-				imageUrl = typeof firstOutput === "string" ? firstOutput : (firstOutput as any).url || (firstOutput as any);
+				if (typeof firstOutput === "string") {
+					imageUrl = firstOutput;
+				} else if (firstOutput && typeof firstOutput === "object" && "url" in firstOutput) {
+					imageUrl = (firstOutput as { url: string }).url;
+				} else {
+					throw new Error("Unexpected output format from Replicate");
+				}
 			} else if (output && typeof output === "object" && "url" in output) {
-				imageUrl = (output as any).url;
+				imageUrl = (output as { url: string }).url;
 			} else {
 				throw new Error("Unexpected output format from Replicate");
 			}

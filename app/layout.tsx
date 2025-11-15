@@ -5,6 +5,7 @@ import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { Sidebar } from "@/components/Sidebar";
 import { Footer } from "@/components/Footer";
+import { FacebookSDK } from "@/components/FacebookSDK";
 
 const inter = Inter({
 	subsets: ["latin"],
@@ -24,6 +25,7 @@ export default function RootLayout({
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<body className={`${inter.variable} antialiased`}>
+				<FacebookSDK />
 				<WhopApp accentColor="blue" appearance="inherit">
 					<div className="flex min-h-screen flex-col">
 						<Navbar />
