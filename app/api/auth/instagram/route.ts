@@ -13,6 +13,16 @@ export async function GET(request: NextRequest) {
 		const cleanBaseUrl = baseUrl.replace(/\/$/, "");
 		const redirectUri = `${cleanBaseUrl}/api/auth/instagram/callback`;
 		
+		// Validate redirect URI format
+		try {
+			new URL(redirectUri); // This will throw if invalid
+		} catch (error) {
+			console.error("[Instagram OAuth] Invalid redirect URI:", redirectUri, error);
+			return NextResponse.redirect(
+				new URL("/planner?error=invalid_redirect_uri", request.url)
+			);
+		}
+		
 		// Check if Instagram OAuth is enabled
 		const isOAuthEnabled = process.env.NEXT_PUBLIC_INSTAGRAM_OAUTH_ENABLED === "true";
 		
@@ -25,17 +35,20 @@ export async function GET(request: NextRequest) {
 
 		// Validate client ID format (Instagram App IDs are numeric)
 		if (!/^\d+$/.test(clientId)) {
-			console.error("Invalid Instagram App ID format:", clientId);
+			console.error("[Instagram OAuth] Invalid Instagram App ID format:", clientId);
 			return NextResponse.redirect(
 				new URL("/planner?error=invalid_app_id", request.url)
 			);
 		}
 
-		// Log the OAuth request for debugging
+		// Log the OAuth request for debugging - this helps identify redirect URI mismatches
 		console.log("[Instagram OAuth] Initiating OAuth with:", {
 			clientId,
 			redirectUri,
 			baseUrl,
+			cleanBaseUrl,
+			requestOrigin: request.nextUrl.origin,
+			hasNextPublicAppUrl: !!process.env.NEXT_PUBLIC_APP_URL,
 		});
 
 		// Generate state for CSRF protection

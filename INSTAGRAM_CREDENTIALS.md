@@ -53,8 +53,22 @@ The redirect URI **MUST match exactly** what's configured in your Instagram App 
 - Make sure there's NO trailing slash after `/callback`
 - Use `https://` for production, `http://` for localhost
 - The domain must match exactly (including subdomains)
+- **Check server logs** - When you try to connect, the server will log the exact redirect URI being used. Compare this with what's in your Instagram App Dashboard.
+
+**Common Issues:**
+- ❌ `https://your-domain.com/api/auth/instagram/callback/` (trailing slash)
+- ✅ `https://your-domain.com/api/auth/instagram/callback` (no trailing slash)
+- ❌ `http://your-domain.com/api/auth/instagram/callback` (http instead of https in production)
+- ✅ `https://your-domain.com/api/auth/instagram/callback` (https for production)
 
 **Without these redirect URIs whitelisted, Instagram will reject the connection with "Invalid redirect_uri" error!**
+
+### How to Find Your Current Redirect URI
+
+1. Check your Vercel/server logs when you click "Connect Instagram"
+2. Look for a log line: `[Instagram OAuth] Initiating OAuth with:`
+3. The `redirectUri` value shown is what needs to be in your Instagram App Dashboard
+4. Copy that exact value and add it to OAuth redirect URIs in the App Dashboard
 
 ### Get Your Instagram App ID and Secret:
 

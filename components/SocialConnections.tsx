@@ -42,10 +42,14 @@ function SocialConnectionsContent() {
 				});
 			} else if (error === "invalid_app_id") {
 				alert("Invalid Instagram App ID. Please check your environment variables and ensure you're using the Instagram App ID from Meta App Dashboard (not Facebook App ID).");
+			} else if (error === "invalid_redirect_uri") {
+				alert("Invalid redirect URI. Please check:\n1. NEXT_PUBLIC_APP_URL is set correctly in environment variables\n2. Redirect URI matches EXACTLY what's in Instagram App Dashboard\n3. No trailing slashes in the redirect URI\n\nCheck server logs for the exact redirect URI being used.");
 			} else if (error === "oauth_init_failed") {
 				alert("Failed to initiate Instagram OAuth. Please check:\n1. Instagram product is added to your app\n2. Business Login is configured\n3. Redirect URI is whitelisted in Instagram App settings");
 			} else if (error === "invalid_platform_app" || error.includes("platform app")) {
 				alert("Invalid platform app error. This usually means:\n1. Instagram product is not added to your Meta App\n2. Business Login is not configured\n3. Wrong Instagram App ID\n\nPlease check your Meta App Dashboard configuration.");
+			} else if (error.includes("redirect_uri") || error.includes("Invalid redirect")) {
+				alert("Redirect URI mismatch! The redirect URI must match EXACTLY what's configured in Instagram App Dashboard.\n\nCheck:\n1. Server logs for the redirect URI being used\n2. Instagram App Dashboard → Business login settings → OAuth redirect URIs\n3. Make sure NEXT_PUBLIC_APP_URL is set correctly");
 			} else {
 				alert(`OAuth error: ${error}`);
 			}
