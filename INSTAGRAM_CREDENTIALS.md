@@ -17,6 +17,9 @@ NEXT_PUBLIC_APP_URL=https://creator-6osornyt9-andre-williams-projects-15c75ef1.v
 
 # Instagram Access Token (for Analytics - optional, can be obtained via OAuth)
 INSTAGRAM_ACCESS_TOKEN=your_instagram_access_token
+
+# Instagram Account ID (for Analytics - optional, specific account to fetch data for)
+INSTAGRAM_ACCOUNT_ID=17841471184395059
 ```
 
 ## Instagram Business Login Setup
