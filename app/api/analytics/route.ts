@@ -5,6 +5,7 @@ const RAPIDAPI_TIKTOK_ANALYTICS_KEY = process.env.RAPIDAPI_TIKTOK_ANALYTICS_KEY;
 const RAPIDAPI_TIKTOK_ANALYTICS_HOST = process.env.RAPIDAPI_TIKTOK_ANALYTICS_HOST || "tikapi5.p.rapidapi.com";
 
 const INSTAGRAM_ACCESS_TOKEN = process.env.INSTAGRAM_ACCESS_TOKEN;
+const INSTAGRAM_ACCOUNT_ID = process.env.INSTAGRAM_ACCOUNT_ID; // Optional: specific account ID to use
 
 // Type definitions for API responses
 interface TikTokVideoStats {
@@ -190,8 +191,8 @@ async function fetchInstagramAnalytics(userId?: string): Promise<PlatformAnalyti
 	}
 
 	try {
-		// Use the provided user ID or fetch current user
-		const targetUserId = userId || "me";
+		// Use the provided user ID, environment variable account ID, or "me" as fallback
+		const targetUserId = userId || INSTAGRAM_ACCOUNT_ID || "me";
 		
 		// Fetch user profile info
 		const profileResponse = await fetch(
@@ -365,14 +366,16 @@ export async function GET(request: NextRequest) {
 						};
 					}
 					
-					// Fetch real Instagram data if access token is available
-					if (platform === "instagram" && INSTAGRAM_ACCESS_TOKEN) {
-						const realData = await fetchInstagramAnalytics();
-						return {
-							platform,
-							data: realData || analyticsMocks[platform],
-						};
-					}
+			// Fetch real Instagram data if access token is available
+			if (platform === "instagram" && INSTAGRAM_ACCESS_TOKEN) {
+				// Use specific account ID if provided, otherwise use "me" or userId from OAuth
+				const accountId = INSTAGRAM_ACCOUNT_ID || undefined;
+				const realData = await fetchInstagramAnalytics(accountId);
+				return {
+					platform,
+					data: realData || analyticsMocks[platform],
+				};
+			}
 					
 					// Use mock data for other platforms or if credentials not provided
 					return {

@@ -22,6 +22,7 @@ YOUTUBE_API_KEY=your_youtube_api_key
 INSTAGRAM_CLIENT_ID=your_instagram_client_id
 INSTAGRAM_CLIENT_SECRET=your_instagram_client_secret
 INSTAGRAM_ACCESS_TOKEN=your_instagram_access_token
+INSTAGRAM_ACCOUNT_ID=17841471184395059
 NEXT_PUBLIC_INSTAGRAM_OAUTH_ENABLED=true
 
 # App URL (REQUIRED for Instagram OAuth redirect URI)
