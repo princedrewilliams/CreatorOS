@@ -133,23 +133,36 @@ async function fetchTikTokAnalytics(secUid: string): Promise<PlatformAnalyticsSn
 		const now = new Date();
 		
 		// Extract stats from various possible locations
-		const followerCount = userStats.followerCount || userStats.follower_count || userInfo.followerCount || 0;
-		const videoCount = userStats.videoCount || userStats.video_count || userInfo.videoCount || 0;
-		const totalLikes = userStats.diggCount || userStats.digg_count || userStats.likeCount || 0;
-		const totalViews = userStats.videoPlayCount || userStats.video_play_count || userStats.totalPlayCount || 0;
+		const followerCount = Number(userStats.followerCount ?? userStats.follower_count ?? userInfo.followerCount ?? 0) || 0;
+		const videoCount = Number(userStats.videoCount ?? userStats.video_count ?? userInfo.videoCount ?? 0) || 0;
+		const totalLikes = Number(userStats.diggCount ?? userStats.digg_count ?? userStats.likeCount ?? 0) || 0;
+
+		// Some TikTok APIs do not return an aggregate view count on the profile.
+		// Fall back to summing recent item's play counts when aggregate is missing.
+		let totalViews =
+			Number(userStats.videoPlayCount ?? userStats.video_play_count ?? userStats.totalPlayCount ?? 0) || 0;
+
+		const itemList = data?.itemList || data?.videos || data?.items || [];
+		if (!totalViews && Array.isArray(itemList) && itemList.length > 0) {
+			totalViews = itemList.reduce((acc: number, item: TikTokVideoItem) => {
+				const stats = item?.stats || item?.statistics || {};
+				const playCount =
+					Number(stats.playCount ?? stats.play_count ?? stats.viewCount ?? 0) || 0;
+				return acc + playCount;
+			}, 0);
+		}
 		
 		// Calculate engagement rate (likes + comments + shares / views)
 		const totalEngagement = totalLikes + (userStats.commentCount || userStats.comment_count || 0) + (userStats.shareCount || userStats.share_count || 0);
 		const engagementRate = totalViews > 0 ? (totalEngagement / totalViews) * 100 : 0;
 
 		// Get top videos if available
-		const itemList = data?.itemList || data?.videos || data?.items || [];
 		const topContent = itemList.slice(0, 3).map((item: TikTokVideoItem) => {
 			const stats = item?.stats || item?.statistics || {};
-			const playCount = stats.playCount || stats.play_count || stats.viewCount || 0;
-			const diggCount = stats.diggCount || stats.digg_count || stats.likeCount || 0;
-			const commentCount = stats.commentCount || stats.comment_count || 0;
-			const shareCount = stats.shareCount || stats.share_count || 0;
+			const playCount = Number(stats.playCount ?? stats.play_count ?? stats.viewCount ?? 0) || 0;
+			const diggCount = Number(stats.diggCount ?? stats.digg_count ?? stats.likeCount ?? 0) || 0;
+			const commentCount = Number(stats.commentCount ?? stats.comment_count ?? 0) || 0;
+			const shareCount = Number(stats.shareCount ?? stats.share_count ?? 0) || 0;
 			const engagement = playCount > 0 
 				? ((diggCount + commentCount + shareCount) / playCount) * 100
 				: 0;
