@@ -96,21 +96,22 @@ export async function GET(request: NextRequest) {
 			);
 		}
 
-		const tokenData = (await tokenResponse.json()) as {
-			data?: Array<{
-				access_token: string;
-				user_id: string;
-				permissions?: string;
-			}>;
+		const tokenDataRaw = await tokenResponse.json();
+		// Handle both possible formats:
+		// 1) { data: [ { access_token, user_id, ... } ] }
+		// 2) { access_token, user_id, ... }
+		const tokenData = tokenDataRaw as {
+			data?: Array<{ access_token: string; user_id: string; permissions?: string }>;
+			access_token?: string;
+			user_id?: string;
 			error_type?: string;
 			code?: number;
 			error_message?: string;
 		};
 
-		// Instagram API returns data in a "data" array
 		const tokenInfo = tokenData.data?.[0];
-		const shortLivedToken = tokenInfo?.access_token;
-		const userId = tokenInfo?.user_id;
+		const shortLivedToken = tokenInfo?.access_token || tokenData.access_token;
+		const userId = tokenInfo?.user_id || tokenData.user_id;
 
 		if (!shortLivedToken) {
 			console.error("No access token in response:", tokenData);

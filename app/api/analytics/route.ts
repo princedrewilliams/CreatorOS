@@ -345,11 +345,85 @@ function isValidPlatform(platform: string): platform is AnalyticsPlatform {
 	return VALID_PLATFORMS.includes(platform as AnalyticsPlatform);
 }
 
+async function fetchTikTokAnalyticsWithAccessToken(accessToken: string): Promise<PlatformAnalyticsSnapshot | null> {
+	try {
+		// Fetch user profile (to get follower count, etc.)
+		const userResponse = await fetch("https://open.tiktokapis.com/v2/user/info/", {
+			method: "GET",
+			headers: { Authorization: `Bearer ${accessToken}` },
+			cache: "no-store",
+		});
+
+		if (!userResponse.ok) {
+			console.warn("[analytics] TikTok user.info failed", userResponse.status, userResponse.statusText);
+			return null;
+		}
+
+		const userData = (await userResponse.json()) as any;
+		const user = userData?.data?.user || userData?.user || {};
+		const followers = Number(user?.follower_count ?? user?.followers_count ?? 0) || 0;
+
+		// Try to list recent videos to compute total views and top content
+		let totalViews = 0;
+		let topContent: Array<{ title: string; views: number; engagement: number; publishedAt: string }> = [];
+
+		try {
+			const videosResponse = await fetch("https://open.tiktokapis.com/v2/video/list/", {
+				method: "GET",
+				headers: { Authorization: `Bearer ${accessToken}` },
+				cache: "no-store",
+			});
+
+			if (videosResponse.ok) {
+				const videosData = (await videosResponse.json()) as any;
+				const items: any[] = videosData?.data?.videos || videosData?.videos || videosData?.items || [];
+
+				topContent = items.slice(0, 10).map((item: any) => {
+					const stats = item?.statistics || item?.stats || {};
+					const playCount = Number(stats?.play_count ?? stats?.playCount ?? 0) || 0;
+					const likeCount = Number(stats?.digg_count ?? stats?.like_count ?? 0) || 0;
+					const commentCount = Number(stats?.comment_count ?? 0) || 0;
+					const shareCount = Number(stats?.share_count ?? 0) || 0;
+					const engagement = playCount > 0 ? ((likeCount + commentCount + shareCount) / playCount) * 100 : 0;
+					totalViews += playCount;
+					return {
+						title: item?.title || item?.desc || "TikTok Video",
+						views: playCount,
+						engagement: Math.min(engagement, 100),
+						publishedAt: item?.create_time
+							? new Date(item.create_time * 1000).toISOString()
+							: new Date().toISOString(),
+					};
+				}).slice(0, 3);
+			} else {
+				console.warn("[analytics] TikTok video.list failed", videosResponse.status, videosResponse.statusText);
+			}
+		} catch (error) {
+			console.warn("[analytics] TikTok video.list error", error);
+		}
+
+		const now = new Date();
+		return {
+			views: totalViews,
+			followers,
+			engagement: 0,
+			revenue: 0,
+			updatedAt: now.toISOString(),
+			trend: { views: 0, followers: 0, engagement: 0, revenue: 0 },
+			topContent: topContent.length > 0 ? topContent : analyticsMocks.tiktok.topContent,
+		};
+	} catch (error) {
+		console.error("[analytics] TikTok access-token analytics error:", error);
+		return null;
+	}
+}
+
 export async function GET(request: NextRequest) {
 	try {
 		const url = request.nextUrl;
 		const requestedPlatforms = url.searchParams.getAll("platform");
 		const tiktokSecUid = url.searchParams.get("tiktok_sec_uid"); // Optional sec_uid for TikTok
+		const tiktokAccessToken = request.cookies.get("tiktok_access_token")?.value;
 
 		// Validate and filter platforms
 		const validPlatforms = requestedPlatforms
@@ -370,13 +444,21 @@ export async function GET(request: NextRequest) {
 		const payload = await Promise.all(
 			platforms.map(async (platform) => {
 				try {
-					// Fetch real TikTok data if sec_uid is provided
-					if (platform === "tiktok" && tiktokSecUid) {
-						const realData = await fetchTikTokAnalytics(tiktokSecUid);
-						return {
-							platform,
-							data: realData || analyticsMocks[platform],
-						};
+					// TikTok: Prefer server-side access token if available; fallback to RapidAPI via sec_uid
+					if (platform === "tiktok") {
+						if (tiktokAccessToken) {
+							const tokenData = await fetchTikTokAnalyticsWithAccessToken(tiktokAccessToken);
+							if (tokenData) {
+								return { platform, data: tokenData };
+							}
+						}
+						if (tiktokSecUid) {
+							const realData = await fetchTikTokAnalytics(tiktokSecUid);
+							return {
+								platform,
+								data: realData || analyticsMocks[platform],
+							};
+						}
 					}
 					
 			// Fetch real Instagram data if access token is available
