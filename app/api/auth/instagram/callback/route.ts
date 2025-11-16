@@ -21,7 +21,17 @@ export async function GET(request: NextRequest) {
 
 		// Verify state
 		const storedState = request.cookies.get("instagram_oauth_state")?.value;
-		if (state !== storedState) {
+		if (!storedState) {
+			// In some embedded or cross-site flows, the cookie may be stripped in development.
+			// Be strict in production, but be lenient in development to avoid blocking testers.
+			if (process.env.NODE_ENV === "production") {
+				return NextResponse.redirect(
+					new URL("/planner?error=invalid_state", request.url)
+				);
+			} else {
+				console.warn("[Instagram OAuth] Missing state cookie in development; continuing for local testing.");
+			}
+		} else if (state !== storedState) {
 			return NextResponse.redirect(
 				new URL("/planner?error=invalid_state", request.url)
 			);

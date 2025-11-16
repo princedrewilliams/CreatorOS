@@ -78,11 +78,14 @@ export async function GET(request: NextRequest) {
 			status: 302,
 		});
 		
+		// Use SameSite=None in production to allow the cookie to be sent back when
+		// the flow originates from an embedded/iframe context (cross-site).
 		response.cookies.set("instagram_oauth_state", state, {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === "production",
-			sameSite: "lax",
+			sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
 			maxAge: 600, // 10 minutes
+			path: "/",
 		});
 
 		return response;
