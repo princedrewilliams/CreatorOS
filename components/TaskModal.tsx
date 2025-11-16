@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Heading, Text, Button, Separator } from "@whop/react/components";
-import { Cross2Icon } from "@radix-ui/react-icons";
+import { Cross2Icon, UploadIcon } from "@radix-ui/react-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppStore, type Task } from "@/lib/store";
 
@@ -22,6 +22,7 @@ export function TaskModal({ isOpen, onClose, task, selectedDate }: TaskModalProp
 	const [time, setTime] = useState("");
 	const [platforms, setPlatforms] = useState<("youtube" | "instagram" | "tiktok")[]>([]);
 	const [status, setStatus] = useState<"planned" | "scheduled" | "posted" | "cancelled">("planned");
+	const [video, setVideo] = useState<File | null>(null);
 
 	useEffect(() => {
 		if (task) {
@@ -194,6 +195,47 @@ export function TaskModal({ isOpen, onClose, task, selectedDate }: TaskModalProp
 										))}
 									</div>
 								</div>
+
+								<Separator />
+
+								{/* Video Upload for Scheduled Tasks */}
+								{time && (
+									<div>
+										<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
+											Video File (for scheduled posting)
+										</Text>
+										<label className="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-a6 border-dashed rounded-lg cursor-pointer hover:bg-gray-a2 dark:hover:bg-gray-a3 transition-colors">
+											{video ? (
+												<Text size="2" className="text-gray-12 dark:text-gray-12">
+													{video.name}
+												</Text>
+											) : (
+												<div className="flex flex-col items-center">
+													<UploadIcon className="w-6 h-6 text-gray-9 dark:text-gray-10 mb-1" />
+													<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
+														Click to upload video
+													</Text>
+												</div>
+											)}
+											<input
+												type="file"
+												accept="video/*"
+												onChange={(e) => {
+													const file = e.target.files?.[0];
+													if (file && file.type.startsWith("video/")) {
+														setVideo(file);
+													}
+												}}
+												className="hidden"
+											/>
+										</label>
+										{video && (
+											<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
+												Video will be automatically posted at {time} on {date}
+											</Text>
+										)}
+									</div>
+								)}
 
 								<Separator />
 

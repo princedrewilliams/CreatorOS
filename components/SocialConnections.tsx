@@ -203,6 +203,29 @@ function SocialConnectionsContent() {
 			<Text size="3" color="gray" className="mb-6 text-gray-11 dark:text-gray-11">
 				Connect your social media accounts to enable cross-posting
 			</Text>
+			{/* Facebook Login for Instagram Insights */}
+			{!socialConnections.find((c) => c.platform === "instagram")?.connected && (
+				<Card size="2" variant="surface" className="p-4 mb-4 border border-blue-a6 bg-blue-a2">
+					<div className="flex items-center justify-between">
+						<div>
+							<Text size="2" weight="medium" className="text-gray-12 dark:text-gray-12 mb-1">
+								Connect Facebook for Instagram Insights
+							</Text>
+							<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
+								Get real-time analytics and insights by connecting your Facebook account
+							</Text>
+						</div>
+						<Button
+							color="blue"
+							size="2"
+							variant="solid"
+							onClick={() => window.location.href = "/api/auth/facebook"}
+						>
+							Connect Facebook
+						</Button>
+					</div>
+				</Card>
+			)}
 			<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
 				{platforms.map((platform) => {
 					const connection = socialConnections.find((c: SocialConnection) => c.platform === platform.key);
