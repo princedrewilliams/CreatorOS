@@ -29,7 +29,10 @@ export async function GET(request: NextRequest) {
 
 		const clientKey = process.env.TIKTOK_CLIENT_KEY;
 		const clientSecret = process.env.TIKTOK_CLIENT_SECRET;
-		const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/auth/tiktok/callback`;
+		// Build redirect URI same way as in the auth route
+		const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+		const cleanBaseUrl = baseUrl.replace(/\/$/, "");
+		const redirectUri = `${cleanBaseUrl}/api/auth/tiktok/callback`;
 
 		if (!clientKey || !clientSecret) {
 			return NextResponse.redirect(

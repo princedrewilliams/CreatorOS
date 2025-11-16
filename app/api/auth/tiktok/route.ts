@@ -4,7 +4,10 @@ export async function GET(request: NextRequest) {
 	try {
 		// TikTok OAuth configuration
 		const clientKey = process.env.TIKTOK_CLIENT_KEY;
-		const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/auth/tiktok/callback`;
+		// Build redirect URI consistently (no trailing slash on base URL)
+		const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+		const cleanBaseUrl = baseUrl.replace(/\/$/, "");
+		const redirectUri = `${cleanBaseUrl}/api/auth/tiktok/callback`;
 		const scope = "user.info.basic,video.upload";
 
 		if (!clientKey) {
@@ -17,14 +20,23 @@ export async function GET(request: NextRequest) {
 		// Generate state for CSRF protection
 		const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 		
-		const response = NextResponse.redirect(
+		const authUrl =
 			`https://www.tiktok.com/v2/auth/authorize/` +
-			`?client_key=${encodeURIComponent(clientKey)}&` +
-			`redirect_uri=${encodeURIComponent(redirectUri)}&` +
-			`scope=${encodeURIComponent(scope)}&` +
-			`response_type=code&` +
-			`state=${state}`
-		);
+			`?client_key=${encodeURIComponent(clientKey)}` +
+			`&redirect_uri=${encodeURIComponent(redirectUri)}` +
+			`&scope=${encodeURIComponent(scope)}` +
+			`&response_type=code` +
+			`&state=${encodeURIComponent(state)}`;
+
+		// Log values useful for debugging redirect_uri mismatches
+		console.log("[TikTok OAuth] Initiating OAuth with:", {
+			clientKeyPresent: !!clientKey,
+			redirectUri,
+			baseUrl,
+			cleanBaseUrl,
+		});
+
+		const response = NextResponse.redirect(authUrl, { status: 302 });
 		
 		response.cookies.set("tiktok_oauth_state", state, {
 			httpOnly: true,

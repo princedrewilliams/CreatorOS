@@ -85,6 +85,11 @@ This guide explains how to set up OAuth credentials for YouTube, Instagram, and 
      TIKTOK_CLIENT_SECRET=your_client_secret_here
      ```
 
+Notes:
+- The app constructs the redirect URI using `NEXT_PUBLIC_APP_URL` (no trailing slash), falling back to request origin.
+- Default scopes: `user.info.basic,video.upload` (adjust in `app/api/auth/tiktok/route.ts`).
+- Never commit real keys to git. Add them in Vercel → Settings → Environment Variables.
+
 ## Environment Variables
 
 Add all OAuth credentials to your `.env.local` file:

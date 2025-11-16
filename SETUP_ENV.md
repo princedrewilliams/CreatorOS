@@ -18,6 +18,13 @@ YOUTUBE_CLIENT_ID=your_youtube_client_id
 YOUTUBE_CLIENT_SECRET=your_youtube_client_secret
 YOUTUBE_API_KEY=your_youtube_api_key
 
+# TikTok Login Kit (OAuth v2)
+# Do NOT commit real values to git. Add these in Vercel and .env.local.
+TIKTOK_CLIENT_KEY=your_tiktok_client_key
+TIKTOK_CLIENT_SECRET=your_tiktok_client_secret
+# Optional for reference; not directly used by OAuth calls
+TIKTOK_APP_ID=your_tiktok_app_id
+
 # Instagram OAuth & API access
 INSTAGRAM_CLIENT_ID=your_instagram_client_id
 INSTAGRAM_CLIENT_SECRET=your_instagram_client_secret
