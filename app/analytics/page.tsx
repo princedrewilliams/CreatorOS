@@ -146,10 +146,38 @@ export default function AnalyticsPage() {
 						Track performance across YouTube, TikTok, and Instagram
 					</Text>
 				</div>
-				<Button variant="soft" size="2" color="gray" onClick={() => fetchAnalytics()} disabled={loading || connectedPlatforms.length === 0}>
-					<ReloadIcon className="mr-2" />
-					Refresh
-				</Button>
+				<div className="flex gap-3">
+					<Button variant="soft" size="2" color="gray" onClick={() => fetchAnalytics()} disabled={loading || connectedPlatforms.length === 0}>
+						<ReloadIcon className="mr-2" />
+						Refresh
+					</Button>
+					<Button 
+						variant="soft" 
+						size="2" 
+						color="green" 
+						onClick={async () => {
+							const queryParams = new URLSearchParams();
+							connectedPlatforms.forEach((platform) => {
+								queryParams.append("platform", platform);
+							});
+							const url = `/api/export-analytics?${queryParams.toString()}`;
+							const response = await fetch(url);
+							const blob = await response.blob();
+							const downloadUrl = window.URL.createObjectURL(blob);
+							const a = document.createElement("a");
+							a.href = downloadUrl;
+							a.download = `analytics-export-${new Date().toISOString().split("T")[0]}.csv`;
+							document.body.appendChild(a);
+							a.click();
+							document.body.removeChild(a);
+							window.URL.revokeObjectURL(downloadUrl);
+						}}
+						disabled={connectedPlatforms.length === 0}
+					>
+						<DownloadIcon className="mr-2" />
+						Export to Google Sheets
+					</Button>
+				</div>
 			</div>
 
 			<SocialConnections />

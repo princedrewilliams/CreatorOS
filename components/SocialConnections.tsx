@@ -41,6 +41,8 @@ function SocialConnectionsContent() {
 					connected: true,
 					username: "Instagram User",
 				});
+			} else if (error === "facebook_oauth_disabled") {
+				alert("Facebook OAuth is not configured. Please add FACEBOOK_APP_ID and FACEBOOK_APP_SECRET to your environment variables.");
 			} else if (error === "invalid_app_id") {
 				alert("Invalid Instagram App ID. Please check your environment variables and ensure you're using the Instagram App ID from Meta App Dashboard (not Facebook App ID).");
 			} else if (error === "invalid_redirect_uri") {

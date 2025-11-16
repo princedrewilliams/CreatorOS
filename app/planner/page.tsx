@@ -10,6 +10,7 @@ import { useAppStore, type Task, type SocialConnection } from "@/lib/store";
 import { Calendar } from "@/components/Calendar";
 import { TaskModal } from "@/components/TaskModal";
 import { SocialConnections } from "@/components/SocialConnections";
+import { PostVideoModal } from "@/components/PostVideoModal";
 import { useSearchParams } from "next/navigation";
 
 function PlannerContent() {
@@ -20,6 +21,7 @@ function PlannerContent() {
 	const [editingTask, setEditingTask] = useState<Task | undefined>(undefined);
 	const [filterPlatform, setFilterPlatform] = useState<"all" | "youtube" | "instagram" | "tiktok">("all");
 	const [filterStatus, setFilterStatus] = useState<"all" | "planned" | "scheduled" | "posted" | "cancelled">("all");
+	const [isPostVideoModalOpen, setIsPostVideoModalOpen] = useState(false);
 
 	// Handle OAuth callback
 	useEffect(() => {
@@ -159,7 +161,12 @@ function PlannerContent() {
 						Plan and schedule your content across all platforms
 					</Text>
 				</div>
-				<Button color="blue" size="3" variant="solid" onClick={handleCreateTask}>
+				<div className="flex gap-3">
+					<Button color="blue" size="3" variant="solid" onClick={() => setIsPostVideoModalOpen(true)}>
+						<PaperPlaneIcon className="mr-2" />
+						Post to All
+					</Button>
+					<Button color="green" size="3" variant="solid" onClick={handleCreateTask}>
 					<PlusIcon className="mr-2" />
 					New Task
 				</Button>
@@ -327,6 +334,12 @@ function PlannerContent() {
 				}}
 				task={editingTask}
 				selectedDate={selectedDate}
+			/>
+
+			{/* Post Video Modal */}
+			<PostVideoModal
+				isOpen={isPostVideoModalOpen}
+				onClose={() => setIsPostVideoModalOpen(false)}
 			/>
 		</div>
 	);
