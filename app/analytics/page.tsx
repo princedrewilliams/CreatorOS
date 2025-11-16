@@ -40,7 +40,8 @@ export default function AnalyticsPage() {
 		() =>
 			socialConnections
 				.filter((connection) => connection.connected)
-				.map((connection) => connection.platform) as AnalyticsPlatform[],
+				.map((connection) => connection.platform)
+				.filter((p) => p !== "youtube") as AnalyticsPlatform[], // Exclude YouTube for now
 		[socialConnections]
 	);
 
@@ -152,6 +153,18 @@ export default function AnalyticsPage() {
 			</div>
 
 			<SocialConnections />
+
+			{/* YouTube coming soon notice */}
+			<Card size="3" variant="surface" className="p-6 border border-yellow-a6 bg-yellow-a2">
+				<div className="flex items-center gap-3">
+					<Badge color="yellow" size="2" variant="soft">
+						Coming soon
+					</Badge>
+					<Text size="3" className="text-gray-12 dark:text-gray-12">
+						YouTube analytics will be available soon.
+					</Text>
+				</div>
+			</Card>
 
 			{connectedPlatforms.length === 0 ? (
 				<Card size="3" variant="surface" className="p-8 border-dashed border-gray-a5">

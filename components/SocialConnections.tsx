@@ -209,7 +209,7 @@ function SocialConnectionsContent() {
 					// Check OAuth availability
 					// Instagram always available since we can use access token for analytics
 					const oauthAvailable = isYoutube 
-						? youtubeOAuthEnabled 
+						? false // Force "Coming soon" for YouTube
 						: true; // Instagram and TikTok always available
 
 					return (
@@ -263,9 +263,14 @@ function SocialConnectionsContent() {
 											Connect {platform.name}
 										</Button>
 									) : (
-										<Text size="2" color="gray" className="text-center text-gray-11 dark:text-gray-11">
-											{platform.name} OAuth is not available in this environment.
-										</Text>
+										<div className="flex flex-col items-center gap-1">
+											<Badge color="yellow" size="2" variant="soft">
+												Coming soon
+											</Badge>
+											<Text size="2" color="gray" className="text-center text-gray-11 dark:text-gray-11">
+												{platform.name} integration is coming soon.
+											</Text>
+										</div>
 									)}
 								</div>
 							</Card>
