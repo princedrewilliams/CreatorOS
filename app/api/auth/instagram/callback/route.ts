@@ -160,7 +160,9 @@ export async function GET(request: NextRequest) {
 		}
 
 		// Store tokens
-		const response = NextResponse.redirect(new URL("/planner?connected=instagram", request.url));
+		const response = NextResponse.redirect(
+			new URL(`/planner?connected=instagram&username=${encodeURIComponent(username)}`, request.url)
+		);
 		
 		if (instagramAccessToken) {
 			response.cookies.set("instagram_access_token", instagramAccessToken, {

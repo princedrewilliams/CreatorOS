@@ -148,7 +148,7 @@ export default function SponsorsPage() {
 		<input
 			type="number"
 			min="0"
-			step="100"
+			step="0.01"
 			value={draft.amount}
 			onChange={(event) => onUpdateDraft("amount", event.target.value)}
 			required

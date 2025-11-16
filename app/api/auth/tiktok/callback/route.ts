@@ -76,12 +76,15 @@ export async function GET(request: NextRequest) {
 			});
 			if (userResponse.ok) {
 				const userInfo = await userResponse.json();
-				username = userInfo.data?.user?.display_name || username;
+				// Prefer unique_id (handle) over display_name
+				username = userInfo.data?.user?.unique_id || userInfo.data?.user?.display_name || username;
 			}
 		}
 
 		// Store tokens
-		const response = NextResponse.redirect(new URL("/planner?connected=tiktok", request.url));
+		const response = NextResponse.redirect(
+			new URL(`/planner?connected=tiktok&username=${encodeURIComponent(username)}`, request.url)
+		);
 		
 		if (tokens.data?.access_token) {
 			response.cookies.set("tiktok_access_token", tokens.data.access_token, {

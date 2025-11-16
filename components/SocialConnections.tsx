@@ -21,10 +21,11 @@ function SocialConnectionsContent() {
 		if (connected) {
 			// Update connection status based on OAuth callback
 			const platform = connected as "youtube" | "instagram" | "tiktok";
+			const username = searchParams.get("username") || `${platform.charAt(0).toUpperCase() + platform.slice(1)} User`;
 			setSocialConnection({
 				platform,
 				connected: true,
-				username: `${platform.charAt(0).toUpperCase() + platform.slice(1)} User`,
+				username,
 			});
 			// Clean up URL
 			window.history.replaceState({}, "", window.location.pathname);
