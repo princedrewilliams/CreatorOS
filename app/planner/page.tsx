@@ -167,9 +167,10 @@ function PlannerContent() {
 						Post to All
 					</Button>
 					<Button color="green" size="3" variant="solid" onClick={handleCreateTask}>
-					<PlusIcon className="mr-2" />
-					New Task
-				</Button>
+						<PlusIcon className="mr-2" />
+						New Task
+					</Button>
+				</div>
 			</div>
 
 			{/* Social Connections */}

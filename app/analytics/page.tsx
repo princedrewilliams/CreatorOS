@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { Heading, Text, Card, Button, Badge, Separator } from "@whop/react/components";
-import { ArrowLeftIcon, BarChartIcon, ReloadIcon } from "@radix-ui/react-icons";
+import { ArrowLeftIcon, BarChartIcon, ReloadIcon, DownloadIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { SocialConnections } from "@/components/SocialConnections";
