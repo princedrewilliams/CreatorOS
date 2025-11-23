@@ -59,7 +59,13 @@ export function PostVideoModal({ isOpen, onClose }: PostVideoModalProps) {
 			const response = await fetch("/api/post-video", {
 				method: "POST",
 				body: formData,
+				credentials: "include", // Include cookies (access tokens)
 			});
+
+			if (!response.ok) {
+				const errorData = await response.json().catch(() => ({ error: "Network error" }));
+				throw new Error(errorData.error || `HTTP ${response.status}`);
+			}
 
 			const result = await response.json();
 
@@ -70,11 +76,15 @@ export function PostVideoModal({ isOpen, onClose }: PostVideoModalProps) {
 				setCaption("");
 				setSelectedPlatforms([]);
 			} else {
-				alert(`Failed to post: ${result.message || "Unknown error"}`);
+				// Show detailed error messages
+				const failedPlatforms = result.results?.filter((r: any) => !r.success) || [];
+				const errorMessages = failedPlatforms.map((r: any) => `${r.platform}: ${r.error || "Unknown error"}`).join("\n");
+				alert(`Failed to post: ${result.message || "Unknown error"}${errorMessages ? `\n\nDetails:\n${errorMessages}` : ""}`);
 			}
 		} catch (error) {
 			console.error("Error posting video:", error);
-			alert("Failed to post video. Please try again.");
+			const errorMessage = error instanceof Error ? error.message : "Unknown error";
+			alert(`Failed to post video: ${errorMessage}. Please make sure you're connected to the selected platforms.`);
 		} finally {
 			setUploading(false);
 		}
