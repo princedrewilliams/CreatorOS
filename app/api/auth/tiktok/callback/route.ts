@@ -68,19 +68,41 @@ export async function GET(request: NextRequest) {
 		// Get user info
 		let username = "TikTok User";
 		if (tokens.data?.access_token) {
-			const userResponse = await fetch("https://open.tiktokapis.com/v2/user/info/", {
-				method: "GET",
-				headers: {
-					Authorization: `Bearer ${tokens.data.access_token}`,
-				},
-			});
-			if (userResponse.ok) {
-				const userInfo = await userResponse.json();
-				// Prefer unique_id (handle) over display_name
-				username = userInfo.data?.user?.unique_id || userInfo.data?.user?.display_name || username;
+			try {
+				const userResponse = await fetch("https://open.tiktokapis.com/v2/user/info/", {
+					method: "GET",
+					headers: {
+						Authorization: `Bearer ${tokens.data.access_token}`,
+						"Content-Type": "application/json",
+					},
+				});
+				
+				if (userResponse.ok) {
+					const userInfo = await userResponse.json();
+					console.log("[TikTok OAuth] User info response:", JSON.stringify(userInfo, null, 2));
+					
+					// Try different possible response structures
+					const user = userInfo.data?.user || userInfo.user || userInfo.data;
+					
+					if (user) {
+						// Prefer unique_id (handle/@username) over display_name
+						username = user.unique_id || user.username || user.display_name || user.nickname || username;
+						
+						// Remove @ if present (we'll add it in the UI)
+						username = username.replace(/^@/, "");
+					}
+				} else {
+					const errorText = await userResponse.text();
+					console.error("[TikTok OAuth] Failed to fetch user info:", userResponse.status, errorText);
+				}
+			} catch (error) {
+				console.error("[TikTok OAuth] Error fetching user info:", error);
 			}
 		}
 
+		// Log the username for debugging
+		console.log("[TikTok OAuth] Setting username:", username);
+		
 		// Store tokens
 		const response = NextResponse.redirect(
 			new URL(`/planner?connected=tiktok&username=${encodeURIComponent(username)}`, request.url)

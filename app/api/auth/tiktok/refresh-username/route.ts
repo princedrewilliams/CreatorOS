@@ -1,0 +1,52 @@
+import { NextRequest, NextResponse } from "next/server";
+
+export async function GET(request: NextRequest) {
+	try {
+		const tiktokToken = request.cookies.get("tiktok_access_token")?.value;
+
+		if (!tiktokToken) {
+			return NextResponse.json({ error: "TikTok not connected" }, { status: 401 });
+		}
+
+		// Fetch user info from TikTok API
+		const userResponse = await fetch("https://open.tiktokapis.com/v2/user/info/", {
+			method: "GET",
+			headers: {
+				Authorization: `Bearer ${tiktokToken}`,
+				"Content-Type": "application/json",
+			},
+		});
+
+		if (!userResponse.ok) {
+			const errorText = await userResponse.text();
+			console.error("[TikTok] Failed to fetch user info:", userResponse.status, errorText);
+			return NextResponse.json(
+				{ error: "Failed to fetch TikTok user info" },
+				{ status: userResponse.status }
+			);
+		}
+
+		const userInfo = await userResponse.json();
+		console.log("[TikTok] User info response:", JSON.stringify(userInfo, null, 2));
+
+		// Try different possible response structures
+		const user = userInfo.data?.user || userInfo.user || userInfo.data;
+		let username = "TikTok User";
+
+		if (user) {
+			// Prefer unique_id (handle/@username) over display_name
+			username = user.unique_id || user.username || user.display_name || user.nickname || username;
+			// Remove @ if present (we'll add it in the UI)
+			username = username.replace(/^@/, "");
+		}
+
+		return NextResponse.json({ username });
+	} catch (error) {
+		console.error("[TikTok] Error fetching username:", error);
+		return NextResponse.json(
+			{ error: "Failed to fetch TikTok username" },
+			{ status: 500 }
+		);
+	}
+}
+

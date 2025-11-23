@@ -13,6 +13,33 @@ function SocialConnectionsContent() {
 	const youtubeOAuthEnabled = process.env.NEXT_PUBLIC_YOUTUBE_OAUTH_ENABLED === "true";
 	const instagramOAuthEnabled = process.env.NEXT_PUBLIC_INSTAGRAM_OAUTH_ENABLED === "true";
 
+	// Refresh TikTok username if it's still showing "TikTok User"
+	useEffect(() => {
+		const tiktokConnection = socialConnections.find(
+			(conn) => conn.platform === "tiktok" && conn.connected && (!conn.username || conn.username === "TikTok User")
+		);
+
+		if (tiktokConnection) {
+			// Try to refresh the username from the API
+			fetch("/api/auth/tiktok/refresh-username", {
+				credentials: "include",
+			})
+				.then((res) => res.json())
+				.then((data) => {
+					if (data.username && data.username !== "TikTok User") {
+						setSocialConnection({
+							platform: "tiktok",
+							connected: true,
+							username: data.username,
+						});
+					}
+				})
+				.catch((error) => {
+					console.error("Failed to refresh TikTok username:", error);
+				});
+		}
+	}, [socialConnections, setSocialConnection]);
+
 	// Check for OAuth callback success
 	useEffect(() => {
 		const connected = searchParams.get("connected");
@@ -60,6 +87,33 @@ function SocialConnectionsContent() {
 			window.history.replaceState({}, "", window.location.pathname);
 		}
 	}, [searchParams, setSocialConnection]);
+
+	// Refresh TikTok username if it's still showing "TikTok User"
+	useEffect(() => {
+		const tiktokConnection = socialConnections.find(
+			(conn) => conn.platform === "tiktok" && conn.connected && (!conn.username || conn.username === "TikTok User")
+		);
+
+		if (tiktokConnection) {
+			// Try to refresh the username from the API
+			fetch("/api/auth/tiktok/refresh-username", {
+				credentials: "include",
+			})
+				.then((res) => res.json())
+				.then((data) => {
+					if (data.username && data.username !== "TikTok User") {
+						setSocialConnection({
+							platform: "tiktok",
+							connected: true,
+							username: data.username,
+						});
+					}
+				})
+				.catch((error) => {
+					console.error("Failed to refresh TikTok username:", error);
+				});
+		}
+	}, [socialConnections, setSocialConnection]);
 
 	const handleConnect = async (platform: "youtube" | "instagram" | "tiktok") => {
 		// For Instagram, handle iframe restrictions
