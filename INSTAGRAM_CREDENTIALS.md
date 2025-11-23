@@ -108,28 +108,88 @@ Old scope values (deprecated):
 
 ### Error: "Invalid platform app"
 
-This error means Instagram doesn't recognize your app. **Check these steps:**
+**This is the most common error!** It means Instagram doesn't recognize your app as a valid Instagram platform app. Follow these steps **in order**:
 
-1. **Instagram Product Must Be Added**
-   - Go to [Meta App Dashboard](https://developers.facebook.com/apps/)
-   - Select your app
-   - Check if **Instagram** appears in the left sidebar under Products
-   - If not, click **"Add Product"** → **Instagram** → **Set up**
+#### Step 1: Add Instagram Product to Your Meta App
 
-2. **Business Login Must Be Configured**
-   - Go to **Instagram** → **API setup with Instagram login**
-   - Click **"Set up Instagram business login"**
-   - Complete the setup wizard
-   - Make sure **Business login settings** shows your Instagram App ID and Secret
+1. Go to [Meta App Dashboard](https://developers.facebook.com/apps/)
+2. Select your app (the one with App ID `875897914794793`)
+3. Look at the left sidebar - do you see **"Instagram"** listed under Products?
+4. **If Instagram is NOT listed:**
+   - Click **"Add Product"** button (usually at the bottom of the left sidebar)
+   - Find **"Instagram"** in the product list
+   - Click **"Set up"** next to Instagram
+   - This is **REQUIRED** - without this step, you'll always get "Invalid platform app"
 
-3. **Verify You're Using Instagram App ID**
-   - The Instagram App ID is DIFFERENT from the Facebook App ID
-   - Get it from: **Instagram** → **API setup with Instagram login** → **Business login settings** → **Instagram App ID**
-   - It should be a numeric string (e.g., `875897914794793`)
+#### Step 2: Configure Instagram Business Login
 
-4. **Check App Status**
-   - Make sure your app is not in Development mode restrictions
-   - If testing, add yourself as a test user in App Dashboard → Roles → Test Users
+1. After adding Instagram product, go to **Instagram** in the left sidebar
+2. Click on **"API setup with Instagram login"**
+3. Click **"Set up Instagram business login"** button
+4. Complete the setup wizard:
+   - Select your Instagram Business or Creator account
+   - Grant necessary permissions
+   - Complete any verification steps
+5. Once setup is complete, you should see **"Business login settings"** page
+6. **Verify you see:**
+   - **Instagram App ID** (this is your `INSTAGRAM_CLIENT_ID`)
+   - **Instagram App Secret** (this is your `INSTAGRAM_CLIENT_SECRET`)
+   - **OAuth redirect URIs** section
+
+#### Step 3: Verify You're Using the Correct App ID
+
+⚠️ **CRITICAL:** The Instagram App ID is **DIFFERENT** from the Facebook App ID!
+
+- **Facebook App ID:** Usually shown at the top of your app dashboard
+- **Instagram App ID:** Found in **Instagram** → **API setup with Instagram login** → **Business login settings**
+
+**How to get your Instagram App ID:**
+1. Go to [Meta App Dashboard](https://developers.facebook.com/apps/)
+2. Select your app
+3. Click **Instagram** in left sidebar
+4. Click **"API setup with Instagram login"**
+5. Click **"Set up Instagram business login"** (if not already done)
+6. In **"Business login settings"**, you'll see **"Instagram App ID"**
+7. Copy this ID - it should be numeric (e.g., `875897914794793`)
+8. Make sure this matches your `INSTAGRAM_CLIENT_ID` environment variable
+
+#### Step 4: Check App Mode and Test Users
+
+1. Go to **Settings** → **Basic** in your Meta App Dashboard
+2. Check **"App Mode"**:
+   - **Development Mode:** Only test users can use the app
+   - **Live Mode:** Anyone can use the app (requires app review for some permissions)
+3. If in Development Mode:
+   - Go to **Roles** → **Test Users**
+   - Add yourself as a test user
+   - Make sure you're logged into Instagram with the account you added
+
+#### Step 5: Verify Redirect URI is Configured
+
+1. In **Instagram** → **API setup with Instagram login** → **Business login settings**
+2. Scroll to **"OAuth redirect URIs"**
+3. Make sure these are added **EXACTLY**:
+   - `https://creatoros.online/api/auth/instagram/callback` (production)
+   - `http://localhost:3000/api/auth/instagram/callback` (development, if needed)
+4. **No trailing slashes!** Must match exactly.
+
+#### Still Getting the Error?
+
+**Double-check these common mistakes:**
+
+- ❌ Using Facebook App ID instead of Instagram App ID
+- ❌ Instagram product not added to the app
+- ❌ Business Login not configured (setup wizard not completed)
+- ❌ Wrong redirect URI in environment variables
+- ❌ App in Development mode but you're not a test user
+- ❌ Using an old/deprecated app that doesn't have Instagram product
+
+**Quick verification checklist:**
+- [ ] Instagram appears in Products list (left sidebar)
+- [ ] Business login is set up and shows Instagram App ID
+- [ ] `INSTAGRAM_CLIENT_ID` matches the Instagram App ID (not Facebook App ID)
+- [ ] Redirect URI is configured in Business login settings
+- [ ] You're using the correct Instagram account (Business/Creator, not Personal)
 
 ### Error: "Invalid redirect_uri"
 
@@ -171,6 +231,8 @@ This error means Instagram doesn't recognize your app. **Check these steps:**
      -Method Get `
      -Headers @{Authorization="Bearer YOUR_ACCESS_TOKEN"}
    ```
+   
+   ⚠️ **SECURITY WARNING:** Never commit access tokens to git! If you've exposed a token, revoke it immediately in Meta App Dashboard → Instagram → Access Tokens
    
    **Bash/Linux/Mac (for reference):**
    ```bash
