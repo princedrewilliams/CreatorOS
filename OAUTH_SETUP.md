@@ -24,7 +24,7 @@ This guide explains how to set up OAuth credentials for YouTube, Instagram, and 
    - Choose "Web application"
    - Add authorized redirect URIs:
      - `http://localhost:3000/api/auth/youtube/callback` (for development)
-     - `https://yourdomain.com/api/auth/youtube/callback` (for production)
+     - `https://creatoros.online/api/auth/youtube/callback` (for production)
 
 3. **Get Your Credentials:**
    - Copy the Client ID and Client Secret
@@ -53,7 +53,7 @@ This guide explains how to set up OAuth credentials for YouTube, Instagram, and 
    - Go to "Instagram Basic Display" > "Basic Display"
    - Add OAuth Redirect URIs:
      - `http://localhost:3000/api/auth/instagram/callback` (for development)
-     - `https://yourdomain.com/api/auth/instagram/callback` (for production)
+     - `https://creatoros.online/api/auth/instagram/callback` (for production)
    - Add your app domain
 
 3. **Get Your Credentials:**
@@ -75,7 +75,7 @@ This guide explains how to set up OAuth credentials for YouTube, Instagram, and 
    - Go to "Basic Information" > "Platform Information"
    - Add redirect URLs:
      - `http://localhost:3000/api/auth/tiktok/callback` (for development)
-     - `https://yourdomain.com/api/auth/tiktok/callback` (for production)
+     - `https://creatoros.online/api/auth/tiktok/callback` (for production)
 
 3. **Get Your Credentials:**
    - Copy the Client Key and Client Secret
@@ -109,7 +109,9 @@ TIKTOK_CLIENT_KEY=your_tiktok_client_key
 TIKTOK_CLIENT_SECRET=your_tiktok_client_secret
 
 # App URL (for OAuth redirects)
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+# For development: http://localhost:3000
+# For production: https://creatoros.online
+NEXT_PUBLIC_APP_URL=https://creatoros.online
 ```
 
 ## Testing OAuth

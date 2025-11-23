@@ -33,9 +33,9 @@ INSTAGRAM_ACCOUNT_ID=17841471184395059
 NEXT_PUBLIC_INSTAGRAM_OAUTH_ENABLED=true
 
 # App URL (REQUIRED for Instagram OAuth redirect URI)
-# Set this to your production domain (e.g., https://your-app.vercel.app)
+# Set this to your production domain
 # For localhost, this can be omitted (will use request origin)
-NEXT_PUBLIC_APP_URL=https://your-production-domain.com
+NEXT_PUBLIC_APP_URL=https://creatoros.online
 
 # Facebook SDK (for Instagram OAuth)
 NEXT_PUBLIC_FACEBOOK_APP_ID=824615367407370

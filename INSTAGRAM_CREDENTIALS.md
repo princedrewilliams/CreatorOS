@@ -11,9 +11,9 @@ INSTAGRAM_CLIENT_ID=875897914794793
 INSTAGRAM_CLIENT_SECRET=your_instagram_app_secret
 NEXT_PUBLIC_INSTAGRAM_OAUTH_ENABLED=true
 
-# App URL (REQUIRED for production - must match your Vercel/production domain)
+# App URL (REQUIRED for production - must match your production domain)
 # This is used to construct the redirect_uri for OAuth
-NEXT_PUBLIC_APP_URL=https://creator-6osornyt9-andre-williams-projects-15c75ef1.vercel.app
+NEXT_PUBLIC_APP_URL=https://creatoros.online
 
 # Instagram Access Token (for Analytics - optional, can be obtained via OAuth)
 INSTAGRAM_ACCESS_TOKEN=your_instagram_access_token
@@ -44,8 +44,7 @@ The redirect URI **MUST match exactly** what's configured in your Instagram App 
 4. In **Business login settings**, find **OAuth redirect URIs**
 5. Add these URIs **EXACTLY as shown** (copy-paste to avoid typos):
    - `http://localhost:3000/api/auth/instagram/callback` (for development)
-   - `https://creator-6osornyt9-andre-williams-projects-15c75ef1.vercel.app/api/auth/instagram/callback` (for your Vercel deployment)
-   - `https://your-production-domain.com/api/auth/instagram/callback` (for your final production domain)
+   - `https://creatoros.online/api/auth/instagram/callback` (for production)
 6. Click **Save Changes**
 
 **Important Notes:**

@@ -2,7 +2,7 @@
 
 import { FormEvent, ReactNode, useMemo, useState } from "react";
 import { Heading, Text, Card, Button } from "@whop/react/components";
-import { ArrowLeftIcon, PlusIcon, FileTextIcon, SymbolIcon, TrashIcon } from "@radix-ui/react-icons";
+import { ArrowLeftIcon, PlusIcon, FileTextIcon, SymbolIcon, TrashIcon, DownloadIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAppStore, type SponsorDeal, type SponsorStatus } from "@/lib/store";
@@ -97,7 +97,7 @@ export default function SponsorsPage() {
 
 	return (
 		<div className="space-y-8">
-			<div className="flex items-center justify-between">
+			<div className="flex items-center justify-between flex-wrap gap-4">
 				<div>
 					<Link href="/dashboard">
 						<Button variant="ghost" size="2" className="mb-4">
@@ -112,10 +112,61 @@ export default function SponsorsPage() {
 						Track deals, revenue, and invoices
 					</Text>
 				</div>
-				<Button color="green" size="3" variant="solid" onClick={() => setIsFormOpen((prev) => !prev)}>
-					<PlusIcon className="mr-2" />
-					{isFormOpen ? "Close" : "New Deal"}
-				</Button>
+				<div className="flex gap-3">
+					<Button
+						color="blue"
+						size="3"
+						variant="solid"
+						onClick={() => {
+							// Generate CSV from sponsors data
+							const csvRows: string[] = [];
+							
+							// Header
+							csvRows.push("Brand,Type,Amount (USD),Status,Deadline,Notes,Created At,Updated At");
+							
+							// Data rows
+							sponsors.forEach((deal) => {
+								const row = [
+									deal.brand,
+									deal.type,
+									deal.amount.toString(),
+									deal.status,
+									deal.deadline,
+									deal.notes || "",
+									new Date(deal.createdAt).toISOString(),
+									new Date(deal.updatedAt).toISOString(),
+								].map((field) => {
+									// Escape commas and quotes in CSV
+									const str = String(field);
+									if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+										return `"${str.replace(/"/g, '""')}"`;
+									}
+									return str;
+								});
+								csvRows.push(row.join(","));
+							});
+							
+							const csv = csvRows.join("\n");
+							const blob = new Blob([csv], { type: "text/csv" });
+							const downloadUrl = window.URL.createObjectURL(blob);
+							const a = document.createElement("a");
+							a.href = downloadUrl;
+							a.download = `sponsors-export-${new Date().toISOString().split("T")[0]}.csv`;
+							document.body.appendChild(a);
+							a.click();
+							document.body.removeChild(a);
+							window.URL.revokeObjectURL(downloadUrl);
+						}}
+						disabled={sponsors.length === 0}
+					>
+						<DownloadIcon className="mr-2" />
+						Export to Google Sheets
+					</Button>
+					<Button color="green" size="3" variant="solid" onClick={() => setIsFormOpen((prev) => !prev)}>
+						<PlusIcon className="mr-2" />
+						{isFormOpen ? "Close" : "New Deal"}
+					</Button>
+				</div>
 			</div>
 
 			{isFormOpen && (
