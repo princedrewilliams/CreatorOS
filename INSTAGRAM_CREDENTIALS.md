@@ -140,14 +140,46 @@ This error means Instagram doesn't recognize your app. **Check these steps:**
 ### Still Not Working?
 
 1. Verify your environment variables are set correctly:
+   
+   **Bash/Linux/Mac:**
    ```bash
    echo $INSTAGRAM_CLIENT_ID
    echo $INSTAGRAM_CLIENT_SECRET
+   ```
+   
+   **PowerShell (Windows):**
+   ```powershell
+   $env:INSTAGRAM_CLIENT_ID
+   $env:INSTAGRAM_CLIENT_SECRET
    ```
 
 2. Check server logs for detailed error messages
 
 3. Try using the embed URL directly from the App Dashboard to test if the app is configured correctly
+
+4. Test Instagram API with PowerShell:
+   
+   **PowerShell (Windows) - Single line:**
+   ```powershell
+   Invoke-RestMethod -Uri "https://graph.instagram.com/v21.0/me?fields=id,username" -Method Get -Headers @{Authorization="Bearer YOUR_ACCESS_TOKEN"}
+   ```
+   
+   **PowerShell (Windows) - Multi-line with backticks:**
+   ```powershell
+   Invoke-RestMethod `
+     -Uri "https://graph.instagram.com/v21.0/me?fields=id,username" `
+     -Method Get `
+     -Headers @{Authorization="Bearer YOUR_ACCESS_TOKEN"}
+   ```
+   
+   **Bash/Linux/Mac (for reference):**
+   ```bash
+   curl -X GET \
+     'https://graph.instagram.com/v21.0/me?fields=id,username' \
+     -H 'Authorization: Bearer YOUR_ACCESS_TOKEN'
+   ```
+   
+   **Note:** In PowerShell, use backticks `` ` `` for line continuation, NOT backslashes `\`
 
 ## Also Add to Vercel Production Environment
 
