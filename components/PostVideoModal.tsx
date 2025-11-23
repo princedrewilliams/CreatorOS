@@ -164,26 +164,55 @@ export function PostVideoModal({ isOpen, onClose }: PostVideoModalProps) {
 								/>
 							</div>
 
+							{/* Connected Accounts Summary */}
+							{connectedPlatforms.length > 0 && (
+								<div className="p-3 rounded-lg border border-blue-a6 bg-blue-a2 dark:bg-blue-a3">
+									<Text size="2" weight="medium" className="mb-2 block text-gray-12 dark:text-gray-12">
+										Connected Accounts
+									</Text>
+									<div className="flex flex-wrap gap-2">
+										{connectedPlatforms.map((conn) => (
+											<div
+												key={conn.platform}
+												className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-white dark:bg-gray-a4 border border-blue-a6"
+											>
+												<Text size="1" weight="medium" className="capitalize text-gray-12 dark:text-gray-12">
+													{conn.platform}:
+												</Text>
+												<Text size="1" className="text-gray-11 dark:text-gray-11 font-mono">
+													@{conn.username || `${conn.platform} User`}
+												</Text>
+											</div>
+										))}
+									</div>
+								</div>
+							)}
+
 							{/* Platform Selection */}
 							<div>
 								<Text size="2" weight="medium" className="mb-3 block text-gray-11 dark:text-gray-11">
 									Select Platforms * (Choose at least one)
 								</Text>
-								<div className="flex gap-3">
+								<div className="flex flex-wrap gap-3">
 									{connectedPlatforms.map((conn) => {
 										const platform = conn.platform as "instagram" | "tiktok";
 										const isSelected = selectedPlatforms.includes(platform);
+										const username = conn.username || `${platform} User`;
 										return (
-											<Button
-												key={platform}
-												variant={isSelected ? "soft" : "ghost"}
-												color={platform === "instagram" ? "purple" : "gray"}
-												size="2"
-												onClick={() => handlePlatformToggle(platform)}
-												className="capitalize"
-											>
-												{platform}
-											</Button>
+											<div key={platform} className="flex flex-col gap-1">
+												<Button
+													variant={isSelected ? "soft" : "ghost"}
+													color={platform === "instagram" ? "purple" : "gray"}
+													size="2"
+													onClick={() => handlePlatformToggle(platform)}
+													className="capitalize"
+												>
+													{platform}
+												</Button>
+												<Text size="1" color="gray" className="text-center text-gray-11 dark:text-gray-11">
+													@{username}
+												</Text>
+											</div>
 										);
 									})}
 								</div>

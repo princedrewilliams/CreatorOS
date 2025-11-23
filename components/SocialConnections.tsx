@@ -195,14 +195,38 @@ function SocialConnectionsContent() {
 		},
 	];
 
+	const connectedAccounts = socialConnections.filter((conn) => conn.connected && conn.username);
+
 	return (
 		<Card size="3" variant="surface" className="p-6">
 			<Heading size="5" as="h2" className="mb-4 text-gray-12 dark:text-gray-12">
 				Social Media Connections
 			</Heading>
-			<Text size="3" color="gray" className="mb-6 text-gray-11 dark:text-gray-11">
+			<Text size="3" color="gray" className="mb-4 text-gray-11 dark:text-gray-11">
 				Connect your social media accounts to enable cross-posting
 			</Text>
+			{connectedAccounts.length > 0 && (
+				<div className="mb-6 p-3 rounded-lg border border-green-a6 bg-green-a2 dark:bg-green-a3">
+					<Text size="2" weight="medium" className="mb-2 block text-gray-12 dark:text-gray-12">
+						Currently Connected ({connectedAccounts.length})
+					</Text>
+					<div className="flex flex-wrap gap-2">
+						{connectedAccounts.map((conn) => (
+							<div
+								key={conn.platform}
+								className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-white dark:bg-gray-a4 border border-green-a6"
+							>
+								<Text size="1" weight="medium" className="capitalize text-gray-12 dark:text-gray-12">
+									{conn.platform}:
+								</Text>
+								<Text size="1" className="text-gray-11 dark:text-gray-11 font-mono">
+									@{conn.username}
+								</Text>
+							</div>
+						))}
+					</div>
+				</div>
+			)}
 			{/* Facebook Login for Instagram Insights */}
 			{!socialConnections.find((c) => c.platform === "instagram")?.connected && (
 				<Card size="2" variant="surface" className="p-4 mb-4 border border-blue-a6 bg-blue-a2">
@@ -263,9 +287,18 @@ function SocialConnectionsContent() {
 												<CheckIcon className="mr-1" />
 												Connected
 											</Badge>
-											{connection?.username && (
+											{connection?.username ? (
+												<div className="flex flex-col items-center gap-0.5">
+													<Text size="2" weight="medium" className="text-gray-12 dark:text-gray-12">
+														@{connection.username}
+													</Text>
+													<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
+														{platform.name} Account
+													</Text>
+												</div>
+											) : (
 												<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
-													@{connection.username}
+													{platform.name} Connected
 												</Text>
 											)}
 											<Button
