@@ -67,9 +67,14 @@ export async function GET(request: NextRequest) {
 		// Get user info from YouTube API
 		let username = "YouTube User";
 		try {
-			// First try to get channel info from YouTube Data API
+			// First try to get channel info from YouTube Data API v3
 			const channelResponse = await fetch(
-				`https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true&access_token=${tokens.access_token}`
+				`https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true`,
+				{
+					headers: {
+						Authorization: `Bearer ${tokens.access_token}`,
+					},
+				}
 			);
 			if (channelResponse.ok) {
 				const channelData = await channelResponse.json();
