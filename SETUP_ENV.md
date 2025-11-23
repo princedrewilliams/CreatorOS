@@ -17,6 +17,7 @@ REPLICATE_API_TOKEN=your_replicate_api_token_here
 YOUTUBE_CLIENT_ID=your_youtube_client_id
 YOUTUBE_CLIENT_SECRET=your_youtube_client_secret
 YOUTUBE_API_KEY=your_youtube_api_key
+NEXT_PUBLIC_YOUTUBE_OAUTH_ENABLED=true
 
 # TikTok Login Kit (OAuth v2)
 # Do NOT commit real values to git. Add these in Vercel and .env.local.

@@ -235,7 +235,7 @@ function SocialConnectionsContent() {
 					// Check OAuth availability
 					// Instagram always available since we can use access token for analytics
 					const oauthAvailable = isYoutube 
-						? false // Force "Coming soon" for YouTube
+						? youtubeOAuthEnabled // Use environment variable for YouTube
 						: true; // Instagram and TikTok always available
 
 					return (

@@ -64,21 +64,41 @@ export async function GET(request: NextRequest) {
 
 		const tokens = await tokenResponse.json();
 
-		// Get user info
-		const userResponse = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
-			headers: {
-				Authorization: `Bearer ${tokens.access_token}`,
-			},
-		});
-
+		// Get user info from YouTube API
 		let username = "YouTube User";
-		if (userResponse.ok) {
-			const userInfo = await userResponse.json();
-			username = userInfo.name || userInfo.email || username;
+		try {
+			// First try to get channel info from YouTube Data API
+			const channelResponse = await fetch(
+				`https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true&access_token=${tokens.access_token}`
+			);
+			if (channelResponse.ok) {
+				const channelData = await channelResponse.json();
+				if (channelData.items && channelData.items.length > 0) {
+					username = channelData.items[0].snippet?.title || channelData.items[0].snippet?.customUrl || username;
+				}
+			}
+		} catch (error) {
+			console.warn("Failed to fetch YouTube channel info, trying userinfo:", error);
+			// Fallback to OAuth2 userinfo
+			try {
+				const userResponse = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+					headers: {
+						Authorization: `Bearer ${tokens.access_token}`,
+					},
+				});
+				if (userResponse.ok) {
+					const userInfo = await userResponse.json();
+					username = userInfo.name || userInfo.email || username;
+				}
+			} catch (fallbackError) {
+				console.warn("Failed to fetch user info:", fallbackError);
+			}
 		}
 
 		// Store tokens in a secure cookie (in production, use a database)
-		const response = NextResponse.redirect(new URL("/planner?connected=youtube", request.url));
+		const response = NextResponse.redirect(
+			new URL(`/planner?connected=youtube&username=${encodeURIComponent(username)}`, request.url)
+		);
 		
 		// In production, store tokens in a database associated with the user
 		// For MVP, we'll store in a cookie (not ideal for production)
