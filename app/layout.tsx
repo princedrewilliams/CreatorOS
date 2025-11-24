@@ -15,6 +15,26 @@ const inter = Inter({
 export const metadata: Metadata = {
 	title: "CreatorOS - All-in-One Creator Tool",
 	description: "Professional content planning, video automation, and analytics for creators",
+	openGraph: {
+		title: "CreatorOS - All-in-One Creator Tool",
+		description: "Professional content planning, video automation, and analytics for creators",
+		type: "website",
+		url: process.env.NEXT_PUBLIC_APP_URL || "https://creatoros.online",
+		images: [
+			{
+				url: `${process.env.NEXT_PUBLIC_APP_URL || "https://creatoros.online"}/og-image.png`,
+				width: 1200,
+				height: 630,
+				alt: "CreatorOS - All-in-One Creator Tool",
+			},
+		],
+	},
+	twitter: {
+		card: "summary_large_image",
+		title: "CreatorOS - All-in-One Creator Tool",
+		description: "Professional content planning, video automation, and analytics for creators",
+		images: [`${process.env.NEXT_PUBLIC_APP_URL || "https://creatoros.online"}/og-image.png`],
+	},
 };
 
 export default function RootLayout({
