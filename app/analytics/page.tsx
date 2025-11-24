@@ -304,9 +304,20 @@ export default function AnalyticsPage() {
 														</div>
 													</div>
 													<div>
-														<Text size="2" weight="medium" className="mb-2 text-gray-12 dark:text-gray-12">
-															Top performing content
-														</Text>
+														<div className="flex items-center justify-between mb-2">
+															<Text size="2" weight="medium" className="text-gray-12 dark:text-gray-12">
+																Top performing content
+															</Text>
+															<Button
+																variant="ghost"
+																size="1"
+																asChild
+															>
+																<Link href={`/analytics/posts?platform=${platform}`}>
+																	View All
+																</Link>
+															</Button>
+														</div>
 														<div className="space-y-2">
 															{analyticsSnapshot.topContent.map((piece) => (
 																<div
