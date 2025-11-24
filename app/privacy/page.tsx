@@ -20,9 +20,9 @@ const sections = [
 			"We integrate with platforms such as YouTube, TikTok, Instagram, Whop, and Apify to deliver features. Each integration follows the respective platform policies. You can revoke access at any time from within those platforms.",
 	},
 	{
-		title: "4. Data Retention",
+		title: "4. Data Retention and Deletion",
 		content:
-			"We retain content and analytics data for as long as your account is active. You can request deletion by contacting support@creatoros.com.",
+			"We retain content and analytics data for as long as your account is active. You can request deletion of your data at any time through our Data Deletion page or by contacting support@creatoros.com. When you request deletion, we will permanently remove all your data from our systems within 30 days.",
 	},
 	{
 		title: "5. Contact",
@@ -60,13 +60,22 @@ export default function PrivacyPolicyPage() {
 					</section>
 				))}
 
-				<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11">
-					Please also review our{" "}
-					<Link href="/terms" className="text-blue-10 underline">
-						Terms of Service
-					</Link>{" "}
-					for more details on how CreatorOS is provided.
-				</Text>
+				<div className="space-y-2">
+					<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11">
+						Please also review our{" "}
+						<Link href="/terms" className="text-blue-10 underline">
+							Terms of Service
+						</Link>{" "}
+						for more details on how CreatorOS is provided.
+					</Text>
+					<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11">
+						To request deletion of your data, please visit our{" "}
+						<Link href="/data-deletion" className="text-blue-10 underline">
+							Data Deletion Request page
+						</Link>
+						.
+					</Text>
+				</div>
 			</Card>
 		</div>
 	);
