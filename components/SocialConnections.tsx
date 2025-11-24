@@ -31,6 +31,7 @@ function SocialConnectionsContent() {
 							platform: "tiktok",
 							connected: true,
 							username: data.username,
+							profilePicture: data.profilePicture,
 						});
 					}
 				})
@@ -106,6 +107,7 @@ function SocialConnectionsContent() {
 							platform: "tiktok",
 							connected: true,
 							username: data.username,
+							profilePicture: data.profilePicture,
 						});
 					}
 				})
