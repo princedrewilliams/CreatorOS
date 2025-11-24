@@ -68,8 +68,6 @@ function SocialConnectionsContent() {
 					connected: true,
 					username: "Instagram User",
 				});
-			} else if (error === "facebook_oauth_disabled") {
-				alert("Facebook OAuth is not configured. Please add FACEBOOK_APP_ID and FACEBOOK_APP_SECRET to your environment variables.");
 			} else if (error === "invalid_app_id") {
 				alert("Invalid Instagram App ID. Please check your environment variables and ensure you're using the Instagram App ID from Meta App Dashboard (not Facebook App ID).");
 			} else if (error === "invalid_redirect_uri") {
@@ -157,71 +155,6 @@ function SocialConnectionsContent() {
 		}
 	};
 
-	const handleInstagramLogin = () => {
-		if (typeof window === "undefined" || !window.FB) {
-			// Fallback to OAuth redirect if SDK not loaded
-			window.location.href = `/api/auth/instagram`;
-			return;
-		}
-
-		// Only use Facebook SDK on HTTPS
-		if (window.location.protocol !== "https:") {
-			window.location.href = `/api/auth/instagram`;
-			return;
-		}
-
-		// Check login status first
-		window.FB.getLoginStatus((response: any) => {
-			if (response.status === "connected") {
-				// Already logged in, exchange for Instagram token
-				exchangeFacebookTokenForInstagram(response.authResponse.accessToken);
-			} else {
-				// Need to login
-				window.FB.login(
-					(response: any) => {
-						if (response.authResponse) {
-							exchangeFacebookTokenForInstagram(response.authResponse.accessToken);
-						} else {
-							alert("Facebook login was cancelled or failed.");
-						}
-					},
-					{
-						scope: "instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement",
-					}
-				);
-			}
-		}, true); // Force roundtrip to server
-	};
-
-	const exchangeFacebookTokenForInstagram = async (facebookAccessToken: string) => {
-		try {
-			// Exchange Facebook token for Instagram access token via our API
-			const response = await fetch("/api/auth/instagram/facebook", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({ accessToken: facebookAccessToken }),
-			});
-
-			const data = await response.json();
-
-			if (response.ok && data.success) {
-				setSocialConnection({
-					platform: "instagram",
-					connected: true,
-					username: data.username || "Instagram User",
-					accessToken: data.instagramAccessToken,
-				});
-			} else {
-				alert(data.error || "Failed to connect Instagram account.");
-			}
-		} catch (error) {
-			console.error("Error exchanging Facebook token:", error);
-			alert("Failed to connect Instagram account. Please try again.");
-		}
-	};
-
 	const handleDisconnect = (platform: "youtube" | "instagram" | "tiktok") => {
 		if (confirm(`Are you sure you want to disconnect ${platform}?`)) {
 			removeSocialConnection(platform);
@@ -280,29 +213,6 @@ function SocialConnectionsContent() {
 						))}
 					</div>
 				</div>
-			)}
-			{/* Facebook Login for Instagram Insights */}
-			{!socialConnections.find((c) => c.platform === "instagram")?.connected && (
-				<Card size="2" variant="surface" className="p-4 mb-4 border border-blue-a6 bg-blue-a2">
-					<div className="flex items-center justify-between">
-						<div>
-							<Text size="2" weight="medium" className="text-gray-12 dark:text-gray-12 mb-1">
-								Connect Facebook for Instagram Insights
-							</Text>
-							<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
-								Get real-time analytics and insights by connecting your Facebook account
-							</Text>
-						</div>
-						<Button
-							color="blue"
-							size="2"
-							variant="solid"
-							onClick={() => window.location.href = "/api/auth/facebook"}
-						>
-							Connect Facebook
-						</Button>
-					</div>
-				</Card>
 			)}
 			<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
 				{platforms.map((platform) => {
