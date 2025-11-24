@@ -32,15 +32,18 @@ export async function GET(request: NextRequest) {
 		// Try different possible response structures
 		const user = userInfo.data?.user || userInfo.user || userInfo.data;
 		let username = "TikTok User";
+		let profilePicture: string | undefined;
 
 		if (user) {
 			// Prefer unique_id (handle/@username) over display_name
 			username = user.unique_id || user.username || user.display_name || user.nickname || username;
 			// Remove @ if present (we'll add it in the UI)
 			username = username.replace(/^@/, "");
+			// Get profile picture
+			profilePicture = user.avatar_url || user.avatar_larger || user.profile_picture_url;
 		}
 
-		return NextResponse.json({ username });
+		return NextResponse.json({ username, profilePicture });
 	} catch (error) {
 		console.error("[TikTok] Error fetching username:", error);
 		return NextResponse.json(
