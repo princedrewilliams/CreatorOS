@@ -218,7 +218,7 @@ async function fetchYouTubePosts(accessToken: string): Promise<Post[]> {
 				comments,
 				url: `https://www.youtube.com/watch?v=${item.id}`,
 			};
-		}).sort((a, b) => b.views - a.views);
+		}).sort((a: Post, b: Post) => b.views - a.views);
 	} catch (error) {
 		console.error("[posts] YouTube posts error:", error);
 		return [];
