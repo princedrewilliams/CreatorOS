@@ -216,21 +216,36 @@ export default function AnalyticsPage() {
 									<Card size="3" variant="surface" className="p-6">
 										<div className="flex flex-col gap-4">
 											<div className="flex items-center gap-3">
-												<div
-													className="w-12 h-12 rounded-lg flex items-center justify-center"
-													style={{
-														backgroundColor: `var(--${meta.color}-a2)`,
-														color: `var(--${meta.color}-11)`,
-													}}
-												>
-													<BarChartIcon className="w-6 h-6" />
-												</div>
+												{(() => {
+													const connection = socialConnections.find((c) => c.platform === platform && c.connected);
+													return connection?.profilePicture ? (
+														<img
+															src={connection.profilePicture}
+															alt={`${connection.username || meta.label} profile`}
+															className="w-12 h-12 rounded-lg object-cover border-2"
+															style={{ borderColor: `var(--${meta.color}-a6)` }}
+														/>
+													) : (
+														<div
+															className="w-12 h-12 rounded-lg flex items-center justify-center"
+															style={{
+																backgroundColor: `var(--${meta.color}-a2)`,
+																color: `var(--${meta.color}-11)`,
+															}}
+														>
+															<BarChartIcon className="w-6 h-6" />
+														</div>
+													);
+												})()}
 												<div>
 													<Heading size="5" weight="bold" className="text-gray-12 dark:text-gray-12">
 														{meta.label}
 													</Heading>
 													<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
-														Updated {analyticsSnapshot ? new Date(analyticsSnapshot.updatedAt).toLocaleString() : "—"}
+														{(() => {
+															const connection = socialConnections.find((c) => c.platform === platform && c.connected);
+															return connection?.username ? `@${connection.username}` : "Updated " + (analyticsSnapshot ? new Date(analyticsSnapshot.updatedAt).toLocaleString() : "—");
+														})()}
 													</Text>
 												</div>
 											</div>
@@ -296,15 +311,45 @@ export default function AnalyticsPage() {
 															{analyticsSnapshot.topContent.map((piece) => (
 																<div
 																	key={`${platform}-${piece.title}`}
-																	className="rounded-lg border border-gray-a4 dark:border-gray-a6 px-3 py-2"
+																	className="rounded-lg border border-gray-a4 dark:border-gray-a6 p-3 flex gap-3"
 																>
-																	<Text size="2" weight="medium" className="text-gray-12 dark:text-gray-12">
-																		{piece.title}
-																	</Text>
-																	<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
-																		{formatCompact(piece.views)} views · {piece.engagement.toFixed(1)}% engagement ·{" "}
-																		{new Date(piece.publishedAt).toLocaleDateString()}
-																	</Text>
+																	{piece.thumbnail && (
+																		<img
+																			src={piece.thumbnail}
+																			alt={piece.title}
+																			className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
+																		/>
+																	)}
+																	<div className="flex-1 min-w-0">
+																		<Text size="2" weight="medium" className="text-gray-12 dark:text-gray-12 line-clamp-2">
+																			{piece.title}
+																		</Text>
+																		<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
+																			{formatCompact(piece.views)} views · {piece.engagement.toFixed(1)}% engagement
+																		</Text>
+																		{(piece.likes !== undefined || piece.comments !== undefined || piece.shares !== undefined) && (
+																			<div className="flex gap-2 mt-1">
+																				{piece.likes !== undefined && (
+																					<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
+																						❤️ {formatCompact(piece.likes)}
+																					</Text>
+																				)}
+																				{piece.comments !== undefined && (
+																					<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
+																						💬 {formatCompact(piece.comments)}
+																					</Text>
+																				)}
+																				{piece.shares !== undefined && (
+																					<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
+																						🔁 {formatCompact(piece.shares)}
+																					</Text>
+																				)}
+																			</div>
+																		)}
+																		<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
+																			{new Date(piece.publishedAt).toLocaleDateString()}
+																		</Text>
+																	</div>
 																</div>
 															))}
 														</div>

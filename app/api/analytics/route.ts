@@ -167,6 +167,9 @@ async function fetchTikTokAnalytics(secUid: string): Promise<PlatformAnalyticsSn
 				? ((diggCount + commentCount + shareCount) / playCount) * 100
 				: 0;
 			
+			// Get thumbnail from item (TikTok API may provide cover or dynamic_cover)
+			const thumbnail = (item as any)?.cover || (item as any)?.dynamic_cover || (item as any)?.thumbnail;
+			
 			return {
 				title: item?.desc || item?.description || item?.title || "Untitled video",
 				views: playCount,
@@ -174,6 +177,10 @@ async function fetchTikTokAnalytics(secUid: string): Promise<PlatformAnalyticsSn
 				publishedAt: item?.createTime 
 					? new Date(item.createTime * 1000).toISOString() 
 					: (item?.create_time ? new Date(item.create_time * 1000).toISOString() : now.toISOString()),
+				thumbnail,
+				likes: diggCount,
+				comments: commentCount,
+				shares: shareCount,
 			};
 		});
 
@@ -255,11 +262,27 @@ async function fetchInstagramAnalytics(userId?: string): Promise<PlatformAnalyti
 			publishedAt: string;
 			likes: number;
 			comments: number;
+			thumbnail?: string;
 		}
 		
-		const topContent = mediaItems
-			.slice(0, 10)
-			.map((item: InstagramMediaItem): ContentItem => {
+		// Fetch media with thumbnails
+		const mediaWithThumbnails = await Promise.all(
+			mediaItems.slice(0, 10).map(async (item: InstagramMediaItem) => {
+				let thumbnail: string | undefined;
+				try {
+					// Fetch media details to get thumbnail
+					const mediaDetailResponse = await fetch(
+						`https://graph.instagram.com/${item.id}?fields=media_url,thumbnail_url,media_type&access_token=${INSTAGRAM_ACCESS_TOKEN}`,
+						{ cache: "no-store" }
+					);
+					if (mediaDetailResponse.ok) {
+						const mediaDetail = await mediaDetailResponse.json();
+						thumbnail = mediaDetail.thumbnail_url || mediaDetail.media_url;
+					}
+				} catch (error) {
+					console.warn(`Failed to fetch thumbnail for media ${item.id}:`, error);
+				}
+				
 				const likes = item.like_count || 0;
 				const comments = item.comments_count || 0;
 				const views = likes + comments; // Estimate views from engagement
@@ -277,8 +300,12 @@ async function fetchInstagramAnalytics(userId?: string): Promise<PlatformAnalyti
 					publishedAt: item.timestamp || new Date().toISOString(),
 					likes,
 					comments,
+					thumbnail,
 				};
 			})
+		);
+		
+		const topContent = mediaWithThumbnails
 			.sort((a: ContentItem, b: ContentItem) => b.views - a.views)
 			.slice(0, 3)
 			.map((item: ContentItem) => ({
@@ -286,6 +313,9 @@ async function fetchInstagramAnalytics(userId?: string): Promise<PlatformAnalyti
 				views: item.views,
 				engagement: Math.min(item.engagement, 100),
 				publishedAt: item.publishedAt,
+				thumbnail: item.thumbnail,
+				likes: item.likes,
+				comments: item.comments,
 			}));
 
 		// Try to fetch account insights if available (Business/Creator accounts only)
@@ -386,6 +416,10 @@ async function fetchTikTokAnalyticsWithAccessToken(accessToken: string): Promise
 					const shareCount = Number(stats?.share_count ?? 0) || 0;
 					const engagement = playCount > 0 ? ((likeCount + commentCount + shareCount) / playCount) * 100 : 0;
 					totalViews += playCount;
+					
+					// Get thumbnail from TikTok video item
+					const thumbnail = item?.cover || item?.dynamic_cover || item?.thumbnail;
+					
 					return {
 						title: item?.title || item?.desc || "TikTok Video",
 						views: playCount,
@@ -393,6 +427,10 @@ async function fetchTikTokAnalyticsWithAccessToken(accessToken: string): Promise
 						publishedAt: item?.create_time
 							? new Date(item.create_time * 1000).toISOString()
 							: new Date().toISOString(),
+						thumbnail,
+						likes: likeCount,
+						comments: commentCount,
+						shares: shareCount,
 					};
 				}).slice(0, 3);
 			} else {
@@ -416,6 +454,12 @@ async function fetchTikTokAnalyticsWithAccessToken(accessToken: string): Promise
 		console.error("[analytics] TikTok access-token analytics error:", error);
 		return null;
 	}
+}
+
+async function fetchYouTubeAnalytics(accessToken: string): Promise<PlatformAnalyticsSnapshot | null> {
+	// This function is now integrated inline in the GET handler
+	// Keeping this as a placeholder for potential future refactoring
+	return null;
 }
 
 export async function GET(request: NextRequest) {
@@ -470,6 +514,102 @@ export async function GET(request: NextRequest) {
 					platform,
 					data: realData || analyticsMocks[platform],
 				};
+			}
+			
+			// Fetch real YouTube data if access token is available
+			if (platform === "youtube") {
+				const youtubeAccessToken = request.cookies.get("youtube_access_token")?.value;
+				if (youtubeAccessToken) {
+					try {
+						// Get channel statistics and videos
+						const channelResponse = await fetch(
+							`https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet&mine=true`,
+							{
+								headers: {
+									Authorization: `Bearer ${youtubeAccessToken}`,
+								},
+							}
+						);
+						
+						if (channelResponse.ok) {
+							const channelData = await channelResponse.json();
+							if (channelData.items && channelData.items.length > 0) {
+								const channel = channelData.items[0];
+								const stats = channel.statistics;
+								const subscribers = Number(stats.subscriberCount || 0);
+								const videoCount = Number(stats.videoCount || 0);
+								
+								// Get recent videos
+								const videosResponse = await fetch(
+									`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&forMine=true&maxResults=10&order=viewCount`,
+									{
+										headers: {
+											Authorization: `Bearer ${youtubeAccessToken}`,
+										},
+									}
+								);
+								
+								let topContent: Array<{ title: string; views: number; engagement: number; publishedAt: string; thumbnail?: string; likes?: number; comments?: number }> = [];
+								let totalViews = 0;
+								
+								if (videosResponse.ok) {
+									const videosData = await videosResponse.json();
+									const videoIds = videosData.items?.map((item: any) => item.id.videoId).join(",") || "";
+									
+									if (videoIds) {
+										// Get detailed video statistics
+										const videoStatsResponse = await fetch(
+											`https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet&id=${videoIds}`,
+											{
+												headers: {
+													Authorization: `Bearer ${youtubeAccessToken}`,
+												},
+											}
+										);
+										
+										if (videoStatsResponse.ok) {
+											const videoStatsData = await videoStatsResponse.json();
+											topContent = (videoStatsData.items || []).slice(0, 3).map((item: any) => {
+												const videoStats = item.statistics;
+												const views = Number(videoStats.viewCount || 0);
+												const likes = Number(videoStats.likeCount || 0);
+												const comments = Number(videoStats.commentCount || 0);
+												const engagement = views > 0 ? ((likes + comments) / views) * 100 : 0;
+												totalViews += views;
+												
+												return {
+													title: item.snippet?.title || "Untitled Video",
+													views,
+													engagement: Math.min(engagement, 100),
+													publishedAt: item.snippet?.publishedAt || new Date().toISOString(),
+													thumbnail: item.snippet?.thumbnails?.high?.url || item.snippet?.thumbnails?.medium?.url,
+													likes,
+													comments,
+												};
+											});
+										}
+									}
+								}
+								
+								const now = new Date();
+								return {
+									platform,
+									data: {
+										views: totalViews,
+										followers: subscribers,
+										engagement: subscribers > 0 ? (totalViews / subscribers / videoCount) * 100 : 0,
+										revenue: 0,
+										updatedAt: now.toISOString(),
+										trend: { views: 0, followers: 0, engagement: 0, revenue: 0 },
+										topContent: topContent.length > 0 ? topContent : analyticsMocks.youtube.topContent,
+									},
+								};
+							}
+						}
+					} catch (error) {
+						console.error("[analytics] YouTube analytics error:", error);
+					}
+				}
 			}
 					
 					// Use mock data for other platforms or if credentials not provided

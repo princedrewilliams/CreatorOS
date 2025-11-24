@@ -67,6 +67,7 @@ export async function GET(request: NextRequest) {
 
 		// Get user info
 		let username = "TikTok User";
+		let profilePicture: string | undefined;
 		if (tokens.data?.access_token) {
 			try {
 				const userResponse = await fetch("https://open.tiktokapis.com/v2/user/info/", {
@@ -90,6 +91,9 @@ export async function GET(request: NextRequest) {
 						
 						// Remove @ if present (we'll add it in the UI)
 						username = username.replace(/^@/, "");
+						
+						// Get profile picture
+						profilePicture = user.avatar_url || user.avatar_larger || user.profile_picture_url;
 					}
 				} else {
 					const errorText = await userResponse.text();
@@ -104,8 +108,9 @@ export async function GET(request: NextRequest) {
 		console.log("[TikTok OAuth] Setting username:", username);
 		
 		// Store tokens
+		const profilePictureParam = profilePicture ? `&profilePicture=${encodeURIComponent(profilePicture)}` : "";
 		const response = NextResponse.redirect(
-			new URL(`/planner?connected=tiktok&username=${encodeURIComponent(username)}`, request.url)
+			new URL(`/planner?connected=tiktok&username=${encodeURIComponent(username)}${profilePictureParam}`, request.url)
 		);
 		
 		if (tokens.data?.access_token) {

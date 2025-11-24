@@ -49,10 +49,12 @@ function SocialConnectionsContent() {
 			// Update connection status based on OAuth callback
 			const platform = connected as "youtube" | "instagram" | "tiktok";
 			const username = searchParams.get("username") || `${platform.charAt(0).toUpperCase() + platform.slice(1)} User`;
+			const profilePicture = searchParams.get("profilePicture") || undefined;
 			setSocialConnection({
 				platform,
 				connected: true,
 				username,
+				profilePicture,
 			});
 			// Clean up URL
 			window.history.replaceState({}, "", window.location.pathname);
@@ -203,6 +205,13 @@ function SocialConnectionsContent() {
 								key={conn.platform}
 								className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-white dark:bg-gray-a4 border border-green-a6"
 							>
+								{conn.profilePicture && (
+									<img
+										src={conn.profilePicture}
+										alt={`${conn.username} profile`}
+										className="w-5 h-5 rounded-full object-cover"
+									/>
+								)}
 								<Text size="1" weight="medium" className="capitalize text-gray-12 dark:text-gray-12">
 									{conn.platform}:
 								</Text>
@@ -241,7 +250,15 @@ function SocialConnectionsContent() {
 								}`}
 							>
 								<div className="flex flex-col items-center gap-3">
-									<div className="text-4xl">{platform.icon}</div>
+									{connection?.profilePicture ? (
+										<img
+											src={connection.profilePicture}
+											alt={`${connection.username || platform.name} profile`}
+											className="w-16 h-16 rounded-full object-cover border-2 border-gray-a6"
+										/>
+									) : (
+										<div className="text-4xl">{platform.icon}</div>
+									)}
 									<Heading size="4" as="h3" className="text-gray-12 dark:text-gray-12">
 										{platform.name}
 									</Heading>

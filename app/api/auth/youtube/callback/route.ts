@@ -66,6 +66,7 @@ export async function GET(request: NextRequest) {
 
 		// Get user info from YouTube API
 		let username = "YouTube User";
+		let profilePicture: string | undefined;
 		try {
 			// First try to get channel info from YouTube Data API v3
 			const channelResponse = await fetch(
@@ -79,7 +80,9 @@ export async function GET(request: NextRequest) {
 			if (channelResponse.ok) {
 				const channelData = await channelResponse.json();
 				if (channelData.items && channelData.items.length > 0) {
-					username = channelData.items[0].snippet?.title || channelData.items[0].snippet?.customUrl || username;
+					const snippet = channelData.items[0].snippet;
+					username = snippet?.title || snippet?.customUrl || username;
+					profilePicture = snippet?.thumbnails?.high?.url || snippet?.thumbnails?.medium?.url || snippet?.thumbnails?.default?.url;
 				}
 			}
 		} catch (error) {
@@ -94,6 +97,7 @@ export async function GET(request: NextRequest) {
 				if (userResponse.ok) {
 					const userInfo = await userResponse.json();
 					username = userInfo.name || userInfo.email || username;
+					profilePicture = userInfo.picture;
 				}
 			} catch (fallbackError) {
 				console.warn("Failed to fetch user info:", fallbackError);
@@ -101,8 +105,9 @@ export async function GET(request: NextRequest) {
 		}
 
 		// Store tokens in a secure cookie (in production, use a database)
+		const profilePictureParam = profilePicture ? `&profilePicture=${encodeURIComponent(profilePicture)}` : "";
 		const response = NextResponse.redirect(
-			new URL(`/planner?connected=youtube&username=${encodeURIComponent(username)}`, request.url)
+			new URL(`/planner?connected=youtube&username=${encodeURIComponent(username)}${profilePictureParam}`, request.url)
 		);
 		
 		// In production, store tokens in a database associated with the user

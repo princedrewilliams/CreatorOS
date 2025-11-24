@@ -21,6 +21,7 @@ export interface SocialConnection {
 	expiresAt?: number;
 	username?: string;
 	userId?: string;
+	profilePicture?: string;
 }
 
 export type SponsorStatus = "active" | "pending" | "completed";

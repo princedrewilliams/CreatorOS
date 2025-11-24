@@ -142,17 +142,20 @@ export async function GET(request: NextRequest) {
 		}
 
 		// Get Instagram account info using the access token
+		let profilePicture: string | undefined;
 		if (userId && instagramAccessToken) {
 			try {
 				const accountInfoResponse = await fetch(
-					`https://graph.instagram.com/${userId}?fields=username,account_type&access_token=${instagramAccessToken}`
+					`https://graph.instagram.com/${userId}?fields=username,account_type,profile_picture_url&access_token=${instagramAccessToken}`
 				);
 				if (accountInfoResponse.ok) {
 					const accountInfo = (await accountInfoResponse.json()) as {
 						username?: string;
 						account_type?: string;
+						profile_picture_url?: string;
 					};
 					username = accountInfo.username || username;
+					profilePicture = accountInfo.profile_picture_url;
 				}
 			} catch (error) {
 				console.warn("Failed to fetch Instagram account info:", error);
@@ -160,8 +163,9 @@ export async function GET(request: NextRequest) {
 		}
 
 		// Store tokens
+		const profilePictureParam = profilePicture ? `&profilePicture=${encodeURIComponent(profilePicture)}` : "";
 		const response = NextResponse.redirect(
-			new URL(`/planner?connected=instagram&username=${encodeURIComponent(username)}`, request.url)
+			new URL(`/planner?connected=instagram&username=${encodeURIComponent(username)}${profilePictureParam}`, request.url)
 		);
 		
 		if (instagramAccessToken) {

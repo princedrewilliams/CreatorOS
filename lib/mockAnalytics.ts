@@ -17,6 +17,10 @@ export interface PlatformAnalyticsSnapshot {
 		views: number;
 		engagement: number;
 		publishedAt: string;
+		thumbnail?: string;
+		likes?: number;
+		comments?: number;
+		shares?: number;
 	}>;
 }
 
