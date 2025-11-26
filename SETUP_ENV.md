@@ -14,9 +14,9 @@ WHOP_WEBHOOK_SECRET=your_webhook_secret
 REPLICATE_API_TOKEN=your_replicate_api_token_here
 
 # YouTube OAuth & API access
-YOUTUBE_CLIENT_ID=your_youtube_client_id
+YOUTUBE_CLIENT_ID=123569225352-r93e3tvet1uk4t64qhpngqst3s1qdtuf.apps.googleusercontent.com
 YOUTUBE_CLIENT_SECRET=your_youtube_client_secret
-YOUTUBE_API_KEY=your_youtube_api_key
+YOUTUBE_API_KEY=AIzaSyDIYOkEPOcag4ZE5rvojOIonVJcZvCeYig
 NEXT_PUBLIC_YOUTUBE_OAUTH_ENABLED=true
 
 # TikTok Login Kit (OAuth v2)
