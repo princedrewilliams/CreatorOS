@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState, useMemo } from "react";
 import { Heading, Text, Card, Button, Badge } from "@whop/react/components";
 import {
 	CalendarIcon,
@@ -12,6 +13,18 @@ import {
 } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useAppStore } from "@/lib/store";
+import type { AnalyticsPlatform, PlatformAnalyticsSnapshot } from "@/lib/mockAnalytics";
+
+const formatCompact = (value: number, style: "decimal" | "currency" = "decimal") =>
+	new Intl.NumberFormat("en", {
+		notation: "compact",
+		maximumFractionDigits: 1,
+		...(style === "currency" ? { style: "currency", currency: "USD" } : {}),
+	}).format(value);
+
+const formatPercent = (value: number) =>
+	new Intl.NumberFormat("en", { style: "percent", maximumFractionDigits: 1 }).format(value / 100);
 
 const features = [
 	{
@@ -58,14 +71,109 @@ const features = [
 	},
 ];
 
-const stats = [
-	{ label: "Total Revenue", value: "$12,450", change: "+12%" },
-	{ label: "Active Deals", value: "8", change: "+2" },
-	{ label: "Content Planned", value: "24", change: "+8" },
-	{ label: "Engagement Rate", value: "4.2%", change: "+0.5%" },
-];
-
 export default function DashboardPage() {
+	const { socialConnections, tasks, sponsors } = useAppStore();
+	const [analytics, setAnalytics] = useState<Partial<Record<AnalyticsPlatform, PlatformAnalyticsSnapshot>>>({});
+	const [loading, setLoading] = useState(true);
+
+	const connectedPlatforms = useMemo(
+		() =>
+			socialConnections
+				.filter((connection) => connection.connected)
+				.map((connection) => connection.platform) as AnalyticsPlatform[],
+		[socialConnections]
+	);
+
+	// Fetch analytics data
+	useEffect(() => {
+		const fetchAnalytics = async () => {
+			if (connectedPlatforms.length === 0) {
+				setAnalytics({});
+				setLoading(false);
+				return;
+			}
+
+			setLoading(true);
+			try {
+				const queryParams = new URLSearchParams();
+				connectedPlatforms.forEach((platform) => {
+					queryParams.append("platform", platform);
+				});
+
+				const response = await fetch(`/api/analytics?${queryParams.toString()}`, {
+					credentials: "include",
+					cache: "no-store",
+				});
+
+				if (response.ok) {
+					const payload = (await response.json()) as {
+						platforms: Array<{ platform: AnalyticsPlatform; data: PlatformAnalyticsSnapshot }>;
+					};
+					const map: Partial<Record<AnalyticsPlatform, PlatformAnalyticsSnapshot>> = {};
+					for (const entry of payload.platforms) {
+						if (entry.platform && entry.data) {
+							map[entry.platform] = entry.data;
+						}
+					}
+					setAnalytics(map);
+				}
+			} catch (error) {
+				console.error("Failed to fetch analytics:", error);
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		fetchAnalytics();
+	}, [connectedPlatforms]);
+
+	// Calculate stats from real data
+	const stats = useMemo(() => {
+		// Calculate total revenue from analytics
+		const analyticsSnapshots = Object.values(analytics).filter(Boolean) as PlatformAnalyticsSnapshot[];
+		const totalRevenue = analyticsSnapshots.reduce((sum, snapshot) => sum + snapshot.revenue, 0);
+
+		// Calculate active deals from sponsors
+		const activeDeals = sponsors.filter((deal) => deal.status === "active" || deal.status === "pending").length;
+		const totalDeals = sponsors.length;
+		const dealsChange = totalDeals > 0 ? `+${totalDeals}` : "0";
+
+		// Calculate content planned from tasks
+		const plannedTasks = tasks.filter((task) => task.status === "planned" || task.status === "scheduled").length;
+		const totalTasks = tasks.length;
+		const tasksChange = totalTasks > 0 ? `+${totalTasks}` : "0";
+
+		// Calculate average engagement rate from analytics
+		const totalEngagement = analyticsSnapshots.reduce((sum, snapshot) => sum + snapshot.engagement, 0);
+		const avgEngagement = analyticsSnapshots.length > 0 ? totalEngagement / analyticsSnapshots.length : 0;
+		const engagementChange = analyticsSnapshots.length > 0 
+			? formatPercent(analyticsSnapshots.reduce((sum, snapshot) => sum + snapshot.trend.engagement, 0) / analyticsSnapshots.length)
+			: "+0%";
+
+		return [
+			{
+				label: "Total Revenue",
+				value: totalRevenue > 0 ? formatCompact(totalRevenue, "currency") : "$0",
+				change: totalRevenue > 0 ? formatPercent(analyticsSnapshots.reduce((sum, snapshot) => sum + snapshot.trend.revenue, 0) / analyticsSnapshots.length) : "+0%",
+			},
+			{
+				label: "Active Deals",
+				value: activeDeals.toString(),
+				change: dealsChange,
+			},
+			{
+				label: "Content Planned",
+				value: plannedTasks.toString(),
+				change: tasksChange,
+			},
+			{
+				label: "Engagement Rate",
+				value: avgEngagement > 0 ? `${avgEngagement.toFixed(1)}%` : "0%",
+				change: engagementChange,
+			},
+		];
+	}, [analytics, sponsors, tasks]);
+
 	return (
 		<div className="space-y-8">
 			<div>
@@ -92,10 +200,10 @@ export default function DashboardPage() {
 							</Text>
 							<div className="flex items-center gap-2">
 								<Text size="6" weight="bold" className="text-gray-12 dark:text-gray-12">
-									{stat.value}
+									{loading && stat.label === "Total Revenue" ? "..." : stat.value}
 								</Text>
 								<Badge color="green" variant="soft" size="1">
-									{stat.change}
+									{loading && (stat.label === "Total Revenue" || stat.label === "Engagement Rate") ? "..." : stat.change}
 								</Badge>
 							</div>
 						</Card>
