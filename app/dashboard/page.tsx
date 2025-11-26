@@ -195,18 +195,18 @@ export default function DashboardPage() {
 	}, [analytics, sponsors, tasks]);
 
 	return (
-		<div className="space-y-8">
+		<div className="space-y-6 sm:space-y-8">
 			<div>
-				<Heading size="8" as="h1" className="mb-2 text-gray-12 dark:text-gray-12">
+				<Heading size="7" as="h1" className="mb-2 text-gray-12 dark:text-gray-12 sm:text-8">
 					Welcome to CreatorOS
 				</Heading>
-				<Text size="4" color="gray" className="text-gray-11 dark:text-gray-11">
+				<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11 sm:text-4">
 					Your all-in-one creator toolkit
 				</Text>
 			</div>
 
 			{/* Stats Grid */}
-			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+			<div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
 				{stats.map((stat, index) => (
 					<motion.div
 						key={stat.label}
@@ -214,15 +214,15 @@ export default function DashboardPage() {
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ delay: index * 0.1 }}
 					>
-						<Card size="3" variant="surface" className="p-6">
-							<Text size="2" color="gray" className="mb-2 text-gray-11 dark:text-gray-11">
+						<Card size="3" variant="surface" className="p-4 sm:p-6">
+							<Text size="2" color="gray" className="mb-2 text-gray-11 dark:text-gray-11 text-xs sm:text-sm">
 								{stat.label}
 							</Text>
-							<div className="flex items-center gap-2">
-								<Text size="6" weight="bold" className="text-gray-12 dark:text-gray-12">
+							<div className="flex items-center gap-2 flex-wrap">
+								<Text size="5" weight="bold" className="text-gray-12 dark:text-gray-12 sm:text-6 break-words">
 									{loading && (stat.label === "Total Revenue" || stat.label === "Total Views" || stat.label === "Total Followers" || stat.label === "Engagement Rate") ? "..." : stat.value}
 								</Text>
-								<Badge color="green" variant="soft" size="1">
+								<Badge color="green" variant="soft" size="1" className="flex-shrink-0">
 									{loading && (stat.label === "Total Revenue" || stat.label === "Total Views" || stat.label === "Total Followers" || stat.label === "Engagement Rate") ? "..." : stat.change}
 								</Badge>
 							</div>
@@ -233,10 +233,10 @@ export default function DashboardPage() {
 
 			{/* Features Grid */}
 			<div>
-				<Heading size="6" as="h2" className="mb-6 text-gray-12 dark:text-gray-12">
+				<Heading size="5" as="h2" className="mb-4 sm:mb-6 text-gray-12 dark:text-gray-12 sm:text-6">
 					Tools
 				</Heading>
-				<div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+				<div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
 					{features.map((feature, index) => {
 						const Icon = feature.icon;
 						return (

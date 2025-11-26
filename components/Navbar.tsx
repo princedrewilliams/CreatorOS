@@ -15,35 +15,44 @@ export function Navbar() {
 
 	return (
 		<nav className="sticky top-0 z-50 w-full border-b border-gray-a4 dark:border-gray-a6 bg-gray-a1 dark:bg-gray-a2 backdrop-blur-md">
-			<div className="mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 gap-4">
-				<div className="flex items-center gap-4 flex-shrink-0 overflow-visible">
+			<div className="mx-auto flex h-16 items-center justify-between px-3 sm:px-4 lg:px-8 gap-2 sm:gap-4">
+				<div className="flex items-center gap-2 sm:gap-4 flex-shrink-0 min-w-0">
 					<Button
 						variant="ghost"
 						size="2"
 						className="lg:hidden flex-shrink-0"
 						onClick={() => useAppStore.getState().setSidebarOpen(true)}
 					>
-						<HamburgerMenuIcon />
+						<HamburgerMenuIcon className="w-5 h-5" />
 					</Button>
-					<Link href="/" className="flex items-center gap-2 whitespace-nowrap flex-shrink-0 no-underline overflow-visible">
-						<span className="text-6 font-bold text-gray-12 dark:text-gray-12">CreatorOS</span>
+					<Link href="/" className="flex items-center gap-2 whitespace-nowrap flex-shrink-0 no-underline min-w-0">
+						<span className="text-5 sm:text-6 font-bold text-gray-12 dark:text-gray-12 truncate">CreatorOS</span>
 					</Link>
 				</div>
 
-				<div className="flex items-center gap-3 flex-shrink-0">
+				<div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
 					{!isPro && (
 						<Button
 							variant="solid"
 							color="blue"
 							size="2"
+							className="hidden sm:inline-flex"
 							asChild
 						>
 							<Link href="/upgrade">Upgrade to Pro</Link>
 						</Button>
 					)}
 					{!isDashboard && (
-						<Button variant="ghost" size="2" asChild>
-							<Link href="/dashboard">Back to Dashboard</Link>
+						<Button 
+							variant="ghost" 
+							size="2" 
+							className="text-xs sm:text-sm whitespace-nowrap"
+							asChild
+						>
+							<Link href="/dashboard">
+								<span className="hidden sm:inline">Back to Dashboard</span>
+								<span className="sm:hidden">Dashboard</span>
+							</Link>
 						</Button>
 					)}
 				</div>

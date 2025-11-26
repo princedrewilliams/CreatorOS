@@ -96,23 +96,23 @@ export default function SponsorsPage() {
 	};
 
 	return (
-		<div className="space-y-8">
-			<div className="flex items-center justify-between flex-wrap gap-4">
-				<div>
+		<div className="space-y-6 sm:space-y-8">
+			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+				<div className="min-w-0 flex-1">
 					<Link href="/dashboard">
-						<Button variant="ghost" size="2" className="mb-4">
+						<Button variant="ghost" size="2" className="mb-3 sm:mb-4">
 							<ArrowLeftIcon className="mr-2" />
 							Back
 						</Button>
 					</Link>
-					<Heading size="8" as="h1" className="mb-2 text-gray-12 dark:text-gray-12">
+					<Heading size="7" as="h1" className="mb-2 text-gray-12 dark:text-gray-12 sm:text-8">
 						Sponsor Management
 					</Heading>
-					<Text size="4" color="gray" className="text-gray-11 dark:text-gray-11">
+					<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11 sm:text-4">
 						Track deals, revenue, and invoices
 					</Text>
 				</div>
-				<div className="flex gap-3">
+				<div className="flex gap-2 sm:gap-3 flex-shrink-0 flex-wrap">
 					<Button
 						color="blue"
 						size="3"

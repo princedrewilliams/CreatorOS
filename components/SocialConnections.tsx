@@ -189,11 +189,11 @@ function SocialConnectionsContent() {
 	const connectedAccounts = socialConnections.filter((conn) => conn.connected && conn.username);
 
 	return (
-		<Card size="3" variant="surface" className="p-6">
-			<Heading size="5" as="h2" className="mb-4 text-gray-12 dark:text-gray-12">
+		<Card size="3" variant="surface" className="p-4 sm:p-6">
+			<Heading size="4" as="h2" className="mb-3 sm:mb-4 text-gray-12 dark:text-gray-12 sm:text-5">
 				Social Media Connections
 			</Heading>
-			<Text size="3" color="gray" className="mb-4 text-gray-11 dark:text-gray-11">
+			<Text size="2" color="gray" className="mb-4 text-gray-11 dark:text-gray-11 sm:text-3">
 				Connect your social media accounts to enable cross-posting
 			</Text>
 			{connectedAccounts.length > 0 && (
@@ -225,7 +225,7 @@ function SocialConnectionsContent() {
 					</div>
 				</div>
 			)}
-			<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+			<div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
 				{platforms.map((platform) => {
 					const connection = socialConnections.find((c: SocialConnection) => c.platform === platform.key);
 					const isConnected = connection?.connected || false;

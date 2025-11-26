@@ -71,23 +71,24 @@ function PostsContent() {
 	}, [platform]);
 
 	return (
-		<div className="space-y-8">
-			<div className="flex items-center justify-between">
-				<div>
+		<div className="space-y-6 sm:space-y-8">
+			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+				<div className="min-w-0 flex-1">
 					<Link href="/analytics">
-						<Button variant="ghost" size="2" className="mb-4">
+						<Button variant="ghost" size="2" className="mb-3 sm:mb-4">
 							<ArrowLeftIcon className="mr-2" />
 							Back to Analytics
 						</Button>
 					</Link>
-					<Heading size="8" as="h1" className="mb-2 text-gray-12 dark:text-gray-12">
+					<Heading size="7" as="h1" className="mb-2 text-gray-12 dark:text-gray-12 sm:text-8">
 						All {meta.label} Posts
 					</Heading>
-					<Text size="4" color="gray" className="text-gray-11 dark:text-gray-11">
+					<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11 sm:text-4">
 						View all your {meta.label.toLowerCase()} content with detailed metrics
 					</Text>
 				</div>
 				<Button
+					className="flex-shrink-0"
 					variant="soft"
 					size="2"
 					color="gray"
@@ -147,7 +148,7 @@ function PostsContent() {
 						</Text>
 					</Card>
 
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
 						{posts.map((post, index) => (
 							<motion.div
 								key={post.id || `${post.title}-${index}`}
@@ -158,7 +159,7 @@ function PostsContent() {
 								<Card
 									size="2"
 									variant="surface"
-									className="p-4 h-full hover:border-gray-a6 dark:hover:border-gray-a5 transition-colors"
+									className="p-3 sm:p-4 h-full hover:border-gray-a6 dark:hover:border-gray-a5 transition-colors"
 								>
 									{post.thumbnail ? (
 										<div className="mb-3 rounded-lg overflow-hidden aspect-video bg-gray-a3">

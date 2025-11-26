@@ -47,10 +47,10 @@ export default function RootLayout({
 				<WhopApp accentColor="blue" appearance="inherit">
 					<div className="flex min-h-screen flex-col">
 						<Navbar />
-						<div className="flex flex-1">
+						<div className="flex flex-1 relative">
 							<Sidebar />
 							<main className="flex-1 w-full lg:pl-64">
-								<div className="mx-auto max-w-7xl w-full px-4 py-8 sm:px-6 lg:px-8">
+								<div className="mx-auto max-w-7xl w-full px-3 py-4 sm:px-4 sm:py-6 lg:px-8 lg:py-8">
 									{children}
 								</div>
 							</main>

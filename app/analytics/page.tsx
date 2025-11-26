@@ -129,23 +129,23 @@ export default function AnalyticsPage() {
 	}, [analytics]);
 
 	return (
-		<div className="space-y-8">
-			<div className="flex items-center justify-between">
-				<div>
+		<div className="space-y-6 sm:space-y-8">
+			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+				<div className="min-w-0 flex-1">
 					<Link href="/dashboard">
-						<Button variant="ghost" size="2" className="mb-4">
+						<Button variant="ghost" size="2" className="mb-3 sm:mb-4">
 							<ArrowLeftIcon className="mr-2" />
 							Back
 						</Button>
 					</Link>
-					<Heading size="8" as="h1" className="mb-2 text-gray-12 dark:text-gray-12">
+					<Heading size="7" as="h1" className="mb-2 text-gray-12 dark:text-gray-12 sm:text-8">
 						Analytics Dashboard
 					</Heading>
-					<Text size="4" color="gray" className="text-gray-11 dark:text-gray-11">
+					<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11 sm:text-4">
 						Track performance across YouTube, TikTok, and Instagram
 					</Text>
 				</div>
-				<div className="flex gap-3">
+				<div className="flex gap-2 sm:gap-3 flex-shrink-0">
 					<Button variant="soft" size="2" color="gray" onClick={() => fetchAnalytics()} disabled={loading || connectedPlatforms.length === 0}>
 						<ReloadIcon className="mr-2" />
 						Refresh
@@ -201,7 +201,7 @@ export default function AnalyticsPage() {
 						</Card>
 					)}
 
-					<div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+					<div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
 						{connectedPlatforms.map((platform, index) => {
 							const analyticsSnapshot = analytics[platform];
 							const meta = PLATFORM_META[platform];
