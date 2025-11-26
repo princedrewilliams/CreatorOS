@@ -15,14 +15,14 @@ export function PostVideoModal({ isOpen, onClose }: PostVideoModalProps) {
 	const { socialConnections } = useAppStore();
 	const [video, setVideo] = useState<File | null>(null);
 	const [caption, setCaption] = useState("");
-	const [selectedPlatforms, setSelectedPlatforms] = useState<("instagram" | "tiktok")[]>([]);
+	const [selectedPlatforms, setSelectedPlatforms] = useState<("youtube" | "instagram" | "tiktok")[]>([]);
 	const [uploading, setUploading] = useState(false);
 
 	const connectedPlatforms = socialConnections.filter(
-		(conn) => conn.connected && (conn.platform === "instagram" || conn.platform === "tiktok")
+		(conn) => conn.connected && (conn.platform === "youtube" || conn.platform === "instagram" || conn.platform === "tiktok")
 	);
 
-	const handlePlatformToggle = (platform: "instagram" | "tiktok") => {
+	const handlePlatformToggle = (platform: "youtube" | "instagram" | "tiktok") => {
 		setSelectedPlatforms((prev) =>
 			prev.includes(platform) ? prev.filter((p) => p !== platform) : [...prev, platform]
 		);
@@ -195,14 +195,19 @@ export function PostVideoModal({ isOpen, onClose }: PostVideoModalProps) {
 								</Text>
 								<div className="flex flex-wrap gap-3">
 									{connectedPlatforms.map((conn) => {
-										const platform = conn.platform as "instagram" | "tiktok";
+										const platform = conn.platform as "youtube" | "instagram" | "tiktok";
 										const isSelected = selectedPlatforms.includes(platform);
 										const username = conn.username || `${platform} User`;
+										const platformColors: Record<"youtube" | "instagram" | "tiktok", "red" | "purple" | "gray"> = {
+											youtube: "red",
+											instagram: "purple",
+											tiktok: "gray",
+										};
 										return (
 											<div key={platform} className="flex flex-col gap-1">
 												<Button
 													variant={isSelected ? "soft" : "ghost"}
-													color={platform === "instagram" ? "purple" : "gray"}
+													color={platformColors[platform]}
 													size="2"
 													onClick={() => handlePlatformToggle(platform)}
 													className="capitalize"
