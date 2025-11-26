@@ -213,8 +213,8 @@ export default function AnalyticsPage() {
 									animate={{ opacity: 1, y: 0 }}
 									transition={{ delay: index * 0.1 }}
 								>
-									<Card size="3" variant="surface" className="p-6">
-										<div className="flex flex-col gap-4">
+									<Card size="3" variant="surface" className="p-4 sm:p-6">
+										<div className="flex flex-col gap-3 sm:gap-4">
 											<div className="flex items-center gap-3">
 												{(() => {
 													const connection = socialConnections.find((c) => c.platform === platform && c.connected);
