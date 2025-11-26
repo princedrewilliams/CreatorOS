@@ -129,9 +129,11 @@ export default function DashboardPage() {
 
 	// Calculate stats from real data
 	const stats = useMemo(() => {
-		// Calculate total revenue from analytics
+		// Calculate totals from analytics
 		const analyticsSnapshots = Object.values(analytics).filter(Boolean) as PlatformAnalyticsSnapshot[];
 		const totalRevenue = analyticsSnapshots.reduce((sum, snapshot) => sum + snapshot.revenue, 0);
+		const totalViews = analyticsSnapshots.reduce((sum, snapshot) => sum + snapshot.views, 0);
+		const totalFollowers = analyticsSnapshots.reduce((sum, snapshot) => sum + snapshot.followers, 0);
 
 		// Calculate active deals from sponsors
 		const activeDeals = sponsors.filter((deal) => deal.status === "active" || deal.status === "pending").length;
@@ -150,7 +152,25 @@ export default function DashboardPage() {
 			? formatPercent(analyticsSnapshots.reduce((sum, snapshot) => sum + snapshot.trend.engagement, 0) / analyticsSnapshots.length)
 			: "+0%";
 
+		// Calculate trends for views and followers
+		const viewsTrend = analyticsSnapshots.length > 0
+			? formatPercent(analyticsSnapshots.reduce((sum, snapshot) => sum + snapshot.trend.views, 0) / analyticsSnapshots.length)
+			: "+0%";
+		const followersTrend = analyticsSnapshots.length > 0
+			? formatPercent(analyticsSnapshots.reduce((sum, snapshot) => sum + snapshot.trend.followers, 0) / analyticsSnapshots.length)
+			: "+0%";
+
 		return [
+			{
+				label: "Total Views",
+				value: totalViews > 0 ? formatCompact(totalViews) : "0",
+				change: viewsTrend,
+			},
+			{
+				label: "Total Followers",
+				value: totalFollowers > 0 ? formatCompact(totalFollowers) : "0",
+				change: followersTrend,
+			},
 			{
 				label: "Total Revenue",
 				value: totalRevenue > 0 ? formatCompact(totalRevenue, "currency") : "$0",
@@ -186,7 +206,7 @@ export default function DashboardPage() {
 			</div>
 
 			{/* Stats Grid */}
-			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 				{stats.map((stat, index) => (
 					<motion.div
 						key={stat.label}
@@ -200,10 +220,10 @@ export default function DashboardPage() {
 							</Text>
 							<div className="flex items-center gap-2">
 								<Text size="6" weight="bold" className="text-gray-12 dark:text-gray-12">
-									{loading && stat.label === "Total Revenue" ? "..." : stat.value}
+									{loading && (stat.label === "Total Revenue" || stat.label === "Total Views" || stat.label === "Total Followers" || stat.label === "Engagement Rate") ? "..." : stat.value}
 								</Text>
 								<Badge color="green" variant="soft" size="1">
-									{loading && (stat.label === "Total Revenue" || stat.label === "Engagement Rate") ? "..." : stat.change}
+									{loading && (stat.label === "Total Revenue" || stat.label === "Total Views" || stat.label === "Total Followers" || stat.label === "Engagement Rate") ? "..." : stat.change}
 								</Badge>
 							</div>
 						</Card>
