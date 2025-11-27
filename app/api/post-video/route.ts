@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
 		const youtubeTags = formData.get("youtubeTags") as string | null;
 		const youtubeThumbnail = formData.get("youtubeThumbnail") as File | null;
 		const youtubeVisibility = (formData.get("youtubeVisibility") as "public" | "private" | "unlisted" | null) || "public";
+		const youtubeContentType = (formData.get("youtubeContentType") as "video" | "shorts" | null) || "video";
 
 		if (!video) {
 			return NextResponse.json({ error: "Video file is required" }, { status: 400 });
@@ -59,12 +60,18 @@ export async function POST(request: NextRequest) {
 					// Map visibility values to YouTube API format
 					const privacyStatus = youtubeVisibility; // YouTube API uses: "public", "private", "unlisted"
 					
+					// For YouTube Shorts, add #Shorts tag automatically
+					const finalTags = youtubeContentType === "shorts" 
+						? ["#Shorts", ...tags].filter((tag, index, arr) => arr.indexOf(tag) === index) // Remove duplicates
+						: tags;
+					
 					console.log("[post-video] YouTube upload metadata:", {
+						contentType: youtubeContentType,
 						title,
 						description: description.substring(0, 100) + "...",
-						tags: tags.slice(0, 3),
+						tags: finalTags.slice(0, 3),
 						visibility: privacyStatus,
-						hasThumbnail: !!youtubeThumbnail,
+						hasThumbnail: !!youtubeThumbnail && youtubeContentType === "video",
 						videoSize: video.size,
 					});
 
@@ -72,20 +79,27 @@ export async function POST(request: NextRequest) {
 					// Steps for real implementation:
 					// 1. Initialize resumable upload session
 					// 2. Upload video file in chunks
-					// 3. Upload thumbnail if provided
+					// 3. Upload thumbnail if provided (only for regular videos, not Shorts)
 					// 4. Set video metadata (title, description, tags, privacy status)
+					// 
+					// For YouTube Shorts:
+					// - Video must be vertical (9:16 aspect ratio)
+					// - Duration must be 60 seconds or less
+					// - Add "#Shorts" tag automatically (already done above)
+					// - Thumbnail is not supported for Shorts (YouTube auto-generates)
 					// 
 					// Example API calls needed:
 					// - POST https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status
 					// - PUT <upload_url> (for video file)
-					// - POST https://www.googleapis.com/youtube/v3/thumbnails/set?videoId=<video_id> (for thumbnail)
+					// - POST https://www.googleapis.com/youtube/v3/thumbnails/set?videoId=<video_id> (for thumbnail, only if contentType === "video")
 					//
 					// Required OAuth scope: https://www.googleapis.com/auth/youtube.upload
 					
+					const contentTypeLabel = youtubeContentType === "shorts" ? "YouTube Short" : "regular video";
 					results.push({ 
 						platform: "youtube", 
 						success: true,
-						message: `Video "${title}" will be uploaded as ${privacyStatus}`,
+						message: `${contentTypeLabel} "${title}" will be uploaded as ${privacyStatus}`,
 					});
 				} catch (error) {
 					console.error("[post-video] YouTube post error:", error);

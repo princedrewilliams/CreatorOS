@@ -24,6 +24,7 @@ export function PostVideoModal({ isOpen, onClose }: PostVideoModalProps) {
 	const [youtubeTags, setYoutubeTags] = useState("");
 	const [youtubeThumbnail, setYoutubeThumbnail] = useState<File | null>(null);
 	const [youtubeVisibility, setYoutubeVisibility] = useState<"public" | "private" | "unlisted">("public");
+	const [youtubeContentType, setYoutubeContentType] = useState<"video" | "shorts">("video");
 	
 	const isYouTubeSelected = selectedPlatforms.includes("youtube");
 
@@ -83,6 +84,7 @@ export function PostVideoModal({ isOpen, onClose }: PostVideoModalProps) {
 				formData.append("youtubeDescription", youtubeDescription || caption || "");
 				formData.append("youtubeTags", youtubeTags);
 				formData.append("youtubeVisibility", youtubeVisibility);
+				formData.append("youtubeContentType", youtubeContentType);
 				if (youtubeThumbnail) {
 					formData.append("youtubeThumbnail", youtubeThumbnail);
 				}
@@ -113,6 +115,7 @@ export function PostVideoModal({ isOpen, onClose }: PostVideoModalProps) {
 				setYoutubeTags("");
 				setYoutubeThumbnail(null);
 				setYoutubeVisibility("public");
+				setYoutubeContentType("video");
 			} else {
 				// Show detailed error messages
 				const failedPlatforms = result.results?.filter((r: any) => !r.success) || [];
@@ -208,6 +211,38 @@ export function PostVideoModal({ isOpen, onClose }: PostVideoModalProps) {
 									<Text size="2" weight="bold" className="mb-3 block text-gray-12 dark:text-gray-12">
 										YouTube Video Settings
 									</Text>
+
+									{/* Content Type: Shorts or Regular Video */}
+									<div>
+										<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
+											Content Type *
+										</Text>
+										<div className="flex gap-2 flex-wrap">
+											<Button
+												variant={youtubeContentType === "video" ? "soft" : "ghost"}
+												color={youtubeContentType === "video" ? "red" : "gray"}
+												size="2"
+												onClick={() => setYoutubeContentType("video")}
+												className="flex-1 sm:flex-initial"
+											>
+												Regular Video
+											</Button>
+											<Button
+												variant={youtubeContentType === "shorts" ? "soft" : "ghost"}
+												color={youtubeContentType === "shorts" ? "red" : "gray"}
+												size="2"
+												onClick={() => setYoutubeContentType("shorts")}
+												className="flex-1 sm:flex-initial"
+											>
+												YouTube Shorts
+											</Button>
+										</div>
+										<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-2">
+											{youtubeContentType === "shorts" 
+												? "Shorts are vertical videos (9:16 aspect ratio) up to 60 seconds long"
+												: "Regular videos can be any length and aspect ratio"}
+										</Text>
+									</div>
 									
 									{/* Title */}
 									<div>
@@ -262,11 +297,12 @@ export function PostVideoModal({ isOpen, onClose }: PostVideoModalProps) {
 										</Text>
 									</div>
 
-									{/* Thumbnail Upload */}
-									<div>
-										<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
-											Custom Thumbnail (Optional)
-										</Text>
+									{/* Thumbnail Upload - Hidden for Shorts */}
+									{youtubeContentType === "video" && (
+										<div>
+											<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
+												Custom Thumbnail (Optional)
+											</Text>
 										<label className="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-a6 border-dashed rounded-lg cursor-pointer hover:bg-gray-a2 dark:hover:bg-gray-a3 transition-colors">
 											{youtubeThumbnail ? (
 												<div className="flex flex-col items-center">
@@ -301,7 +337,8 @@ export function PostVideoModal({ isOpen, onClose }: PostVideoModalProps) {
 												className="hidden"
 											/>
 										</label>
-									</div>
+										</div>
+									)}
 
 									{/* Visibility */}
 									<div>
