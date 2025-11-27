@@ -53,7 +53,11 @@ export async function POST(request: NextRequest) {
 					const videoArray = new Uint8Array(videoBuffer);
 
 					// Prepare video metadata
-					const title = youtubeTitle || video.name.replace(/\.[^/.]+$/, "");
+					// Title is required for YouTube
+					if (!youtubeTitle || youtubeTitle.trim() === "") {
+						throw new Error("YouTube title is required. Please provide a title for your video.");
+					}
+					const title = youtubeTitle.trim();
 					const description = youtubeDescription || caption || "";
 					const tags = youtubeTags ? youtubeTags.split(",").map(tag => tag.trim()).filter(Boolean) : [];
 					

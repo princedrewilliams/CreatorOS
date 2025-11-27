@@ -33,27 +33,15 @@ export function PostVideoModal({ isOpen, onClose }: PostVideoModalProps) {
 	);
 
 	const handlePlatformToggle = (platform: "youtube" | "instagram" | "tiktok") => {
-		setSelectedPlatforms((prev) => {
-			const isAdding = !prev.includes(platform);
-			const newPlatforms = isAdding ? [...prev, platform] : prev.filter((p) => p !== platform);
-			
-			// Auto-fill YouTube title when YouTube is selected and video is already chosen
-			if (isAdding && platform === "youtube" && video && !youtubeTitle) {
-				setYoutubeTitle(video.name.replace(/\.[^/.]+$/, ""));
-			}
-			
-			return newPlatforms;
-		});
+		setSelectedPlatforms((prev) =>
+			prev.includes(platform) ? prev.filter((p) => p !== platform) : [...prev, platform]
+		);
 	};
 
 	const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
 		if (file && file.type.startsWith("video/")) {
 			setVideo(file);
-			// Auto-fill YouTube title from filename if YouTube is already selected
-			if (selectedPlatforms.includes("youtube") && !youtubeTitle) {
-				setYoutubeTitle(file.name.replace(/\.[^/.]+$/, ""));
-			}
 		} else {
 			alert("Please select a valid video file");
 		}
@@ -67,6 +55,12 @@ export function PostVideoModal({ isOpen, onClose }: PostVideoModalProps) {
 
 		if (selectedPlatforms.length === 0) {
 			alert("Please select at least one platform");
+			return;
+		}
+
+		// Validate YouTube title if YouTube is selected
+		if (selectedPlatforms.includes("youtube") && (!youtubeTitle || youtubeTitle.trim() === "")) {
+			alert("Please enter a title for your YouTube video");
 			return;
 		}
 
@@ -253,7 +247,7 @@ export function PostVideoModal({ isOpen, onClose }: PostVideoModalProps) {
 											type="text"
 											value={youtubeTitle}
 											onChange={(e) => setYoutubeTitle(e.target.value)}
-											placeholder={video ? video.name.replace(/\.[^/.]+$/, "") : "Enter video title..."}
+											placeholder="Enter a title for your video..."
 											maxLength={100}
 											className="w-full px-4 py-2 rounded-lg border border-gray-a6 bg-white dark:bg-gray-a4 text-gray-12 dark:text-gray-12 placeholder-gray-9 dark:placeholder-gray-10 focus:outline-none focus:ring-2 focus:ring-red-6 focus:border-red-6 transition-colors"
 										/>
