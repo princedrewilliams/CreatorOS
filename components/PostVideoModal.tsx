@@ -207,40 +207,40 @@ export function PostVideoModal({ isOpen, onClose }: PostVideoModalProps) {
 
 							{/* YouTube-Specific Fields */}
 							{isYouTubeSelected && (
-								<div className="space-y-4 p-4 rounded-lg border border-red-a6 bg-red-a2 dark:bg-red-a3">
+								<div className="space-y-4 p-4 rounded-lg border-2 border-red-a6 bg-red-a2 dark:bg-red-a3">
 									<Text size="2" weight="bold" className="mb-3 block text-gray-12 dark:text-gray-12">
 										YouTube Video Settings
 									</Text>
 
 									{/* Content Type: Shorts or Regular Video */}
-									<div>
-										<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
+									<div className="bg-white dark:bg-gray-a4 p-3 rounded-lg border border-red-a6">
+										<Text size="2" weight="bold" className="mb-3 block text-gray-12 dark:text-gray-12">
 											Content Type *
 										</Text>
 										<div className="flex gap-2 flex-wrap">
 											<Button
 												variant={youtubeContentType === "video" ? "soft" : "ghost"}
 												color={youtubeContentType === "video" ? "red" : "gray"}
-												size="2"
+												size="3"
 												onClick={() => setYoutubeContentType("video")}
-												className="flex-1 sm:flex-initial"
+												className="flex-1 sm:flex-initial min-w-[140px]"
 											>
-												Regular Video
+												📹 Regular Video
 											</Button>
 											<Button
 												variant={youtubeContentType === "shorts" ? "soft" : "ghost"}
 												color={youtubeContentType === "shorts" ? "red" : "gray"}
-												size="2"
+												size="3"
 												onClick={() => setYoutubeContentType("shorts")}
-												className="flex-1 sm:flex-initial"
+												className="flex-1 sm:flex-initial min-w-[140px]"
 											>
-												YouTube Shorts
+												🎬 YouTube Shorts
 											</Button>
 										</div>
-										<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-2">
+										<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-3 block">
 											{youtubeContentType === "shorts" 
-												? "Shorts are vertical videos (9:16 aspect ratio) up to 60 seconds long"
-												: "Regular videos can be any length and aspect ratio"}
+												? "✓ Shorts are vertical videos (9:16 aspect ratio) up to 60 seconds long"
+												: "✓ Regular videos can be any length and aspect ratio"}
 										</Text>
 									</div>
 									
