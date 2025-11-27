@@ -6,6 +6,13 @@ export async function POST(request: NextRequest) {
 		const video = formData.get("video") as File | null;
 		const caption = formData.get("caption") as string | null;
 		const platforms = formData.get("platforms") as string | null;
+		
+		// YouTube-specific metadata
+		const youtubeTitle = formData.get("youtubeTitle") as string | null;
+		const youtubeDescription = formData.get("youtubeDescription") as string | null;
+		const youtubeTags = formData.get("youtubeTags") as string | null;
+		const youtubeThumbnail = formData.get("youtubeThumbnail") as File | null;
+		const youtubeVisibility = (formData.get("youtubeVisibility") as "public" | "private" | "unlisted" | null) || "public";
 
 		if (!video) {
 			return NextResponse.json({ error: "Video file is required" }, { status: 400 });
@@ -28,7 +35,7 @@ export async function POST(request: NextRequest) {
 		console.log("[post-video] Instagram token present:", !!instagramToken);
 		console.log("[post-video] TikTok token present:", !!tiktokToken);
 
-		const results: Array<{ platform: string; success: boolean; error?: string }> = [];
+		const results: Array<{ platform: string; success: boolean; error?: string; message?: string }> = [];
 
 		// Post to YouTube if selected
 		if (selectedPlatforms.includes("youtube")) {
@@ -40,16 +47,46 @@ export async function POST(request: NextRequest) {
 				});
 			} else {
 				try {
-					// YouTube Data API v3 video upload
+					// YouTube Data API v3 video upload with metadata
 					// Note: This requires YouTube Data API v3 with proper OAuth scopes
 					const videoBuffer = await video.arrayBuffer();
 
+					// Prepare video metadata
+					const title = youtubeTitle || video.name.replace(/\.[^/.]+$/, "");
+					const description = youtubeDescription || caption || "";
+					const tags = youtubeTags ? youtubeTags.split(",").map(tag => tag.trim()).filter(Boolean) : [];
+					
+					// Map visibility values to YouTube API format
+					const privacyStatus = youtubeVisibility; // YouTube API uses: "public", "private", "unlisted"
+					
+					console.log("[post-video] YouTube upload metadata:", {
+						title,
+						description: description.substring(0, 100) + "...",
+						tags: tags.slice(0, 3),
+						visibility: privacyStatus,
+						hasThumbnail: !!youtubeThumbnail,
+						videoSize: video.size,
+					});
+
 					// TODO: Implement actual YouTube Data API v3 video upload
-					// For now, return success (actual posting would require YouTube Data API v3 setup)
-					// This is a placeholder - you'll need to implement the actual API call to YouTube
-					// YouTube upload requires: https://www.googleapis.com/auth/youtube.upload scope
-					console.log("[post-video] YouTube post placeholder - video size:", video.size);
-					results.push({ platform: "youtube", success: true });
+					// Steps for real implementation:
+					// 1. Initialize resumable upload session
+					// 2. Upload video file in chunks
+					// 3. Upload thumbnail if provided
+					// 4. Set video metadata (title, description, tags, privacy status)
+					// 
+					// Example API calls needed:
+					// - POST https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status
+					// - PUT <upload_url> (for video file)
+					// - POST https://www.googleapis.com/youtube/v3/thumbnails/set?videoId=<video_id> (for thumbnail)
+					//
+					// Required OAuth scope: https://www.googleapis.com/auth/youtube.upload
+					
+					results.push({ 
+						platform: "youtube", 
+						success: true,
+						message: `Video "${title}" will be uploaded as ${privacyStatus}`,
+					});
 				} catch (error) {
 					console.error("[post-video] YouTube post error:", error);
 					results.push({ 

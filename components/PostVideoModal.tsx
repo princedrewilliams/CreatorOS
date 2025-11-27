@@ -17,21 +17,42 @@ export function PostVideoModal({ isOpen, onClose }: PostVideoModalProps) {
 	const [caption, setCaption] = useState("");
 	const [selectedPlatforms, setSelectedPlatforms] = useState<("youtube" | "instagram" | "tiktok")[]>([]);
 	const [uploading, setUploading] = useState(false);
+	
+	// YouTube-specific fields
+	const [youtubeTitle, setYoutubeTitle] = useState("");
+	const [youtubeDescription, setYoutubeDescription] = useState("");
+	const [youtubeTags, setYoutubeTags] = useState("");
+	const [youtubeThumbnail, setYoutubeThumbnail] = useState<File | null>(null);
+	const [youtubeVisibility, setYoutubeVisibility] = useState<"public" | "private" | "unlisted">("public");
+	
+	const isYouTubeSelected = selectedPlatforms.includes("youtube");
 
 	const connectedPlatforms = socialConnections.filter(
 		(conn) => conn.connected && (conn.platform === "youtube" || conn.platform === "instagram" || conn.platform === "tiktok")
 	);
 
 	const handlePlatformToggle = (platform: "youtube" | "instagram" | "tiktok") => {
-		setSelectedPlatforms((prev) =>
-			prev.includes(platform) ? prev.filter((p) => p !== platform) : [...prev, platform]
-		);
+		setSelectedPlatforms((prev) => {
+			const isAdding = !prev.includes(platform);
+			const newPlatforms = isAdding ? [...prev, platform] : prev.filter((p) => p !== platform);
+			
+			// Auto-fill YouTube title when YouTube is selected and video is already chosen
+			if (isAdding && platform === "youtube" && video && !youtubeTitle) {
+				setYoutubeTitle(video.name.replace(/\.[^/.]+$/, ""));
+			}
+			
+			return newPlatforms;
+		});
 	};
 
 	const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
 		if (file && file.type.startsWith("video/")) {
 			setVideo(file);
+			// Auto-fill YouTube title from filename if YouTube is already selected
+			if (selectedPlatforms.includes("youtube") && !youtubeTitle) {
+				setYoutubeTitle(file.name.replace(/\.[^/.]+$/, ""));
+			}
 		} else {
 			alert("Please select a valid video file");
 		}
@@ -55,6 +76,17 @@ export function PostVideoModal({ isOpen, onClose }: PostVideoModalProps) {
 			formData.append("video", video);
 			formData.append("caption", caption);
 			formData.append("platforms", selectedPlatforms.join(","));
+			
+			// Add YouTube-specific metadata if YouTube is selected
+			if (isYouTubeSelected) {
+				formData.append("youtubeTitle", youtubeTitle || video.name.replace(/\.[^/.]+$/, ""));
+				formData.append("youtubeDescription", youtubeDescription || caption || "");
+				formData.append("youtubeTags", youtubeTags);
+				formData.append("youtubeVisibility", youtubeVisibility);
+				if (youtubeThumbnail) {
+					formData.append("youtubeThumbnail", youtubeThumbnail);
+				}
+			}
 
 			const response = await fetch("/api/post-video", {
 				method: "POST",
@@ -75,6 +107,12 @@ export function PostVideoModal({ isOpen, onClose }: PostVideoModalProps) {
 				setVideo(null);
 				setCaption("");
 				setSelectedPlatforms([]);
+				// Reset YouTube-specific fields
+				setYoutubeTitle("");
+				setYoutubeDescription("");
+				setYoutubeTags("");
+				setYoutubeThumbnail(null);
+				setYoutubeVisibility("public");
 			} else {
 				// Show detailed error messages
 				const failedPlatforms = result.results?.filter((r: any) => !r.success) || [];
@@ -153,7 +191,7 @@ export function PostVideoModal({ isOpen, onClose }: PostVideoModalProps) {
 							{/* Caption */}
 							<div>
 								<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
-									Caption
+									Caption {!isYouTubeSelected && "(for Instagram/TikTok)"}
 								</Text>
 								<textarea
 									value={caption}
@@ -163,6 +201,135 @@ export function PostVideoModal({ isOpen, onClose }: PostVideoModalProps) {
 									className="w-full px-4 py-2 rounded-lg border border-gray-a6 bg-white dark:bg-gray-a4 text-gray-12 dark:text-gray-12 placeholder-gray-9 dark:placeholder-gray-10 focus:outline-none focus:ring-2 focus:ring-blue-6 focus:border-blue-6 transition-colors resize-none"
 								/>
 							</div>
+
+							{/* YouTube-Specific Fields */}
+							{isYouTubeSelected && (
+								<div className="space-y-4 p-4 rounded-lg border border-red-a6 bg-red-a2 dark:bg-red-a3">
+									<Text size="2" weight="bold" className="mb-3 block text-gray-12 dark:text-gray-12">
+										YouTube Video Settings
+									</Text>
+									
+									{/* Title */}
+									<div>
+										<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
+											Title *
+										</Text>
+										<input
+											type="text"
+											value={youtubeTitle}
+											onChange={(e) => setYoutubeTitle(e.target.value)}
+											placeholder={video ? video.name.replace(/\.[^/.]+$/, "") : "Enter video title..."}
+											maxLength={100}
+											className="w-full px-4 py-2 rounded-lg border border-gray-a6 bg-white dark:bg-gray-a4 text-gray-12 dark:text-gray-12 placeholder-gray-9 dark:placeholder-gray-10 focus:outline-none focus:ring-2 focus:ring-red-6 focus:border-red-6 transition-colors"
+										/>
+										<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
+											{youtubeTitle.length}/100 characters
+										</Text>
+									</div>
+
+									{/* Description */}
+									<div>
+										<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
+											Description
+										</Text>
+										<textarea
+											value={youtubeDescription}
+											onChange={(e) => setYoutubeDescription(e.target.value)}
+											placeholder={caption || "Enter video description..."}
+											rows={5}
+											maxLength={5000}
+											className="w-full px-4 py-2 rounded-lg border border-gray-a6 bg-white dark:bg-gray-a4 text-gray-12 dark:text-gray-12 placeholder-gray-9 dark:placeholder-gray-10 focus:outline-none focus:ring-2 focus:ring-red-6 focus:border-red-6 transition-colors resize-none"
+										/>
+										<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
+											{youtubeDescription.length}/5000 characters
+										</Text>
+									</div>
+
+									{/* Tags */}
+									<div>
+										<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
+											Tags
+										</Text>
+										<input
+											type="text"
+											value={youtubeTags}
+											onChange={(e) => setYoutubeTags(e.target.value)}
+											placeholder="gaming, tutorial, vlog (comma-separated)"
+											className="w-full px-4 py-2 rounded-lg border border-gray-a6 bg-white dark:bg-gray-a4 text-gray-12 dark:text-gray-12 placeholder-gray-9 dark:placeholder-gray-10 focus:outline-none focus:ring-2 focus:ring-red-6 focus:border-red-6 transition-colors"
+										/>
+										<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
+											Separate tags with commas (max 500 characters)
+										</Text>
+									</div>
+
+									{/* Thumbnail Upload */}
+									<div>
+										<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
+											Custom Thumbnail (Optional)
+										</Text>
+										<label className="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-a6 border-dashed rounded-lg cursor-pointer hover:bg-gray-a2 dark:hover:bg-gray-a3 transition-colors">
+											{youtubeThumbnail ? (
+												<div className="flex flex-col items-center">
+													<Text size="2" className="text-gray-12 dark:text-gray-12">
+														{youtubeThumbnail.name}
+													</Text>
+													<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
+														{(youtubeThumbnail.size / 1024).toFixed(2)} KB
+													</Text>
+												</div>
+											) : (
+												<div className="flex flex-col items-center">
+													<UploadIcon className="w-6 h-6 text-gray-9 dark:text-gray-10 mb-1" />
+													<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
+														Click to upload thumbnail (JPG, PNG, max 2MB)
+													</Text>
+												</div>
+											)}
+											<input
+												type="file"
+												accept="image/jpeg,image/png,image/jpg"
+												onChange={(e) => {
+													const file = e.target.files?.[0];
+													if (file) {
+														if (file.size > 2 * 1024 * 1024) {
+															alert("Thumbnail must be less than 2MB");
+															return;
+														}
+														setYoutubeThumbnail(file);
+													}
+												}}
+												className="hidden"
+											/>
+										</label>
+									</div>
+
+									{/* Visibility */}
+									<div>
+										<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
+											Visibility
+										</Text>
+										<div className="flex gap-2 flex-wrap">
+											{(["public", "unlisted", "private"] as const).map((visibility) => (
+												<Button
+													key={visibility}
+													variant={youtubeVisibility === visibility ? "soft" : "ghost"}
+													color={youtubeVisibility === visibility ? "red" : "gray"}
+													size="2"
+													onClick={() => setYoutubeVisibility(visibility)}
+													className="capitalize"
+												>
+													{visibility}
+												</Button>
+											))}
+										</div>
+										<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-2">
+											{youtubeVisibility === "public" && "Anyone can search for and view this video"}
+											{youtubeVisibility === "unlisted" && "Anyone with the link can view this video"}
+											{youtubeVisibility === "private" && "Only you can view this video"}
+										</Text>
+									</div>
+								</div>
+							)}
 
 							{/* Connected Accounts Summary */}
 							{connectedPlatforms.length > 0 && (
