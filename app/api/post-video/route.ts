@@ -49,8 +49,8 @@ export async function POST(request: NextRequest) {
 			} else {
 				try {
 					// YouTube Data API v3 video upload with metadata
-					// Note: This requires YouTube Data API v3 with proper OAuth scopes
 					const videoBuffer = await video.arrayBuffer();
+					const videoArray = new Uint8Array(videoBuffer);
 
 					// Prepare video metadata
 					const title = youtubeTitle || video.name.replace(/\.[^/.]+$/, "");
@@ -65,6 +65,20 @@ export async function POST(request: NextRequest) {
 						? ["#Shorts", ...tags].filter((tag, index, arr) => arr.indexOf(tag) === index) // Remove duplicates
 						: tags;
 					
+					// Prepare metadata JSON
+					const metadata = {
+						snippet: {
+							title,
+							description,
+							tags: finalTags,
+							categoryId: "22", // People & Blogs category
+						},
+						status: {
+							privacyStatus,
+							selfDeclaredMadeForKids: false,
+						},
+					};
+
 					console.log("[post-video] YouTube upload metadata:", {
 						contentType: youtubeContentType,
 						title,
@@ -75,38 +89,99 @@ export async function POST(request: NextRequest) {
 						videoSize: video.size,
 					});
 
-					// TODO: Implement actual YouTube Data API v3 video upload
-					// Steps for real implementation:
-					// 1. Initialize resumable upload session
-					// 2. Upload video file in chunks
-					// 3. Upload thumbnail if provided (only for regular videos, not Shorts)
-					// 4. Set video metadata (title, description, tags, privacy status)
-					// 
-					// For YouTube Shorts:
-					// - Video must be vertical (9:16 aspect ratio)
-					// - Duration must be 60 seconds or less
-					// - Add "#Shorts" tag automatically (already done above)
-					// - Thumbnail is not supported for Shorts (YouTube auto-generates)
-					// 
-					// Example API calls needed:
-					// - POST https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status
-					// - PUT <upload_url> (for video file)
-					// - POST https://www.googleapis.com/youtube/v3/thumbnails/set?videoId=<video_id> (for thumbnail, only if contentType === "video")
-					//
-					// Required OAuth scope: https://www.googleapis.com/auth/youtube.upload
-					
+					// Step 1: Initialize resumable upload session
+					const initResponse = await fetch(
+						`https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status`,
+						{
+							method: "POST",
+							headers: {
+								Authorization: `Bearer ${youtubeToken}`,
+								"Content-Type": "application/json",
+								"X-Upload-Content-Type": video.type || "video/*",
+								"X-Upload-Content-Length": video.size.toString(),
+							},
+							body: JSON.stringify(metadata),
+						}
+					);
+
+					if (!initResponse.ok) {
+						const errorData = await initResponse.json().catch(() => ({ error: { message: initResponse.statusText } }));
+						throw new Error(errorData.error?.message || `Failed to initialize upload: ${initResponse.status} ${initResponse.statusText}`);
+					}
+
+					// Get the upload URL from the Location header
+					const uploadUrl = initResponse.headers.get("Location");
+					if (!uploadUrl) {
+						throw new Error("No upload URL received from YouTube API");
+					}
+
+					console.log("[post-video] YouTube upload URL received, uploading video file...");
+
+					// Step 2: Upload video file
+					const uploadResponse = await fetch(uploadUrl, {
+						method: "PUT",
+						headers: {
+							"Content-Type": video.type || "video/*",
+							"Content-Length": video.size.toString(),
+						},
+						body: videoArray,
+					});
+
+					if (!uploadResponse.ok) {
+						const errorData = await uploadResponse.json().catch(() => ({ error: { message: uploadResponse.statusText } }));
+						throw new Error(errorData.error?.message || `Failed to upload video: ${uploadResponse.status} ${uploadResponse.statusText}`);
+					}
+
+					const uploadResult = await uploadResponse.json();
+					const videoId = uploadResult.id;
+
+					if (!videoId) {
+						throw new Error("No video ID received from YouTube API");
+					}
+
+					console.log("[post-video] YouTube video uploaded successfully, video ID:", videoId);
+
+					// Step 3: Upload thumbnail if provided (only for regular videos, not Shorts)
+					if (youtubeThumbnail && youtubeContentType === "video") {
+						try {
+							const thumbnailBuffer = await youtubeThumbnail.arrayBuffer();
+							const thumbnailResponse = await fetch(
+								`https://www.googleapis.com/youtube/v3/thumbnails/set?videoId=${videoId}`,
+								{
+									method: "POST",
+									headers: {
+										Authorization: `Bearer ${youtubeToken}`,
+										"Content-Type": youtubeThumbnail.type || "image/jpeg",
+									},
+									body: thumbnailBuffer,
+								}
+							);
+
+							if (thumbnailResponse.ok) {
+								console.log("[post-video] YouTube thumbnail uploaded successfully");
+							} else {
+								console.warn("[post-video] Failed to upload thumbnail, but video was uploaded:", thumbnailResponse.statusText);
+							}
+						} catch (thumbnailError) {
+							console.warn("[post-video] Error uploading thumbnail (video was uploaded):", thumbnailError);
+						}
+					}
+
 					const contentTypeLabel = youtubeContentType === "shorts" ? "YouTube Short" : "regular video";
+					const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+					
 					results.push({ 
 						platform: "youtube", 
 						success: true,
-						message: `${contentTypeLabel} "${title}" will be uploaded as ${privacyStatus}`,
+						message: `${contentTypeLabel} "${title}" uploaded successfully as ${privacyStatus}. View: ${videoUrl}`,
 					});
 				} catch (error) {
 					console.error("[post-video] YouTube post error:", error);
+					const errorMessage = error instanceof Error ? error.message : "Failed to post to YouTube";
 					results.push({ 
 						platform: "youtube", 
 						success: false, 
-						error: error instanceof Error ? error.message : "Failed to post to YouTube" 
+						error: errorMessage,
 					});
 				}
 			}
