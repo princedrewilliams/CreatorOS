@@ -11,7 +11,7 @@ export function Navbar() {
 	const pathname = usePathname();
 	const { setSidebarOpen, isPro } = useAppStore();
 
-	const isDashboard = pathname === "/" || pathname === "/dashboard";
+	const isDashboard = pathname === "/" || pathname === "/dashboard" || pathname === "/about";
 
 	return (
 		<nav className="sticky top-0 z-50 w-full border-b border-gray-a4 dark:border-gray-a6 bg-gray-a1 dark:bg-gray-a2 backdrop-blur-md">
@@ -31,14 +31,6 @@ export function Navbar() {
 				</div>
 
 				<div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-					<Button 
-						variant="ghost" 
-						size="2" 
-						className="text-xs sm:text-sm whitespace-nowrap hidden sm:inline-flex"
-						asChild
-					>
-						<Link href="/about">About</Link>
-					</Button>
 					{!isPro && (
 						<Button
 							variant="solid"
@@ -48,19 +40,6 @@ export function Navbar() {
 							asChild
 						>
 							<Link href="/upgrade">Upgrade to Pro</Link>
-						</Button>
-					)}
-					{!isDashboard && (
-						<Button 
-							variant="ghost" 
-							size="2" 
-							className="text-xs sm:text-sm whitespace-nowrap"
-							asChild
-						>
-							<Link href="/dashboard">
-								<span className="hidden sm:inline">Dashboard</span>
-								<span className="sm:hidden">Dashboard</span>
-							</Link>
 						</Button>
 					)}
 				</div>

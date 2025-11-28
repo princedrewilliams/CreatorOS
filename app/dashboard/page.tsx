@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { Heading, Text, Card, Button, Badge } from "@whop/react/components";
+import { Heading, Text, Card, Button, Badge, Separator } from "@whop/react/components";
 import {
 	CalendarIcon,
 	VideoIcon,
@@ -10,6 +10,8 @@ import {
 	BarChartIcon,
 	ArrowRightIcon,
 	DownloadIcon,
+	LockClosedIcon,
+	EyeOpenIcon,
 } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -194,13 +196,86 @@ export default function DashboardPage() {
 		];
 	}, [analytics, sponsors, tasks]);
 
+	const dataUsagePurposes = [
+		{
+			icon: BarChartIcon,
+			title: "Analytics Data",
+			description: "Access analytics to display performance dashboards",
+		},
+		{
+			icon: CalendarIcon,
+			title: "Content Plans",
+			description: "Store your content calendar and scheduled posts",
+		},
+		{
+			icon: VideoIcon,
+			title: "Post Content",
+			description: "Use access tokens to post on your behalf",
+		},
+		{
+			icon: LockClosedIcon,
+			title: "Account Access",
+			description: "Store OAuth tokens for seamless platform access",
+		},
+	];
+
 	return (
 		<div className="space-y-6 sm:space-y-8">
+			{/* Info Section at Top */}
+			<div className="bg-gradient-to-br from-blue-a2 to-purple-a2 dark:from-blue-a3 dark:to-purple-a3 rounded-lg p-6 sm:p-8">
+				<div className="text-center mb-6">
+					<Heading size="7" as="h1" className="mb-3 text-gray-12 dark:text-gray-12 sm:text-8">
+						CreatorOS
+					</Heading>
+					<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11 max-w-2xl mx-auto mb-4">
+						All-in-One Creator Tool for Content Planning, Cross-Platform Posting, and Analytics
+					</Text>
+				</div>
+
+				{/* Data Usage Transparency */}
+				<div className="mt-6">
+					<div className="flex items-center justify-center gap-2 mb-4">
+						<LockClosedIcon className="w-5 h-5 text-blue-11 dark:text-blue-10" />
+						<Heading size="4" as="h2" className="text-gray-12 dark:text-gray-12">
+							Data Usage & Privacy
+						</Heading>
+					</div>
+					<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 text-center mb-4 max-w-xl mx-auto">
+						We only access data necessary to provide our services. We never sell your personal data.
+					</Text>
+					<div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto">
+						{dataUsagePurposes.map((purpose, index) => {
+							const Icon = purpose.icon;
+							return (
+								<Card key={index} size="1" variant="surface" className="p-3 text-center bg-white/50 dark:bg-gray-a4/50">
+									<div className="flex flex-col items-center gap-2">
+										<div className="w-8 h-8 rounded-lg bg-blue-a2 dark:bg-blue-a3 flex items-center justify-center">
+											<Icon className="w-4 h-4 text-blue-11 dark:text-blue-10" />
+										</div>
+										<Text size="1" weight="medium" className="text-gray-12 dark:text-gray-12">
+											{purpose.title}
+										</Text>
+									</div>
+								</Card>
+							);
+						})}
+					</div>
+					<div className="mt-4 text-center">
+						<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
+							✓ Disconnect accounts anytime • ✓ Request data deletion • <Link href="/privacy" className="text-blue-10 underline">Privacy Policy</Link>
+						</Text>
+					</div>
+				</div>
+			</div>
+
+			<Separator />
+
+			{/* Dashboard Content */}
 			<div>
-				<Heading size="7" as="h1" className="mb-2 text-gray-12 dark:text-gray-12 sm:text-8">
+				<Heading size="6" as="h2" className="mb-2 text-gray-12 dark:text-gray-12 sm:text-7">
 					Welcome to CreatorOS
 				</Heading>
-				<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11 sm:text-4">
+				<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11 sm:text-4 mb-6">
 					Your all-in-one creator toolkit
 				</Text>
 			</div>
