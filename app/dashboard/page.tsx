@@ -240,7 +240,7 @@ export default function DashboardPage() {
 							Data Usage & Privacy
 						</Heading>
 					</div>
-					<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 text-center mb-4 max-w-xl mx-auto">
+					<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 text-center mb-4 max-w-xl mx-auto block">
 						We only access data necessary to provide our services. We never sell your personal data.
 					</Text>
 					<div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto">
