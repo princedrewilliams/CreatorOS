@@ -204,21 +204,18 @@ export default function HomePage() {
 				</div>
 
 				<Card size="3" variant="surface" className="p-6 bg-blue-a2 dark:bg-blue-a3 border-blue-a6">
-					<div className="flex gap-4">
-						<EyeOpenIcon className="w-6 h-6 text-blue-11 dark:text-blue-10 flex-shrink-0 mt-1" />
-						<div>
-							<Heading size="4" as="h3" className="mb-2 text-gray-12 dark:text-gray-12">
+					<div className="flex flex-col sm:flex-row gap-4 items-start">
+						<EyeOpenIcon className="w-6 h-6 text-blue-11 dark:text-blue-10 flex-shrink-0" />
+						<div className="flex-1">
+							<Heading size="4" as="h3" className="mb-3 text-gray-12 dark:text-gray-12">
 								Your Data Rights
 							</Heading>
-							<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11 mb-4">
-								You have full control over your data. You can:
-							</Text>
-							<ul className="list-disc list-inside space-y-2 text-gray-11 dark:text-gray-11 text-sm">
-								<li>Disconnect your social media accounts at any time</li>
-								<li>Request deletion of your data (see our <Link href="/data-deletion" className="text-blue-10 underline">Data Deletion page</Link>)</li>
-								<li>Review what data we collect in our <Link href="/privacy" className="text-blue-10 underline">Privacy Policy</Link></li>
-								<li>Export your analytics and sponsor data at any time</li>
-							</ul>
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-11 dark:text-gray-11">
+								<div>✓ Disconnect accounts anytime</div>
+								<div>✓ Request data deletion</div>
+								<div>✓ Review our <Link href="/privacy" className="text-blue-10 underline">Privacy Policy</Link></div>
+								<div>✓ Export your data anytime</div>
+							</div>
 						</div>
 					</div>
 				</Card>
