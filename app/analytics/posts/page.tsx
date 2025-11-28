@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { Heading, Text, Card, Button, Badge } from "@whop/react/components";
-import { ArrowLeftIcon, ReloadIcon } from "@radix-ui/react-icons";
+import { ReloadIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
@@ -74,12 +74,6 @@ function PostsContent() {
 		<div className="space-y-6 sm:space-y-8">
 			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 				<div className="min-w-0 flex-1">
-					<Link href="/analytics">
-						<Button variant="ghost" size="2" className="mb-3 sm:mb-4">
-							<ArrowLeftIcon className="mr-2" />
-							Back to Analytics
-						</Button>
-					</Link>
 					<Heading size="7" as="h1" className="mb-2 text-gray-12 dark:text-gray-12 sm:text-8">
 						All {meta.label} Posts
 					</Heading>

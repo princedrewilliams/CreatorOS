@@ -1,7 +1,7 @@
 "use client";
 
 import { Heading, Text, Card, Button } from "@whop/react/components";
-import { ArrowLeftIcon, ImageIcon } from "@radix-ui/react-icons";
+import { ImageIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
@@ -17,12 +17,6 @@ export default function ThumbnailPage() {
 		<div className="space-y-8">
 			<div className="flex items-center justify-between">
 				<div>
-					<Link href="/dashboard">
-						<Button variant="ghost" size="2" className="mb-4">
-							<ArrowLeftIcon className="mr-2" />
-							Back
-						</Button>
-					</Link>
 					<Heading size="8" as="h1" className="mb-2 text-gray-12 dark:text-gray-12">
 						Thumbnail Generator
 					</Heading>

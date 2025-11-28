@@ -31,6 +31,14 @@ export function Navbar() {
 				</div>
 
 				<div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+					<Button 
+						variant="ghost" 
+						size="2" 
+						className="text-xs sm:text-sm whitespace-nowrap hidden sm:inline-flex"
+						asChild
+					>
+						<Link href="/about">About</Link>
+					</Button>
 					{!isPro && (
 						<Button
 							variant="solid"
@@ -50,7 +58,7 @@ export function Navbar() {
 							asChild
 						>
 							<Link href="/dashboard">
-								<span className="hidden sm:inline">Back to Dashboard</span>
+								<span className="hidden sm:inline">Dashboard</span>
 								<span className="sm:hidden">Dashboard</span>
 							</Link>
 						</Button>

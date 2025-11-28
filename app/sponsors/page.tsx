@@ -2,7 +2,7 @@
 
 import { FormEvent, ReactNode, useMemo, useState } from "react";
 import { Heading, Text, Card, Button } from "@whop/react/components";
-import { ArrowLeftIcon, PlusIcon, FileTextIcon, SymbolIcon, TrashIcon, DownloadIcon } from "@radix-ui/react-icons";
+import { PlusIcon, FileTextIcon, SymbolIcon, TrashIcon, DownloadIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAppStore, type SponsorDeal, type SponsorStatus } from "@/lib/store";
@@ -99,12 +99,6 @@ export default function SponsorsPage() {
 		<div className="space-y-6 sm:space-y-8">
 			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 				<div className="min-w-0 flex-1">
-					<Link href="/dashboard">
-						<Button variant="ghost" size="2" className="mb-3 sm:mb-4">
-							<ArrowLeftIcon className="mr-2" />
-							Back
-						</Button>
-					</Link>
 					<Heading size="7" as="h1" className="mb-2 text-gray-12 dark:text-gray-12 sm:text-8">
 						Sponsor Management
 					</Heading>

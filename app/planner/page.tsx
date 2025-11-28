@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { format } from "date-fns";
 import { Heading, Text, Card, Button, Badge, Separator } from "@whop/react/components";
-import { ArrowLeftIcon, PlusIcon, CheckIcon, Pencil1Icon, TrashIcon, PaperPlaneIcon } from "@radix-ui/react-icons";
+import { PlusIcon, CheckIcon, Pencil1Icon, TrashIcon, PaperPlaneIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppStore, type Task, type SocialConnection } from "@/lib/store";
@@ -148,12 +148,6 @@ function PlannerContent() {
 			{/* Header */}
 			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 				<div className="min-w-0 flex-1">
-					<Link href="/dashboard">
-						<Button variant="ghost" size="2" className="mb-3 sm:mb-4">
-							<ArrowLeftIcon className="mr-2" />
-							Back
-						</Button>
-					</Link>
 					<Heading size="7" as="h1" className="mb-2 text-gray-12 dark:text-gray-12 sm:text-8">
 						Content Planner
 					</Heading>

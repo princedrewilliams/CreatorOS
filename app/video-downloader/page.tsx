@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Heading, Text, Card, Button, Badge, Separator } from "@whop/react/components";
 import {
-	ArrowLeftIcon,
 	DownloadIcon,
 	Link2Icon,
 	LightningBoltIcon,
@@ -140,12 +139,6 @@ export default function VideoDownloaderPage() {
 		<div className="space-y-8">
 			<div className="flex items-center justify-between">
 				<div>
-					<Link href="/dashboard">
-						<Button variant="ghost" size="2" className="mb-4">
-							<ArrowLeftIcon className="mr-2" />
-							Back
-						</Button>
-					</Link>
 					<Heading size="8" as="h1" className="mb-2 text-gray-12 dark:text-gray-12">
 						Video Downloader
 					</Heading>
