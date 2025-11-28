@@ -18,42 +18,42 @@ import { motion } from "framer-motion";
 const features = [
 	{
 		title: "Content Planner",
-		description: "Plan and schedule your content across YouTube, TikTok, and Instagram with an intuitive calendar interface. Organize your content strategy and never miss a posting deadline.",
+		description: "Plan and schedule content across platforms",
 		icon: CalendarIcon,
 		href: "/planner",
 		color: "blue" as const,
 	},
 	{
 		title: "Cross-Platform Posting",
-		description: "Upload videos once and post to multiple platforms simultaneously. Support for YouTube (regular videos and Shorts), Instagram, and TikTok with platform-specific metadata.",
+		description: "Post to YouTube, TikTok, and Instagram at once",
 		icon: VideoIcon,
 		href: "/planner",
 		color: "purple" as const,
 	},
 	{
 		title: "Analytics Dashboard",
-		description: "Track performance across YouTube, TikTok, and Instagram. View views, followers, engagement rates, and revenue metrics all in one place with real-time data synchronization.",
+		description: "Track performance across all platforms",
 		icon: BarChartIcon,
 		href: "/analytics",
 		color: "cyan" as const,
 	},
 	{
 		title: "Thumbnail Generator",
-		description: "Generate eye-catching thumbnails with AI-powered design tools. Create professional thumbnails that increase click-through rates.",
+		description: "AI-powered thumbnail creation",
 		icon: ImageIcon,
 		href: "/thumbnail",
 		color: "violet" as const,
 	},
 	{
 		title: "Video Downloader",
-		description: "Download videos from TikTok, Instagram Reels, and YouTube Shorts for repurposing and content creation.",
+		description: "Download videos for repurposing",
 		icon: DownloadIcon,
 		href: "/video-downloader",
 		color: "blue" as const,
 	},
 	{
 		title: "Sponsor Management",
-		description: "Track deals, revenue, and invoices from brand partnerships. Manage your sponsorship pipeline and never miss a deadline.",
+		description: "Track deals and revenue",
 		icon: FileTextIcon,
 		href: "/sponsors",
 		color: "green" as const,
@@ -63,23 +63,23 @@ const features = [
 const dataUsagePurposes = [
 	{
 		icon: BarChartIcon,
-		title: "Analytics & Performance Tracking",
-		description: "We access your social media analytics data (views, followers, engagement metrics) to display comprehensive performance dashboards and help you track your growth across platforms.",
+		title: "Analytics Data",
+		description: "Access analytics to display performance dashboards",
 	},
 	{
 		icon: CalendarIcon,
-		title: "Content Planning & Scheduling",
-		description: "We store your content plans, scheduled posts, and task information to help you organize and manage your content calendar effectively.",
+		title: "Content Plans",
+		description: "Store your content calendar and scheduled posts",
 	},
 	{
 		icon: VideoIcon,
-		title: "Cross-Platform Posting",
-		description: "We use your access tokens to post content to your connected social media accounts (YouTube, TikTok, Instagram) on your behalf, as authorized by you.",
+		title: "Post Content",
+		description: "Use access tokens to post on your behalf",
 	},
 	{
 		icon: LockClosedIcon,
-		title: "Account Authentication",
-		description: "We securely store OAuth tokens to maintain your connection to social media platforms, allowing seamless access to your accounts without requiring repeated logins.",
+		title: "Account Access",
+		description: "Store OAuth tokens for seamless platform access",
 	},
 ];
 
@@ -87,7 +87,7 @@ export default function HomePage() {
 	return (
 		<div className="min-h-screen">
 			{/* Hero Section */}
-			<div className="bg-gradient-to-br from-blue-a2 to-purple-a2 dark:from-blue-a3 dark:to-purple-a3 py-16 sm:py-24">
+			<div className="bg-gradient-to-br from-blue-a2 to-purple-a2 dark:from-blue-a3 dark:to-purple-a3 py-20 sm:py-28">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 					<motion.div
 						initial={{ opacity: 0, y: 20 }}
@@ -95,17 +95,13 @@ export default function HomePage() {
 						transition={{ duration: 0.6 }}
 						className="text-center"
 					>
-						<Heading size="9" as="h1" className="mb-4 text-gray-12 dark:text-gray-12">
+						<Heading size="9" as="h1" className="mb-6 text-gray-12 dark:text-gray-12">
 							CreatorOS
 						</Heading>
-						<Text size="5" color="gray" className="mb-6 text-gray-11 dark:text-gray-11 max-w-3xl mx-auto">
+						<Text size="4" color="gray" className="mb-10 text-gray-11 dark:text-gray-11 max-w-2xl mx-auto">
 							All-in-One Creator Tool for Content Planning, Cross-Platform Posting, and Analytics
 						</Text>
-						<Text size="3" color="gray" className="mb-8 text-gray-10 dark:text-gray-10 max-w-2xl mx-auto">
-							Streamline your content creation workflow with professional tools for YouTube, TikTok, and Instagram. 
-							Plan, post, and analyze your content all in one place.
-						</Text>
-						<div className="flex flex-col sm:flex-row gap-4 justify-center">
+						<div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
 							<Button color="blue" size="3" variant="solid" asChild>
 								<Link href="/dashboard">Get Started</Link>
 							</Button>
@@ -119,12 +115,9 @@ export default function HomePage() {
 
 			{/* Features Section */}
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-				<Heading size="7" as="h2" className="mb-4 text-center text-gray-12 dark:text-gray-12">
+				<Heading size="7" as="h2" className="mb-12 text-center text-gray-12 dark:text-gray-12">
 					Complete Creator Toolkit
 				</Heading>
-				<Text size="3" color="gray" className="mb-12 text-center text-gray-11 dark:text-gray-11 max-w-2xl mx-auto">
-					Everything you need to manage your content creation business, from planning to posting to analytics.
-				</Text>
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 					{features.map((feature, index) => {
 						const Icon = feature.icon;
@@ -136,25 +129,27 @@ export default function HomePage() {
 								transition={{ delay: index * 0.1 }}
 							>
 								<Card size="3" variant="surface" className="h-full p-6 hover:border-blue-6 transition-colors">
-									<div className="flex flex-col gap-4 h-full">
-										<div
-											className="w-12 h-12 rounded-lg flex items-center justify-center"
-											style={{
-												backgroundColor: `var(--${feature.color}-a2)`,
-												color: `var(--${feature.color}-11)`,
-											}}
-										>
-											<Icon className="w-6 h-6" />
+									<Link href={feature.href} className="block">
+										<div className="flex flex-col gap-4 h-full">
+											<div
+												className="w-12 h-12 rounded-lg flex items-center justify-center"
+												style={{
+													backgroundColor: `var(--${feature.color}-a2)`,
+													color: `var(--${feature.color}-11)`,
+												}}
+											>
+												<Icon className="w-6 h-6" />
+											</div>
+											<div>
+												<Heading size="5" as="h3" className="mb-2 text-gray-12 dark:text-gray-12">
+													{feature.title}
+												</Heading>
+												<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
+													{feature.description}
+												</Text>
+											</div>
 										</div>
-										<div className="flex-1">
-											<Heading size="5" as="h3" className="mb-2 text-gray-12 dark:text-gray-12">
-												{feature.title}
-											</Heading>
-											<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11">
-												{feature.description}
-											</Text>
-										</div>
-									</div>
+									</Link>
 								</Card>
 							</motion.div>
 						);
@@ -173,13 +168,12 @@ export default function HomePage() {
 							Data Usage & Privacy
 						</Heading>
 					</div>
-					<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11 max-w-3xl mx-auto">
-						We believe in complete transparency about how we use your data. CreatorOS only accesses the information 
-						necessary to provide our services, and we never sell your personal data to third parties.
+					<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11 max-w-2xl mx-auto">
+						We only access data necessary to provide our services. We never sell your personal data.
 					</Text>
 				</div>
 
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
 					{dataUsagePurposes.map((purpose, index) => {
 						const Icon = purpose.icon;
 						return (
@@ -189,18 +183,16 @@ export default function HomePage() {
 								animate={{ opacity: 1, y: 0 }}
 								transition={{ delay: index * 0.1 }}
 							>
-								<Card size="3" variant="surface" className="p-6 h-full">
-									<div className="flex gap-4">
-										<div className="flex-shrink-0">
-											<div className="w-10 h-10 rounded-lg bg-blue-a2 dark:bg-blue-a3 flex items-center justify-center">
-												<Icon className="w-5 h-5 text-blue-11 dark:text-blue-10" />
-											</div>
+								<Card size="2" variant="surface" className="p-4 h-full text-center">
+									<div className="flex flex-col items-center gap-3">
+										<div className="w-10 h-10 rounded-lg bg-blue-a2 dark:bg-blue-a3 flex items-center justify-center">
+											<Icon className="w-5 h-5 text-blue-11 dark:text-blue-10" />
 										</div>
 										<div>
-											<Heading size="4" as="h3" className="mb-2 text-gray-12 dark:text-gray-12">
+											<Heading size="3" as="h3" className="mb-1 text-gray-12 dark:text-gray-12">
 												{purpose.title}
 											</Heading>
-											<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
+											<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
 												{purpose.description}
 											</Text>
 										</div>
@@ -236,12 +228,9 @@ export default function HomePage() {
 
 			{/* CTA Section */}
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-				<Heading size="6" as="h2" className="mb-4 text-gray-12 dark:text-gray-12">
-					Ready to streamline your content creation?
+				<Heading size="6" as="h2" className="mb-6 text-gray-12 dark:text-gray-12">
+					Ready to get started?
 				</Heading>
-				<Text size="3" color="gray" className="mb-6 text-gray-11 dark:text-gray-11">
-					Join creators who are using CreatorOS to grow their audience and manage their content business.
-				</Text>
 				<Button color="blue" size="3" variant="solid" asChild>
 					<Link href="/dashboard">Start Using CreatorOS</Link>
 				</Button>
