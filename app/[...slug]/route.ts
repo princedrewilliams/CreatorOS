@@ -23,24 +23,37 @@ export async function GET(
 	// Handle Google verification files
 	if (isGoogleVerification) {
 		// Extract verification code from filename
-		// Pattern: google[verification-code].html
+		// Pattern: google[verification-code].html or google-site-verification.html
 		let verificationCode = filename.match(/google([A-Za-z0-9_-]+)\.(html|txt)/)?.[1];
 		
-		if (!verificationCode) {
-			// Try alternative pattern
-			verificationCode = filename.replace("google", "").replace(".html", "").replace(".txt", "");
+		// If filename is google-site-verification.html, try to get code from environment or use placeholder
+		if (!verificationCode && filename === "google-site-verification.html") {
+			verificationCode = process.env.GOOGLE_SITE_VERIFICATION_CODE || "PLACEHOLDER_UPDATE_WITH_ACTUAL_CODE";
 		}
 		
-		// Google verification files typically contain a meta tag
-		// The actual content should match what Google provides in the downloaded file
+		if (!verificationCode) {
+			// Try alternative pattern - extract everything between "google" and ".html"
+			const match = filename.match(/google(.+?)\.(html|txt)$/);
+			if (match) {
+				verificationCode = match[1];
+			} else {
+				verificationCode = filename.replace("google", "").replace(".html", "").replace(".txt", "").replace("site-verification", "");
+			}
+		}
+		
+		// Google verification files typically contain a meta tag with the verification code
+		// The verification code should be obtained from the downloaded file from Google Search Console
+		// Update GOOGLE_SITE_VERIFICATION_CODE in environment variables with the actual code
+		const actualVerificationCode = process.env.GOOGLE_SITE_VERIFICATION_CODE || verificationCode || "PLACEHOLDER_UPDATE_WITH_ACTUAL_CODE";
+		
 		const htmlContent = `<!DOCTYPE html>
 <html>
 <head>
-	<meta name="google-site-verification" content="${verificationCode || "PLACEHOLDER_UPDATE_WITH_ACTUAL_CODE"}" />
+	<meta name="google-site-verification" content="${actualVerificationCode}" />
 	<title>Google Site Verification</title>
 </head>
 <body>
-	google-site-verification: google${verificationCode || "PLACEHOLDER_UPDATE_WITH_ACTUAL_CODE"}.html
+	google-site-verification: ${filename}
 </body>
 </html>`;
 		
