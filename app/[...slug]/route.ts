@@ -22,7 +22,16 @@ export async function GET(
 	
 	// Handle Google verification files
 	if (isGoogleVerification) {
-		// Extract verification code from filename
+		// Specific Google verification file for URL prefix verification
+		if (filename === "google3370ca22a926d585.html") {
+			return new NextResponse("google-site-verification: google3370ca22a926d585.html", {
+				headers: {
+					"Content-Type": "text/html; charset=utf-8",
+				},
+			});
+		}
+		
+		// Extract verification code from filename for other Google verification files
 		// Pattern: google[verification-code].html or google-site-verification.html
 		let verificationCode = filename.match(/google([A-Za-z0-9_-]+)\.(html|txt)/)?.[1];
 		
