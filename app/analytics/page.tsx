@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { Heading, Text, Card, Button, Badge, Separator } from "@whop/react/components";
-import { BarChartIcon, ReloadIcon, DownloadIcon } from "@radix-ui/react-icons";
+import { BarChartIcon, ReloadIcon, DownloadIcon, HeartIcon, ChatBubbleIcon, Share1Icon, ArrowUpIcon, VideoIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { SocialConnections } from "@/components/SocialConnections";
@@ -103,29 +103,60 @@ export default function AnalyticsPage() {
 			return null;
 		}
 
-		return snapshots.reduce(
-			(acc, snapshot) => ({
-				views: acc.views + snapshot.views,
-				followers: acc.followers + snapshot.followers,
-				revenue: acc.revenue + snapshot.revenue,
-				engagement: acc.engagement + snapshot.engagement,
-				trend: {
-					views: acc.trend.views + snapshot.trend.views,
-					followers: acc.trend.followers + snapshot.trend.followers,
-					engagement: acc.trend.engagement + snapshot.trend.engagement,
-					revenue: acc.trend.revenue + snapshot.trend.revenue,
-				},
-				count: acc.count + 1,
-			}),
+		const totalsData = snapshots.reduce(
+			(acc, snapshot) => {
+				// Calculate total interactions (likes + comments + shares)
+				const totalInteractions = snapshot.topContent.reduce((sum, content) => {
+					return sum + (content.likes || 0) + (content.comments || 0) + (content.shares || 0);
+				}, 0);
+				
+				// Calculate total videos/posts
+				const totalVideos = snapshot.topContent.length;
+				
+				// Calculate average views per video
+				const avgViewsPerVideo = totalVideos > 0 
+					? snapshot.topContent.reduce((sum, content) => sum + content.views, 0) / totalVideos
+					: 0;
+
+				return {
+					views: acc.views + snapshot.views,
+					followers: acc.followers + snapshot.followers,
+					revenue: acc.revenue + snapshot.revenue,
+					engagement: acc.engagement + snapshot.engagement,
+					interactions: acc.interactions + totalInteractions,
+					totalVideos: acc.totalVideos + totalVideos,
+					totalViewsFromContent: acc.totalViewsFromContent + snapshot.topContent.reduce((sum, c) => sum + c.views, 0),
+					trend: {
+						views: acc.trend.views + snapshot.trend.views,
+						followers: acc.trend.followers + snapshot.trend.followers,
+						engagement: acc.trend.engagement + snapshot.trend.engagement,
+						revenue: acc.trend.revenue + snapshot.trend.revenue,
+					},
+					count: acc.count + 1,
+				};
+			},
 			{
 				views: 0,
 				followers: 0,
 				revenue: 0,
 				engagement: 0,
+				interactions: 0,
+				totalVideos: 0,
+				totalViewsFromContent: 0,
 				trend: { views: 0, followers: 0, engagement: 0, revenue: 0 },
 				count: 0,
 			}
 		);
+
+		// Calculate average views per video across all platforms
+		const avgViewsPerVideo = totalsData.totalVideos > 0 
+			? totalsData.totalViewsFromContent / totalsData.totalVideos 
+			: 0;
+
+		return {
+			...totalsData,
+			avgViewsPerVideo,
+		};
 	}, [analytics]);
 
 	return (
@@ -297,6 +328,48 @@ export default function AnalyticsPage() {
 															</Badge>
 														</div>
 													</div>
+													
+													{/* Additional KPIs */}
+													<Separator />
+													<div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+														<div>
+															<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11 flex items-center gap-1">
+																<VideoIcon className="w-3 h-3" />
+																Posts
+															</Text>
+															<Text size="3" weight="bold" className="text-gray-12 dark:text-gray-12">
+																{analyticsSnapshot.topContent.length}
+															</Text>
+														</div>
+														<div>
+															<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11 flex items-center gap-1">
+																<ArrowUpIcon className="w-3 h-3" />
+																Avg Views/Post
+															</Text>
+															<Text size="3" weight="bold" className="text-gray-12 dark:text-gray-12">
+																{analyticsSnapshot.topContent.length > 0
+																	? formatCompact(
+																			analyticsSnapshot.topContent.reduce((sum, c) => sum + c.views, 0) /
+																				analyticsSnapshot.topContent.length
+																	  )
+																	: "0"}
+															</Text>
+														</div>
+														<div>
+															<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11 flex items-center gap-1">
+																<HeartIcon className="w-3 h-3" />
+																Total Interactions
+															</Text>
+															<Text size="3" weight="bold" className="text-gray-12 dark:text-gray-12">
+																{formatCompact(
+																	analyticsSnapshot.topContent.reduce(
+																		(sum, c) => sum + (c.likes || 0) + (c.comments || 0) + (c.shares || 0),
+																		0
+																	)
+																)}
+															</Text>
+														</div>
+													</div>
 													<div>
 														<div className="flex items-center justify-between mb-2">
 															<Text size="2" weight="medium" className="text-gray-12 dark:text-gray-12">
@@ -369,57 +442,229 @@ export default function AnalyticsPage() {
 					</div>
 
 					{totals && (
-						<Card size="3" variant="surface" className="p-6">
-							<Heading size="5" as="h2" className="mb-4 text-gray-12 dark:text-gray-12">
-								Overall performance (connected accounts)
-							</Heading>
-							<div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
-								<div>
-									<Text size="2" color="gray" className="mb-2 text-gray-11 dark:text-gray-11">
-										Total Views
-									</Text>
-									<Heading size="7" weight="bold" className="text-gray-12 dark:text-gray-12">
-										{formatCompact(totals.views)}
-									</Heading>
-									<Badge color="green" size="1" variant="soft" className="mt-2">
-										{formatPercent(totals.trend.views / totals.count)}
-									</Badge>
+						<>
+							<Card size="3" variant="surface" className="p-6">
+								<Heading size="5" as="h2" className="mb-4 text-gray-12 dark:text-gray-12">
+									Overall Performance (All Platforms)
+								</Heading>
+								<div className="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-4">
+									<div>
+										<Text size="2" color="gray" className="mb-2 text-gray-11 dark:text-gray-11">
+											Total Views
+										</Text>
+										<Heading size="7" weight="bold" className="text-gray-12 dark:text-gray-12">
+											{formatCompact(totals.views)}
+										</Heading>
+										<Badge color="green" size="1" variant="soft" className="mt-2">
+											{formatPercent(totals.trend.views / totals.count)}
+										</Badge>
+									</div>
+									<div>
+										<Text size="2" color="gray" className="mb-2 text-gray-11 dark:text-gray-11">
+											Total Followers
+										</Text>
+										<Heading size="7" weight="bold" className="text-gray-12 dark:text-gray-12">
+											{formatCompact(totals.followers)}
+										</Heading>
+										<Badge color="green" size="1" variant="soft" className="mt-2">
+											{formatPercent(totals.trend.followers / totals.count)}
+										</Badge>
+									</div>
+									<div>
+										<Text size="2" color="gray" className="mb-2 text-gray-11 dark:text-gray-11">
+											Avg Engagement
+										</Text>
+										<Heading size="7" weight="bold" className="text-gray-12 dark:text-gray-12">
+											{(totals.engagement / totals.count).toFixed(1)}%
+										</Heading>
+										<Badge color="green" size="1" variant="soft" className="mt-2">
+											{formatPercent(totals.trend.engagement / totals.count)}
+										</Badge>
+									</div>
+									<div>
+										<Text size="2" color="gray" className="mb-2 text-gray-11 dark:text-gray-11">
+											Total Revenue
+										</Text>
+										<Heading size="7" weight="bold" className="text-gray-12 dark:text-gray-12">
+											{formatCompact(totals.revenue, "currency")}
+										</Heading>
+										<Badge color="green" size="1" variant="soft" className="mt-2">
+											{formatPercent(totals.trend.revenue / totals.count)}
+										</Badge>
+									</div>
 								</div>
-								<div>
-									<Text size="2" color="gray" className="mb-2 text-gray-11 dark:text-gray-11">
-										Total Followers
-									</Text>
-									<Heading size="7" weight="bold" className="text-gray-12 dark:text-gray-12">
-										{formatCompact(totals.followers)}
-									</Heading>
-									<Badge color="green" size="1" variant="soft" className="mt-2">
-										{formatPercent(totals.trend.followers / totals.count)}
-									</Badge>
+							</Card>
+
+							{/* Additional Overall KPIs */}
+							<Card size="3" variant="surface" className="p-6">
+								<Heading size="5" as="h2" className="mb-4 text-gray-12 dark:text-gray-12">
+									Content & Engagement Metrics
+								</Heading>
+								<div className="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-4">
+									<div>
+										<Text size="2" color="gray" className="mb-2 text-gray-11 dark:text-gray-11 flex items-center gap-1">
+											<VideoIcon className="w-4 h-4" />
+											Total Posts
+										</Text>
+										<Heading size="6" weight="bold" className="text-gray-12 dark:text-gray-12">
+											{totals.totalVideos}
+										</Heading>
+										<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
+											Across all platforms
+										</Text>
+									</div>
+									<div>
+										<Text size="2" color="gray" className="mb-2 text-gray-11 dark:text-gray-11 flex items-center gap-1">
+											<ArrowUpIcon className="w-4 h-4" />
+											Avg Views/Post
+										</Text>
+										<Heading size="6" weight="bold" className="text-gray-12 dark:text-gray-12">
+											{formatCompact(totals.avgViewsPerVideo || 0)}
+										</Heading>
+										<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
+											Per content piece
+										</Text>
+									</div>
+									<div>
+										<Text size="2" color="gray" className="mb-2 text-gray-11 dark:text-gray-11 flex items-center gap-1">
+											<HeartIcon className="w-4 h-4" />
+											Total Interactions
+										</Text>
+										<Heading size="6" weight="bold" className="text-gray-12 dark:text-gray-12">
+											{formatCompact(totals.interactions)}
+										</Heading>
+										<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
+											Likes + Comments + Shares
+										</Text>
+									</div>
+									<div>
+										<Text size="2" color="gray" className="mb-2 text-gray-11 dark:text-gray-11 flex items-center gap-1">
+											<BarChartIcon className="w-4 h-4" />
+											Connected Platforms
+										</Text>
+										<Heading size="6" weight="bold" className="text-gray-12 dark:text-gray-12">
+											{connectedPlatforms.length}
+										</Heading>
+										<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
+											Active accounts
+										</Text>
+									</div>
 								</div>
-								<div>
-									<Text size="2" color="gray" className="mb-2 text-gray-11 dark:text-gray-11">
-										Avg Engagement
-									</Text>
-									<Heading size="7" weight="bold" className="text-gray-12 dark:text-gray-12">
-										{(totals.engagement / totals.count).toFixed(1)}%
+							</Card>
+
+							{/* Best Performing Platform */}
+							{connectedPlatforms.length > 1 && (
+								<Card size="3" variant="surface" className="p-6">
+									<Heading size="5" as="h2" className="mb-4 text-gray-12 dark:text-gray-12">
+										Best Performing Platform
 									</Heading>
-									<Badge color="green" size="1" variant="soft" className="mt-2">
-										{formatPercent(totals.trend.engagement / totals.count)}
-									</Badge>
-								</div>
-								<div>
-									<Text size="2" color="gray" className="mb-2 text-gray-11 dark:text-gray-11">
-										Total Revenue
-									</Text>
-									<Heading size="7" weight="bold" className="text-gray-12 dark:text-gray-12">
-										{formatCompact(totals.revenue, "currency")}
-									</Heading>
-									<Badge color="green" size="1" variant="soft" className="mt-2">
-										{formatPercent(totals.trend.revenue / totals.count)}
-									</Badge>
-								</div>
-							</div>
-						</Card>
+									{(() => {
+										const platformStats = connectedPlatforms
+											.map((platform) => {
+												const snapshot = analytics[platform];
+												if (!snapshot) return null;
+												return {
+													platform,
+													views: snapshot.views,
+													followers: snapshot.followers,
+													engagement: snapshot.engagement,
+													meta: PLATFORM_META[platform],
+												};
+											})
+											.filter(Boolean) as Array<{
+												platform: AnalyticsPlatform;
+												views: number;
+												followers: number;
+												engagement: number;
+												meta: { label: string; color: "red" | "cyan" | "pink"; followerLabel: string };
+											}>;
+
+										if (platformStats.length === 0) return null;
+
+										const bestByViews = [...platformStats].sort((a, b) => b.views - a.views)[0];
+										const bestByFollowers = [...platformStats].sort((a, b) => b.followers - a.followers)[0];
+										const bestByEngagement = [...platformStats].sort((a, b) => b.engagement - a.engagement)[0];
+
+										return (
+											<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+												<div className="p-4 rounded-lg border border-gray-a4 dark:border-gray-a6">
+													<Text size="1" color="gray" className="mb-2 text-gray-11 dark:text-gray-11">
+														Most Views
+													</Text>
+													<div className="flex items-center gap-2">
+														<div
+															className="w-8 h-8 rounded-lg flex items-center justify-center"
+															style={{
+																backgroundColor: `var(--${bestByViews.meta.color}-a2)`,
+																color: `var(--${bestByViews.meta.color}-11)`,
+															}}
+														>
+															<BarChartIcon className="w-4 h-4" />
+														</div>
+														<div>
+															<Text size="3" weight="bold" className="text-gray-12 dark:text-gray-12">
+																{bestByViews.meta.label}
+															</Text>
+															<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
+																{formatCompact(bestByViews.views)} views
+															</Text>
+														</div>
+													</div>
+												</div>
+												<div className="p-4 rounded-lg border border-gray-a4 dark:border-gray-a6">
+													<Text size="1" color="gray" className="mb-2 text-gray-11 dark:text-gray-11">
+														Most Followers
+													</Text>
+													<div className="flex items-center gap-2">
+														<div
+															className="w-8 h-8 rounded-lg flex items-center justify-center"
+															style={{
+																backgroundColor: `var(--${bestByFollowers.meta.color}-a2)`,
+																color: `var(--${bestByFollowers.meta.color}-11)`,
+															}}
+														>
+															<ArrowUpIcon className="w-4 h-4" />
+														</div>
+														<div>
+															<Text size="3" weight="bold" className="text-gray-12 dark:text-gray-12">
+																{bestByFollowers.meta.label}
+															</Text>
+															<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
+																{formatCompact(bestByFollowers.followers)} {bestByFollowers.meta.followerLabel.toLowerCase()}
+															</Text>
+														</div>
+													</div>
+												</div>
+												<div className="p-4 rounded-lg border border-gray-a4 dark:border-gray-a6">
+													<Text size="1" color="gray" className="mb-2 text-gray-11 dark:text-gray-11">
+														Highest Engagement
+													</Text>
+													<div className="flex items-center gap-2">
+														<div
+															className="w-8 h-8 rounded-lg flex items-center justify-center"
+															style={{
+																backgroundColor: `var(--${bestByEngagement.meta.color}-a2)`,
+																color: `var(--${bestByEngagement.meta.color}-11)`,
+															}}
+														>
+															<HeartIcon className="w-4 h-4" />
+														</div>
+														<div>
+															<Text size="3" weight="bold" className="text-gray-12 dark:text-gray-12">
+																{bestByEngagement.meta.label}
+															</Text>
+															<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
+																{bestByEngagement.engagement.toFixed(1)}% engagement
+															</Text>
+														</div>
+													</div>
+												</div>
+											</div>
+										);
+									})()}
+								</Card>
+							)}
+						</>
 					)}
 				</>
 			)}
