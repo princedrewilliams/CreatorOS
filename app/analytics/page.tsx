@@ -497,29 +497,34 @@ export default function AnalyticsPage() {
 					{/* Charts Section */}
 					{chartData.length > 0 && (
 						<>
-							{/* Views Chart */}
-							<Card size="3" variant="surface" className="p-6">
-								<div className="flex items-center justify-between mb-4">
-									<Heading size="5" as="h2" className="text-gray-12 dark:text-gray-12">
-										Views by Platform
-									</Heading>
-									<div className="flex gap-2">
-										{(["bar", "pie", "line", "area"] as ChartType[]).map((type) => (
-											<Button
-												key={type}
-												variant={viewsChartType === type ? "soft" : "ghost"}
-												size="1"
-												onClick={() => setViewsChartType(type)}
-												className="capitalize"
-											>
-												{type}
-											</Button>
-										))}
-									</div>
-								</div>
-								<div className="h-48 sm:h-64">
-									<ResponsiveContainer width="100%" height="100%">
-										{viewsChartType === "bar" ? (
+							<Card size="3" variant="surface" className="p-4 sm:p-6">
+								<Heading size="5" as="h2" className="mb-4 text-gray-12 dark:text-gray-12">
+									Analytics Charts
+								</Heading>
+								<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+									{/* Views Chart */}
+									<div>
+										<div className="flex items-center justify-between mb-2">
+											<Text size="2" weight="medium" className="text-gray-12 dark:text-gray-12">
+												Views
+											</Text>
+											<div className="flex gap-1">
+												{(["bar", "pie", "line", "area"] as ChartType[]).map((type) => (
+													<Button
+														key={type}
+														variant={viewsChartType === type ? "soft" : "ghost"}
+														size="1"
+														onClick={() => setViewsChartType(type)}
+														className="capitalize text-xs px-1.5 py-0.5"
+													>
+														{type.charAt(0)}
+													</Button>
+												))}
+											</div>
+										</div>
+										<div className="h-32 sm:h-40">
+											<ResponsiveContainer width="100%" height="100%">
+												{viewsChartType === "bar" ? (
 											<BarChart data={chartData}>
 												<CartesianGrid strokeDasharray="3 3" stroke="var(--gray-a4)" />
 												<XAxis dataKey="platform" stroke="var(--gray-11)" />
@@ -542,7 +547,7 @@ export default function AnalyticsPage() {
 													nameKey="platform"
 													cx="50%"
 													cy="50%"
-													outerRadius={80}
+													outerRadius={60}
 													label={(entry: any) => `${entry.platform}: ${formatCompact(entry.views)}`}
 												>
 													{chartData.map((entry: { color: "red" | "cyan" | "pink" }, index: number) => (
@@ -587,34 +592,34 @@ export default function AnalyticsPage() {
 												<Legend />
 												<Area type="monotone" dataKey="views" stroke="var(--blue-9)" fill="var(--blue-a3)" name="Views" />
 											</AreaChart>
-										)}
-									</ResponsiveContainer>
-								</div>
-							</Card>
-
-							{/* Followers Chart */}
-							<Card size="3" variant="surface" className="p-6">
-								<div className="flex items-center justify-between mb-4">
-									<Heading size="5" as="h2" className="text-gray-12 dark:text-gray-12">
-										Followers by Platform
-									</Heading>
-									<div className="flex gap-2">
-										{(["bar", "pie", "line", "area"] as ChartType[]).map((type) => (
-											<Button
-												key={type}
-												variant={followersChartType === type ? "soft" : "ghost"}
-												size="1"
-												onClick={() => setFollowersChartType(type)}
-												className="capitalize"
-											>
-												{type}
-											</Button>
-										))}
+												)}
+											</ResponsiveContainer>
+										</div>
 									</div>
-								</div>
-								<div className="h-48 sm:h-64">
-									<ResponsiveContainer width="100%" height="100%">
-										{followersChartType === "bar" ? (
+
+									{/* Followers Chart */}
+									<div>
+										<div className="flex items-center justify-between mb-2">
+											<Text size="2" weight="medium" className="text-gray-12 dark:text-gray-12">
+												Followers
+											</Text>
+											<div className="flex gap-1">
+												{(["bar", "pie", "line", "area"] as ChartType[]).map((type) => (
+													<Button
+														key={type}
+														variant={followersChartType === type ? "soft" : "ghost"}
+														size="1"
+														onClick={() => setFollowersChartType(type)}
+														className="capitalize text-xs px-1.5 py-0.5"
+													>
+														{type.charAt(0)}
+													</Button>
+												))}
+											</div>
+										</div>
+										<div className="h-32 sm:h-40">
+											<ResponsiveContainer width="100%" height="100%">
+												{followersChartType === "bar" ? (
 											<BarChart data={chartData}>
 												<CartesianGrid strokeDasharray="3 3" stroke="var(--gray-a4)" />
 												<XAxis dataKey="platform" stroke="var(--gray-11)" />
@@ -637,7 +642,7 @@ export default function AnalyticsPage() {
 													nameKey="platform"
 													cx="50%"
 													cy="50%"
-													outerRadius={80}
+													outerRadius={60}
 													label={(entry: any) => `${entry.platform}: ${formatCompact(entry.followers)}`}
 												>
 													{chartData.map((entry: { color: "red" | "cyan" | "pink" }, index: number) => (
@@ -682,34 +687,34 @@ export default function AnalyticsPage() {
 												<Legend />
 												<Area type="monotone" dataKey="followers" stroke="var(--green-9)" fill="var(--green-a3)" name="Followers" />
 											</AreaChart>
-										)}
-									</ResponsiveContainer>
-								</div>
-							</Card>
-
-							{/* Engagement Chart */}
-							<Card size="3" variant="surface" className="p-6">
-								<div className="flex items-center justify-between mb-4">
-									<Heading size="5" as="h2" className="text-gray-12 dark:text-gray-12">
-										Engagement Rate by Platform
-									</Heading>
-									<div className="flex gap-2">
-										{(["bar", "pie", "line", "area"] as ChartType[]).map((type) => (
-											<Button
-												key={type}
-												variant={engagementChartType === type ? "soft" : "ghost"}
-												size="1"
-												onClick={() => setEngagementChartType(type)}
-												className="capitalize"
-											>
-												{type}
-											</Button>
-										))}
+												)}
+											</ResponsiveContainer>
+										</div>
 									</div>
-								</div>
-								<div className="h-48 sm:h-64">
-									<ResponsiveContainer width="100%" height="100%">
-										{engagementChartType === "bar" ? (
+
+									{/* Engagement Chart */}
+									<div>
+										<div className="flex items-center justify-between mb-2">
+											<Text size="2" weight="medium" className="text-gray-12 dark:text-gray-12">
+												Engagement
+											</Text>
+											<div className="flex gap-1">
+												{(["bar", "pie", "line", "area"] as ChartType[]).map((type) => (
+													<Button
+														key={type}
+														variant={engagementChartType === type ? "soft" : "ghost"}
+														size="1"
+														onClick={() => setEngagementChartType(type)}
+														className="capitalize text-xs px-1.5 py-0.5"
+													>
+														{type.charAt(0)}
+													</Button>
+												))}
+											</div>
+										</div>
+										<div className="h-32 sm:h-40">
+											<ResponsiveContainer width="100%" height="100%">
+												{engagementChartType === "bar" ? (
 											<BarChart data={chartData}>
 												<CartesianGrid strokeDasharray="3 3" stroke="var(--gray-a4)" />
 												<XAxis dataKey="platform" stroke="var(--gray-11)" />
@@ -732,7 +737,7 @@ export default function AnalyticsPage() {
 													nameKey="platform"
 													cx="50%"
 													cy="50%"
-													outerRadius={80}
+													outerRadius={60}
 													label={(entry: any) => `${entry.platform}: ${entry.engagement.toFixed(1)}%`}
 												>
 													{chartData.map((entry: { color: "red" | "cyan" | "pink" }, index: number) => (
@@ -779,33 +784,33 @@ export default function AnalyticsPage() {
 											</AreaChart>
 										)}
 									</ResponsiveContainer>
-								</div>
-							</Card>
-
-							{/* Revenue Chart */}
-							{chartData.some((d: { revenue: number }) => d.revenue > 0) && (
-								<Card size="3" variant="surface" className="p-6">
-									<div className="flex items-center justify-between mb-4">
-										<Heading size="5" as="h2" className="text-gray-12 dark:text-gray-12">
-											Revenue by Platform
-										</Heading>
-										<div className="flex gap-2">
-											{(["bar", "pie", "line", "area"] as ChartType[]).map((type) => (
-												<Button
-													key={type}
-													variant={revenueChartType === type ? "soft" : "ghost"}
-													size="1"
-													onClick={() => setRevenueChartType(type)}
-													className="capitalize"
-												>
-													{type}
-												</Button>
-											))}
 										</div>
 									</div>
-									<div className="h-64 sm:h-80">
-										<ResponsiveContainer width="100%" height="100%">
-											{revenueChartType === "bar" ? (
+
+									{/* Revenue Chart */}
+									{chartData.some((d: { revenue: number }) => d.revenue > 0) && (
+										<div>
+											<div className="flex items-center justify-between mb-2">
+												<Text size="2" weight="medium" className="text-gray-12 dark:text-gray-12">
+													Revenue
+												</Text>
+												<div className="flex gap-1">
+													{(["bar", "pie", "line", "area"] as ChartType[]).map((type) => (
+														<Button
+															key={type}
+															variant={revenueChartType === type ? "soft" : "ghost"}
+															size="1"
+															onClick={() => setRevenueChartType(type)}
+															className="capitalize text-xs px-1.5 py-0.5"
+														>
+															{type.charAt(0)}
+														</Button>
+													))}
+												</div>
+											</div>
+											<div className="h-32 sm:h-40">
+												<ResponsiveContainer width="100%" height="100%">
+													{revenueChartType === "bar" ? (
 												<BarChart data={chartData}>
 													<CartesianGrid strokeDasharray="3 3" stroke="var(--gray-a4)" />
 													<XAxis dataKey="platform" stroke="var(--gray-11)" />
@@ -829,7 +834,7 @@ export default function AnalyticsPage() {
 														nameKey="platform"
 														cx="50%"
 														cy="50%"
-														outerRadius={80}
+														outerRadius={60}
 														label={(entry: any) => `${entry.platform}: ${formatCompact(entry.revenue, "currency")}`}
 													>
 														{chartData.map((entry, index) => (
@@ -878,10 +883,12 @@ export default function AnalyticsPage() {
 													<Area type="monotone" dataKey="revenue" stroke="var(--green-9)" fill="var(--green-a3)" name="Revenue" />
 												</AreaChart>
 											)}
-										</ResponsiveContainer>
-									</div>
-								</Card>
-							)}
+												</ResponsiveContainer>
+											</div>
+										</div>
+									)}
+								</div>
+							</Card>
 						</>
 					)}
 
