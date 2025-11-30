@@ -20,12 +20,54 @@ const sections = [
 			"We integrate with platforms such as YouTube, TikTok, Instagram, Whop, and Apify to deliver features. Each integration follows the respective platform policies. You can revoke access at any time from within those platforms.",
 	},
 	{
-		title: "4. Data Retention and Deletion",
-		content:
-			"We retain content and analytics data for as long as your account is active. You can request deletion of your data at any time through our Data Deletion page or by contacting support@creatoros.com. When you request deletion, we will permanently remove all your data from our systems within 30 days.",
+		title: "4. Google User Data (YouTube Integration)",
+		content: (
+			<>
+				<strong>Data Accessed:</strong> When you connect your YouTube account to CreatorOS, we access the following types of Google user data through the YouTube Data API v3:
+				<ul className="list-disc list-inside ml-4 mt-2 space-y-1">
+					<li>Channel information: Channel ID, channel title, profile picture, and custom URL</li>
+					<li>Channel statistics: Subscriber count, total video views, and video count</li>
+					<li>Video metadata: Video titles, descriptions, thumbnails, publication dates, and video IDs</li>
+					<li>Video statistics: View counts, like counts, and comment counts for your videos</li>
+					<li>OAuth tokens: Access tokens and refresh tokens for authenticated API requests</li>
+					<li>Video upload capabilities: Permission to upload videos, set metadata (title, description, tags, visibility), and upload custom thumbnails</li>
+				</ul>
+				<br />
+				<strong>Data Sharing:</strong> We do not share your Google user data with any third parties. Your YouTube data is used solely within CreatorOS to:
+				<ul className="list-disc list-inside ml-4 mt-2 space-y-1">
+					<li>Display analytics dashboards showing your channel performance</li>
+					<li>Show your video posts and their engagement metrics</li>
+					<li>Enable video uploads to your YouTube channel when you choose to post content</li>
+					<li>Store your connection status and basic channel information for account management</li>
+				</ul>
+				We do not sell, rent, or share your Google user data with advertisers, data brokers, or any other third parties.
+				<br />
+				<br />
+				<strong>Data Storage & Protection:</strong> We implement industry-standard security measures to protect your Google user data:
+				<ul className="list-disc list-inside ml-4 mt-2 space-y-1">
+					<li>OAuth access tokens and refresh tokens are stored in secure, HTTP-only cookies with SameSite protection</li>
+					<li>All API requests to Google services are made over HTTPS using encrypted connections</li>
+					<li>Analytics data is cached temporarily and displayed in your dashboard; raw data is not permanently stored</li>
+					<li>You can revoke access at any time by disconnecting your YouTube account in CreatorOS or through your Google Account settings</li>
+					<li>When you disconnect your account, all stored tokens and associated data are immediately deleted</li>
+				</ul>
+			</>
+		),
 	},
 	{
-		title: "5. Contact",
+		title: "5. Data Retention and Deletion",
+		content: (
+			<>
+				We retain content and analytics data for as long as your account is active. You can request deletion of your data at any time through our{" "}
+				<Link href="/data-deletion" className="text-blue-10 underline">
+					Data Deletion Request page
+				</Link>{" "}
+				or by contacting support@creatoros.com. When you request deletion, we will permanently remove all your data from our systems within 30 days.
+			</>
+		),
+	},
+	{
+		title: "6. Contact",
 		content:
 			"For privacy questions or requests, email support@creatoros.com with the subject line 'Privacy'. We respond within 7 business days.",
 	},
@@ -54,9 +96,15 @@ export default function PrivacyPolicyPage() {
 						<Heading size="5" as="h2" className="text-gray-12 dark:text-gray-12">
 							{section.title}
 						</Heading>
-						<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11">
-							{section.content}
-						</Text>
+						{typeof section.content === "string" ? (
+							<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11">
+								{section.content}
+							</Text>
+						) : (
+							<div className="text-gray-11 dark:text-gray-11 text-sm sm:text-base space-y-3">
+								{section.content}
+							</div>
+						)}
 					</section>
 				))}
 
