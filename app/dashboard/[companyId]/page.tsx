@@ -25,14 +25,62 @@ export default async function DashboardPage({
 	}
 
 	try {
+		// Validate companyId
+		if (!companyId || typeof companyId !== "string" || companyId.trim().length === 0) {
+			return (
+				<div className="flex flex-col items-center justify-center min-h-screen p-8 text-center">
+					<h1 className="text-8 font-bold text-gray-12 mb-4">Invalid Company ID</h1>
+					<p className="text-4 text-gray-10 mb-6">
+						The company ID provided is invalid or missing.
+					</p>
+					<Button variant="classic" size="3" asChild>
+						<Link href="/">Go Home</Link>
+					</Button>
+				</div>
+			);
+		}
+
 		// Ensure the user is logged in on whop.
-		const { userId } = await whopsdk.verifyUserToken(await headers());
+		let userId: string;
+		try {
+			const tokenResult = await whopsdk.verifyUserToken(await headers());
+			userId = tokenResult.userId;
+		} catch (authError) {
+			console.error("[Whop Dashboard] Authentication error:", authError);
+			return (
+				<div className="flex flex-col items-center justify-center min-h-screen p-8 text-center">
+					<h1 className="text-8 font-bold text-gray-12 mb-4">Authentication Required</h1>
+					<p className="text-4 text-gray-10 mb-6">
+						Please log in to Whop to access this dashboard.
+					</p>
+					<Button variant="classic" size="3" asChild>
+						<Link href="/">Go Home</Link>
+					</Button>
+				</div>
+			);
+		}
 
 		// Check if user has admin access to this company
-		const access = await whopsdk.users.checkAccess(companyId, { id: userId });
+		let access;
+		try {
+			access = await whopsdk.users.checkAccess(companyId, { id: userId });
+		} catch (accessError) {
+			console.error("[Whop Dashboard] Access check error:", accessError);
+			return (
+				<div className="flex flex-col items-center justify-center min-h-screen p-8 text-center">
+					<h1 className="text-8 font-bold text-gray-12 mb-4">Access Check Failed</h1>
+					<p className="text-4 text-gray-10 mb-6">
+						Unable to verify your access to this company. Please try again later.
+					</p>
+					<Button variant="classic" size="3" asChild>
+						<Link href="/">Go Home</Link>
+					</Button>
+				</div>
+			);
+		}
 
 		// Dashboard apps should only be accessible to admins of the company
-		if (access.access_level !== "admin") {
+		if (!access || access.access_level !== "admin") {
 			return (
 				<div className="flex flex-col items-center justify-center min-h-screen p-8">
 					<div className="max-w-md w-full text-center">
@@ -49,12 +97,28 @@ export default async function DashboardPage({
 		}
 
 		// Fetch the necessary data for admin users
-		const [company, user] = await Promise.all([
-			whopsdk.companies.retrieve(companyId),
-			whopsdk.users.retrieve(userId),
-		]);
+		let company, user;
+		try {
+			[company, user] = await Promise.all([
+				whopsdk.companies.retrieve(companyId),
+				whopsdk.users.retrieve(userId),
+			]);
+		} catch (fetchError) {
+			console.error("[Whop Dashboard] Data fetch error:", fetchError);
+			return (
+				<div className="flex flex-col items-center justify-center min-h-screen p-8 text-center">
+					<h1 className="text-8 font-bold text-gray-12 mb-4">Error Loading Data</h1>
+					<p className="text-4 text-gray-10 mb-6">
+						Failed to load company or user data. Please try again later.
+					</p>
+					<Button variant="classic" size="3" asChild>
+						<Link href="/">Go Home</Link>
+					</Button>
+				</div>
+			);
+		}
 
-		const displayName = user.name || `@${user.username}`;
+		const displayName = user?.name || user?.username ? `@${user.username}` : "User";
 
 		return (
 			<div className="flex flex-col p-8 gap-4">
