@@ -4,6 +4,10 @@ import Link from "next/link";
 import { whopsdk, isWhopConfigured } from "@/lib/whop-sdk";
 import React from "react";
 
+// Ensure this route is dynamic
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 export default async function DashboardPage({
 	params,
 }: {
