@@ -7,6 +7,7 @@ import React from "react";
 // Ensure this route is dynamic
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const dynamicParams = true;
 
 export default async function DashboardPage({
 	params,
@@ -14,6 +15,7 @@ export default async function DashboardPage({
 	params: Promise<{ companyId: string }>;
 }) {
 	const { companyId } = await params;
+	
 	if (!isWhopConfigured || !whopsdk) {
 		return (
 			<div className="flex flex-col items-center justify-center min-h-screen p-8 text-center">
