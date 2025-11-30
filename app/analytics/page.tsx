@@ -517,7 +517,7 @@ export default function AnalyticsPage() {
 										))}
 									</div>
 								</div>
-								<div className="h-64 sm:h-80">
+								<div className="h-48 sm:h-64">
 									<ResponsiveContainer width="100%" height="100%">
 										{viewsChartType === "bar" ? (
 											<BarChart data={chartData}>
@@ -612,7 +612,7 @@ export default function AnalyticsPage() {
 										))}
 									</div>
 								</div>
-								<div className="h-64 sm:h-80">
+								<div className="h-48 sm:h-64">
 									<ResponsiveContainer width="100%" height="100%">
 										{followersChartType === "bar" ? (
 											<BarChart data={chartData}>
@@ -707,7 +707,7 @@ export default function AnalyticsPage() {
 										))}
 									</div>
 								</div>
-								<div className="h-64 sm:h-80">
+								<div className="h-48 sm:h-64">
 									<ResponsiveContainer width="100%" height="100%">
 										{engagementChartType === "bar" ? (
 											<BarChart data={chartData}>
