@@ -2,6 +2,7 @@ import { Button } from "@whop/react/components";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { whopsdk, isWhopConfigured } from "@/lib/whop-sdk";
+import React from "react";
 
 export default async function DashboardPage({
 	params,

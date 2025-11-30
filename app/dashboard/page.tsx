@@ -160,8 +160,8 @@ export default function DashboardPage() {
 					change: tasks.length > 0 ? `+${tasks.length}` : "0",
 				},
 				{
-					label: "Engagement Rate",
-					value: "0%",
+					label: "Avg Views/Video",
+					value: "0",
 					change: "+0%",
 				},
 			];
@@ -183,11 +183,29 @@ export default function DashboardPage() {
 		const totalTasks = tasks.length;
 		const tasksChange = totalTasks > 0 ? `+${totalTasks}` : "0";
 
-		// Calculate average engagement rate from analytics
-		const totalEngagement = analyticsSnapshots.reduce((sum, snapshot) => sum + snapshot.engagement, 0);
-		const avgEngagement = analyticsSnapshots.length > 0 ? totalEngagement / analyticsSnapshots.length : 0;
-		const engagementChange = analyticsSnapshots.length > 0 
-			? formatPercent(analyticsSnapshots.reduce((sum, snapshot) => sum + snapshot.trend.engagement, 0) / analyticsSnapshots.length)
+		// Calculate average views per video from analytics
+		// Sum all views and divide by total number of videos (estimated from topContent)
+		const totalVideoViews = analyticsSnapshots.reduce((sum, snapshot) => {
+			// Sum views from topContent to get a sample average
+			const contentViews = snapshot.topContent?.reduce((s, content) => s + content.views, 0) || 0;
+			return sum + contentViews;
+		}, 0);
+		const totalVideos = analyticsSnapshots.reduce((sum, snapshot) => {
+			return sum + (snapshot.topContent?.length || 0);
+		}, 0);
+		
+		// If we have videos, calculate average; otherwise estimate from total views
+		let avgViewsPerVideo = 0;
+		if (totalVideos > 0) {
+			avgViewsPerVideo = totalVideoViews / totalVideos;
+		} else if (totalViews > 0) {
+			// Estimate: assume at least 3 videos per platform if we have views
+			const estimatedVideos = analyticsSnapshots.length * 3;
+			avgViewsPerVideo = totalViews / estimatedVideos;
+		}
+		
+		const avgViewsChange = analyticsSnapshots.length > 0 && avgViewsPerVideo > 0
+			? formatPercent(analyticsSnapshots.reduce((sum, snapshot) => sum + snapshot.trend.views, 0) / analyticsSnapshots.length)
 			: "+0%";
 
 		// Calculate trends for views and followers
@@ -225,9 +243,9 @@ export default function DashboardPage() {
 				change: tasksChange,
 			},
 			{
-				label: "Engagement Rate",
-				value: avgEngagement > 0 ? `${avgEngagement.toFixed(1)}%` : "0%",
-				change: engagementChange,
+				label: "Avg Views/Video",
+				value: avgViewsPerVideo > 0 ? formatCompact(avgViewsPerVideo) : "0",
+				change: avgViewsChange,
 			},
 		];
 	}, [analytics, sponsors, tasks, connectedPlatforms.length]);
