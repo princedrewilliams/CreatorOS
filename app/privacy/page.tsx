@@ -55,7 +55,72 @@ const sections = [
 		),
 	},
 	{
-		title: "5. Data Retention and Deletion",
+		title: "5. Instagram User Data",
+		content: (
+			<>
+				<strong>Data Accessed:</strong> When you connect your Instagram account to CreatorOS, we access the following types of Instagram user data through the Instagram Graph API:
+				<ul className="list-disc list-inside ml-4 mt-2 space-y-1">
+					<li>Account information: Username, account type (Business/Creator/Personal), user ID, and profile picture</li>
+					<li>Media posts: Post IDs, captions, media type (photo/video), publication timestamps, media URLs, and thumbnail URLs</li>
+					<li>Post engagement: Like counts and comment counts for your posts</li>
+					<li>Account insights: Follower count and profile views (for Business and Creator accounts only)</li>
+					<li>OAuth tokens: Long-lived access tokens (valid for 60 days) for authenticated API requests</li>
+				</ul>
+				<br />
+				<strong>Data Sharing:</strong> We do not share your Instagram user data with any third parties. Your Instagram data is used solely within CreatorOS to:
+				<ul className="list-disc list-inside ml-4 mt-2 space-y-1">
+					<li>Display analytics dashboards showing your account performance and post engagement</li>
+					<li>Show your Instagram posts with their metrics (likes, comments, views)</li>
+					<li>Store your connection status and basic account information for account management</li>
+				</ul>
+				We do not sell, rent, or share your Instagram user data with advertisers, data brokers, or any other third parties.
+				<br />
+				<br />
+				<strong>Data Storage & Protection:</strong> We implement industry-standard security measures to protect your Instagram user data:
+				<ul className="list-disc list-inside ml-4 mt-2 space-y-1">
+					<li>OAuth access tokens are stored in secure, HTTP-only cookies with SameSite protection</li>
+					<li>All API requests to Instagram services are made over HTTPS using encrypted connections</li>
+					<li>Analytics data is cached temporarily and displayed in your dashboard; raw data is not permanently stored</li>
+					<li>You can revoke access at any time by disconnecting your Instagram account in CreatorOS or through your Instagram account settings</li>
+					<li>When you disconnect your account, all stored tokens and associated data are immediately deleted</li>
+				</ul>
+			</>
+		),
+	},
+	{
+		title: "6. TikTok User Data",
+		content: (
+			<>
+				<strong>Data Accessed:</strong> When you connect your TikTok account to CreatorOS, we access the following types of TikTok user data through the TikTok Open API v2:
+				<ul className="list-disc list-inside ml-4 mt-2 space-y-1">
+					<li>User profile information: Username (unique_id), display name, nickname, and profile picture (avatar URL)</li>
+					<li>Video list: Video IDs, titles, descriptions, creation timestamps, and video thumbnails</li>
+					<li>Video statistics: Play counts (views), like counts (digg_count), comment counts, and share counts for your videos</li>
+					<li>OAuth tokens: Access tokens and refresh tokens for authenticated API requests</li>
+				</ul>
+				<br />
+				<strong>Data Sharing:</strong> We do not share your TikTok user data with any third parties. Your TikTok data is used solely within CreatorOS to:
+				<ul className="list-disc list-inside ml-4 mt-2 space-y-1">
+					<li>Display analytics dashboards showing your account performance and video engagement</li>
+					<li>Show your TikTok videos with their metrics (views, likes, comments, shares)</li>
+					<li>Store your connection status and basic account information for account management</li>
+				</ul>
+				We do not sell, rent, or share your TikTok user data with advertisers, data brokers, or any other third parties.
+				<br />
+				<br />
+				<strong>Data Storage & Protection:</strong> We implement industry-standard security measures to protect your TikTok user data:
+				<ul className="list-disc list-inside ml-4 mt-2 space-y-1">
+					<li>OAuth access tokens and refresh tokens are stored in secure, HTTP-only cookies with SameSite protection</li>
+					<li>All API requests to TikTok services are made over HTTPS using encrypted connections</li>
+					<li>Analytics data is cached temporarily and displayed in your dashboard; raw data is not permanently stored</li>
+					<li>You can revoke access at any time by disconnecting your TikTok account in CreatorOS or through your TikTok account settings</li>
+					<li>When you disconnect your account, all stored tokens and associated data are immediately deleted</li>
+				</ul>
+			</>
+		),
+	},
+	{
+		title: "7. Data Retention and Deletion",
 		content: (
 			<>
 				We retain content and analytics data for as long as your account is active. You can request deletion of your data at any time through our{" "}
@@ -67,7 +132,7 @@ const sections = [
 		),
 	},
 	{
-		title: "6. Contact",
+		title: "8. Contact",
 		content:
 			"For privacy questions or requests, email support@creatoros.com with the subject line 'Privacy'. We respond within 7 business days.",
 	},
