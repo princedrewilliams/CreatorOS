@@ -1,4 +1,4 @@
-import { Button } from "@whop/react/components";
+import { Button, Text } from "@whop/react/components";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { whopsdk, isWhopConfigured } from "@/lib/whop-sdk";
@@ -72,6 +72,16 @@ export default async function DashboardPage({
 				<p className="text-3 text-gray-10">
 					Welcome to CreatorOS dashboard! You have admin access to manage this company.
 				</p>
+
+				{/* Company ID Display */}
+				<div className="p-4 rounded-lg border border-gray-a4 dark:border-gray-a6 bg-gray-a2 dark:bg-gray-a3">
+					<Text size="2" weight="medium" className="mb-2 text-gray-11 dark:text-gray-11">
+						Company ID
+					</Text>
+					<Text size="4" weight="bold" className="text-gray-12 dark:text-gray-12 font-mono">
+						{companyId}
+					</Text>
+				</div>
 
 				<h3 className="text-6 font-bold">Company data</h3>
 				<JsonViewer data={company} />
