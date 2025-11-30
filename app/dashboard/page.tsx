@@ -131,6 +131,42 @@ export default function DashboardPage() {
 
 	// Calculate stats from real data
 	const stats = useMemo(() => {
+		// If no accounts are connected, return all zeros for analytics stats
+		if (connectedPlatforms.length === 0) {
+			return [
+				{
+					label: "Total Views",
+					value: "0",
+					change: "+0%",
+				},
+				{
+					label: "Total Followers",
+					value: "0",
+					change: "+0%",
+				},
+				{
+					label: "Total Revenue",
+					value: "$0",
+					change: "+0%",
+				},
+				{
+					label: "Active Deals",
+					value: sponsors.filter((deal) => deal.status === "active" || deal.status === "pending").length.toString(),
+					change: sponsors.length > 0 ? `+${sponsors.length}` : "0",
+				},
+				{
+					label: "Content Planned",
+					value: tasks.filter((task) => task.status === "planned" || task.status === "scheduled").length.toString(),
+					change: tasks.length > 0 ? `+${tasks.length}` : "0",
+				},
+				{
+					label: "Engagement Rate",
+					value: "0%",
+					change: "+0%",
+				},
+			];
+		}
+
 		// Calculate totals from analytics
 		const analyticsSnapshots = Object.values(analytics).filter(Boolean) as PlatformAnalyticsSnapshot[];
 		const totalRevenue = analyticsSnapshots.reduce((sum, snapshot) => sum + snapshot.revenue, 0);
@@ -194,7 +230,7 @@ export default function DashboardPage() {
 				change: engagementChange,
 			},
 		];
-	}, [analytics, sponsors, tasks]);
+	}, [analytics, sponsors, tasks, connectedPlatforms.length]);
 
 	const dataUsagePurposes = [
 		{
@@ -295,10 +331,10 @@ export default function DashboardPage() {
 							</Text>
 							<div className="flex items-center gap-2 flex-wrap">
 								<Text size="5" weight="bold" className="text-gray-12 dark:text-gray-12 sm:text-6 break-words">
-									{loading && (stat.label === "Total Revenue" || stat.label === "Total Views" || stat.label === "Total Followers" || stat.label === "Engagement Rate") ? "..." : stat.value}
+									{stat.value}
 								</Text>
 								<Badge color="green" variant="soft" size="1" className="flex-shrink-0">
-									{loading && (stat.label === "Total Revenue" || stat.label === "Total Views" || stat.label === "Total Followers" || stat.label === "Engagement Rate") ? "..." : stat.change}
+									{stat.change}
 								</Badge>
 							</div>
 						</Card>
