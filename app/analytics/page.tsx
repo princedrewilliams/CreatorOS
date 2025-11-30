@@ -8,6 +8,23 @@ import { motion } from "framer-motion";
 import { SocialConnections } from "@/components/SocialConnections";
 import { useAppStore, type SocialConnection } from "@/lib/store";
 import type { AnalyticsPlatform, PlatformAnalyticsSnapshot } from "@/lib/mockAnalytics";
+import {
+	BarChart,
+	Bar,
+	LineChart,
+	Line,
+	PieChart,
+	Pie,
+	Cell,
+	AreaChart,
+	Area,
+	XAxis,
+	YAxis,
+	CartesianGrid,
+	Tooltip,
+	Legend,
+	ResponsiveContainer,
+} from "recharts";
 
 type AnalyticsMap = Partial<Record<AnalyticsPlatform, PlatformAnalyticsSnapshot>>;
 
@@ -30,11 +47,17 @@ const formatCompact = (value: number, style: "decimal" | "currency" = "decimal")
 const formatPercent = (value: number) =>
 	new Intl.NumberFormat("en", { style: "percent", maximumFractionDigits: 1 }).format(value / 100);
 
+type ChartType = "bar" | "pie" | "line" | "area";
+
 export default function AnalyticsPage() {
 	const { socialConnections } = useAppStore();
 	const [analytics, setAnalytics] = useState<AnalyticsMap>({});
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [viewsChartType, setViewsChartType] = useState<ChartType>("bar");
+	const [followersChartType, setFollowersChartType] = useState<ChartType>("bar");
+	const [engagementChartType, setEngagementChartType] = useState<ChartType>("line");
+	const [revenueChartType, setRevenueChartType] = useState<ChartType>("pie");
 
 	const connectedPlatforms = useMemo(
 		() =>
@@ -158,6 +181,36 @@ export default function AnalyticsPage() {
 			avgViewsPerVideo,
 		};
 	}, [analytics]);
+
+	// Prepare chart data
+	const chartData = useMemo(() => {
+		const snapshots = Object.values(analytics).filter(Boolean) as PlatformAnalyticsSnapshot[];
+		if (snapshots.length === 0) return [];
+
+		return connectedPlatforms
+			.map((platform) => {
+				const snapshot = analytics[platform];
+				const meta = PLATFORM_META[platform];
+				if (!snapshot) return null;
+
+				return {
+					platform: meta.label,
+					views: snapshot.views,
+					followers: snapshot.followers,
+					engagement: snapshot.engagement,
+					revenue: snapshot.revenue,
+					color: meta.color,
+				};
+			})
+			.filter(Boolean) as Array<{
+				platform: string;
+				views: number;
+				followers: number;
+				engagement: number;
+				revenue: number;
+				color: "red" | "cyan" | "pink";
+			}>;
+	}, [analytics, connectedPlatforms]);
 
 	return (
 		<div className="space-y-6 sm:space-y-8">
@@ -440,6 +493,397 @@ export default function AnalyticsPage() {
 							);
 						})}
 					</div>
+
+					{/* Charts Section */}
+					{chartData.length > 0 && (
+						<>
+							{/* Views Chart */}
+							<Card size="3" variant="surface" className="p-6">
+								<div className="flex items-center justify-between mb-4">
+									<Heading size="5" as="h2" className="text-gray-12 dark:text-gray-12">
+										Views by Platform
+									</Heading>
+									<div className="flex gap-2">
+										{(["bar", "pie", "line", "area"] as ChartType[]).map((type) => (
+											<Button
+												key={type}
+												variant={viewsChartType === type ? "soft" : "ghost"}
+												size="1"
+												onClick={() => setViewsChartType(type)}
+												className="capitalize"
+											>
+												{type}
+											</Button>
+										))}
+									</div>
+								</div>
+								<div className="h-64 sm:h-80">
+									<ResponsiveContainer width="100%" height="100%">
+										{viewsChartType === "bar" ? (
+											<BarChart data={chartData}>
+												<CartesianGrid strokeDasharray="3 3" stroke="var(--gray-a4)" />
+												<XAxis dataKey="platform" stroke="var(--gray-11)" />
+												<YAxis stroke="var(--gray-11)" />
+												<Tooltip
+													contentStyle={{
+														backgroundColor: "var(--gray-a2)",
+														border: "1px solid var(--gray-a6)",
+														borderRadius: "8px",
+													}}
+												/>
+												<Legend />
+												<Bar dataKey="views" fill="var(--blue-9)" name="Views" />
+											</BarChart>
+										) : viewsChartType === "pie" ? (
+											<PieChart>
+												<Pie
+													data={chartData}
+													dataKey="views"
+													nameKey="platform"
+													cx="50%"
+													cy="50%"
+													outerRadius={80}
+													label={(entry: any) => `${entry.platform}: ${formatCompact(entry.views)}`}
+												>
+													{chartData.map((entry: { color: "red" | "cyan" | "pink" }, index: number) => (
+														<Cell key={`cell-${index}`} fill={`var(--${entry.color}-9)`} />
+													))}
+												</Pie>
+												<Tooltip
+													contentStyle={{
+														backgroundColor: "var(--gray-a2)",
+														border: "1px solid var(--gray-a6)",
+														borderRadius: "8px",
+													}}
+												/>
+											</PieChart>
+										) : viewsChartType === "line" ? (
+											<LineChart data={chartData}>
+												<CartesianGrid strokeDasharray="3 3" stroke="var(--gray-a4)" />
+												<XAxis dataKey="platform" stroke="var(--gray-11)" />
+												<YAxis stroke="var(--gray-11)" />
+												<Tooltip
+													contentStyle={{
+														backgroundColor: "var(--gray-a2)",
+														border: "1px solid var(--gray-a6)",
+														borderRadius: "8px",
+													}}
+												/>
+												<Legend />
+												<Line type="monotone" dataKey="views" stroke="var(--blue-9)" strokeWidth={2} name="Views" />
+											</LineChart>
+										) : (
+											<AreaChart data={chartData}>
+												<CartesianGrid strokeDasharray="3 3" stroke="var(--gray-a4)" />
+												<XAxis dataKey="platform" stroke="var(--gray-11)" />
+												<YAxis stroke="var(--gray-11)" />
+												<Tooltip
+													contentStyle={{
+														backgroundColor: "var(--gray-a2)",
+														border: "1px solid var(--gray-a6)",
+														borderRadius: "8px",
+													}}
+												/>
+												<Legend />
+												<Area type="monotone" dataKey="views" stroke="var(--blue-9)" fill="var(--blue-a3)" name="Views" />
+											</AreaChart>
+										)}
+									</ResponsiveContainer>
+								</div>
+							</Card>
+
+							{/* Followers Chart */}
+							<Card size="3" variant="surface" className="p-6">
+								<div className="flex items-center justify-between mb-4">
+									<Heading size="5" as="h2" className="text-gray-12 dark:text-gray-12">
+										Followers by Platform
+									</Heading>
+									<div className="flex gap-2">
+										{(["bar", "pie", "line", "area"] as ChartType[]).map((type) => (
+											<Button
+												key={type}
+												variant={followersChartType === type ? "soft" : "ghost"}
+												size="1"
+												onClick={() => setFollowersChartType(type)}
+												className="capitalize"
+											>
+												{type}
+											</Button>
+										))}
+									</div>
+								</div>
+								<div className="h-64 sm:h-80">
+									<ResponsiveContainer width="100%" height="100%">
+										{followersChartType === "bar" ? (
+											<BarChart data={chartData}>
+												<CartesianGrid strokeDasharray="3 3" stroke="var(--gray-a4)" />
+												<XAxis dataKey="platform" stroke="var(--gray-11)" />
+												<YAxis stroke="var(--gray-11)" />
+												<Tooltip
+													contentStyle={{
+														backgroundColor: "var(--gray-a2)",
+														border: "1px solid var(--gray-a6)",
+														borderRadius: "8px",
+													}}
+												/>
+												<Legend />
+												<Bar dataKey="followers" fill="var(--green-9)" name="Followers" />
+											</BarChart>
+										) : followersChartType === "pie" ? (
+											<PieChart>
+												<Pie
+													data={chartData}
+													dataKey="followers"
+													nameKey="platform"
+													cx="50%"
+													cy="50%"
+													outerRadius={80}
+													label={(entry: any) => `${entry.platform}: ${formatCompact(entry.followers)}`}
+												>
+													{chartData.map((entry: { color: "red" | "cyan" | "pink" }, index: number) => (
+														<Cell key={`cell-${index}`} fill={`var(--${entry.color}-9)`} />
+													))}
+												</Pie>
+												<Tooltip
+													contentStyle={{
+														backgroundColor: "var(--gray-a2)",
+														border: "1px solid var(--gray-a6)",
+														borderRadius: "8px",
+													}}
+												/>
+											</PieChart>
+										) : followersChartType === "line" ? (
+											<LineChart data={chartData}>
+												<CartesianGrid strokeDasharray="3 3" stroke="var(--gray-a4)" />
+												<XAxis dataKey="platform" stroke="var(--gray-11)" />
+												<YAxis stroke="var(--gray-11)" />
+												<Tooltip
+													contentStyle={{
+														backgroundColor: "var(--gray-a2)",
+														border: "1px solid var(--gray-a6)",
+														borderRadius: "8px",
+													}}
+												/>
+												<Legend />
+												<Line type="monotone" dataKey="followers" stroke="var(--green-9)" strokeWidth={2} name="Followers" />
+											</LineChart>
+										) : (
+											<AreaChart data={chartData}>
+												<CartesianGrid strokeDasharray="3 3" stroke="var(--gray-a4)" />
+												<XAxis dataKey="platform" stroke="var(--gray-11)" />
+												<YAxis stroke="var(--gray-11)" />
+												<Tooltip
+													contentStyle={{
+														backgroundColor: "var(--gray-a2)",
+														border: "1px solid var(--gray-a6)",
+														borderRadius: "8px",
+													}}
+												/>
+												<Legend />
+												<Area type="monotone" dataKey="followers" stroke="var(--green-9)" fill="var(--green-a3)" name="Followers" />
+											</AreaChart>
+										)}
+									</ResponsiveContainer>
+								</div>
+							</Card>
+
+							{/* Engagement Chart */}
+							<Card size="3" variant="surface" className="p-6">
+								<div className="flex items-center justify-between mb-4">
+									<Heading size="5" as="h2" className="text-gray-12 dark:text-gray-12">
+										Engagement Rate by Platform
+									</Heading>
+									<div className="flex gap-2">
+										{(["bar", "pie", "line", "area"] as ChartType[]).map((type) => (
+											<Button
+												key={type}
+												variant={engagementChartType === type ? "soft" : "ghost"}
+												size="1"
+												onClick={() => setEngagementChartType(type)}
+												className="capitalize"
+											>
+												{type}
+											</Button>
+										))}
+									</div>
+								</div>
+								<div className="h-64 sm:h-80">
+									<ResponsiveContainer width="100%" height="100%">
+										{engagementChartType === "bar" ? (
+											<BarChart data={chartData}>
+												<CartesianGrid strokeDasharray="3 3" stroke="var(--gray-a4)" />
+												<XAxis dataKey="platform" stroke="var(--gray-11)" />
+												<YAxis stroke="var(--gray-11)" />
+												<Tooltip
+													contentStyle={{
+														backgroundColor: "var(--gray-a2)",
+														border: "1px solid var(--gray-a6)",
+														borderRadius: "8px",
+													}}
+												/>
+												<Legend />
+												<Bar dataKey="engagement" fill="var(--purple-9)" name="Engagement %" />
+											</BarChart>
+										) : engagementChartType === "pie" ? (
+											<PieChart>
+												<Pie
+													data={chartData}
+													dataKey="engagement"
+													nameKey="platform"
+													cx="50%"
+													cy="50%"
+													outerRadius={80}
+													label={(entry: any) => `${entry.platform}: ${entry.engagement.toFixed(1)}%`}
+												>
+													{chartData.map((entry: { color: "red" | "cyan" | "pink" }, index: number) => (
+														<Cell key={`cell-${index}`} fill={`var(--${entry.color}-9)`} />
+													))}
+												</Pie>
+												<Tooltip
+													contentStyle={{
+														backgroundColor: "var(--gray-a2)",
+														border: "1px solid var(--gray-a6)",
+														borderRadius: "8px",
+													}}
+												/>
+											</PieChart>
+										) : engagementChartType === "line" ? (
+											<LineChart data={chartData}>
+												<CartesianGrid strokeDasharray="3 3" stroke="var(--gray-a4)" />
+												<XAxis dataKey="platform" stroke="var(--gray-11)" />
+												<YAxis stroke="var(--gray-11)" />
+												<Tooltip
+													contentStyle={{
+														backgroundColor: "var(--gray-a2)",
+														border: "1px solid var(--gray-a6)",
+														borderRadius: "8px",
+													}}
+												/>
+												<Legend />
+												<Line type="monotone" dataKey="engagement" stroke="var(--purple-9)" strokeWidth={2} name="Engagement %" />
+											</LineChart>
+										) : (
+											<AreaChart data={chartData}>
+												<CartesianGrid strokeDasharray="3 3" stroke="var(--gray-a4)" />
+												<XAxis dataKey="platform" stroke="var(--gray-11)" />
+												<YAxis stroke="var(--gray-11)" />
+												<Tooltip
+													contentStyle={{
+														backgroundColor: "var(--gray-a2)",
+														border: "1px solid var(--gray-a6)",
+														borderRadius: "8px",
+													}}
+												/>
+												<Legend />
+												<Area type="monotone" dataKey="engagement" stroke="var(--purple-9)" fill="var(--purple-a3)" name="Engagement %" />
+											</AreaChart>
+										)}
+									</ResponsiveContainer>
+								</div>
+							</Card>
+
+							{/* Revenue Chart */}
+							{chartData.some((d: { revenue: number }) => d.revenue > 0) && (
+								<Card size="3" variant="surface" className="p-6">
+									<div className="flex items-center justify-between mb-4">
+										<Heading size="5" as="h2" className="text-gray-12 dark:text-gray-12">
+											Revenue by Platform
+										</Heading>
+										<div className="flex gap-2">
+											{(["bar", "pie", "line", "area"] as ChartType[]).map((type) => (
+												<Button
+													key={type}
+													variant={revenueChartType === type ? "soft" : "ghost"}
+													size="1"
+													onClick={() => setRevenueChartType(type)}
+													className="capitalize"
+												>
+													{type}
+												</Button>
+											))}
+										</div>
+									</div>
+									<div className="h-64 sm:h-80">
+										<ResponsiveContainer width="100%" height="100%">
+											{revenueChartType === "bar" ? (
+												<BarChart data={chartData}>
+													<CartesianGrid strokeDasharray="3 3" stroke="var(--gray-a4)" />
+													<XAxis dataKey="platform" stroke="var(--gray-11)" />
+													<YAxis stroke="var(--gray-11)" />
+													<Tooltip
+														contentStyle={{
+															backgroundColor: "var(--gray-a2)",
+															border: "1px solid var(--gray-a6)",
+															borderRadius: "8px",
+														}}
+														formatter={(value: number) => formatCompact(value, "currency")}
+													/>
+													<Legend />
+													<Bar dataKey="revenue" fill="var(--green-9)" name="Revenue" />
+												</BarChart>
+											) : revenueChartType === "pie" ? (
+												<PieChart>
+													<Pie
+														data={chartData.filter((d: { revenue: number }) => d.revenue > 0)}
+														dataKey="revenue"
+														nameKey="platform"
+														cx="50%"
+														cy="50%"
+														outerRadius={80}
+														label={(entry: any) => `${entry.platform}: ${formatCompact(entry.revenue, "currency")}`}
+													>
+														{chartData.map((entry, index) => (
+															<Cell key={`cell-${index}`} fill={`var(--${entry.color}-9)`} />
+														))}
+													</Pie>
+													<Tooltip
+														contentStyle={{
+															backgroundColor: "var(--gray-a2)",
+															border: "1px solid var(--gray-a6)",
+															borderRadius: "8px",
+														}}
+														formatter={(value: number) => formatCompact(value, "currency")}
+													/>
+												</PieChart>
+											) : revenueChartType === "line" ? (
+												<LineChart data={chartData}>
+													<CartesianGrid strokeDasharray="3 3" stroke="var(--gray-a4)" />
+													<XAxis dataKey="platform" stroke="var(--gray-11)" />
+													<YAxis stroke="var(--gray-11)" />
+													<Tooltip
+														contentStyle={{
+															backgroundColor: "var(--gray-a2)",
+															border: "1px solid var(--gray-a6)",
+															borderRadius: "8px",
+														}}
+														formatter={(value: number) => formatCompact(value, "currency")}
+													/>
+													<Legend />
+													<Line type="monotone" dataKey="revenue" stroke="var(--green-9)" strokeWidth={2} name="Revenue" />
+												</LineChart>
+											) : (
+												<AreaChart data={chartData}>
+													<CartesianGrid strokeDasharray="3 3" stroke="var(--gray-a4)" />
+													<XAxis dataKey="platform" stroke="var(--gray-11)" />
+													<YAxis stroke="var(--gray-11)" />
+													<Tooltip
+														contentStyle={{
+															backgroundColor: "var(--gray-a2)",
+															border: "1px solid var(--gray-a6)",
+															borderRadius: "8px",
+														}}
+														formatter={(value: number) => formatCompact(value, "currency")}
+													/>
+													<Legend />
+													<Area type="monotone" dataKey="revenue" stroke="var(--green-9)" fill="var(--green-a3)" name="Revenue" />
+												</AreaChart>
+											)}
+										</ResponsiveContainer>
+									</div>
+								</Card>
+							)}
+						</>
+					)}
 
 					{totals && (
 						<>
