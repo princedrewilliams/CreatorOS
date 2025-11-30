@@ -11,14 +11,48 @@ export async function GET(
 	const path = slug.join("/");
 	const filename = slug[slug.length - 1] || "";
 	
-	// Only handle TikTok verification files - return 404 for everything else
+	// Handle TikTok and Google verification files - return 404 for everything else
 	// This prevents interference with other routes
-	if (!filename.includes("tiktok") && !path.includes("tiktok")) {
+	const isTiktokVerification = filename.includes("tiktok") || path.includes("tiktok");
+	const isGoogleVerification = filename.startsWith("google") && (filename.endsWith(".html") || filename.endsWith(".txt"));
+	
+	if (!isTiktokVerification && !isGoogleVerification) {
 		return new NextResponse("Not Found", { status: 404 });
 	}
 	
+	// Handle Google verification files
+	if (isGoogleVerification) {
+		// Extract verification code from filename
+		// Pattern: google[verification-code].html
+		let verificationCode = filename.match(/google([A-Za-z0-9_-]+)\.(html|txt)/)?.[1];
+		
+		if (!verificationCode) {
+			// Try alternative pattern
+			verificationCode = filename.replace("google", "").replace(".html", "").replace(".txt", "");
+		}
+		
+		// Google verification files typically contain a meta tag
+		// The actual content should match what Google provides in the downloaded file
+		const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+	<meta name="google-site-verification" content="${verificationCode || "PLACEHOLDER_UPDATE_WITH_ACTUAL_CODE"}" />
+	<title>Google Site Verification</title>
+</head>
+<body>
+	google-site-verification: google${verificationCode || "PLACEHOLDER_UPDATE_WITH_ACTUAL_CODE"}.html
+</body>
+</html>`;
+		
+		return new NextResponse(htmlContent, {
+			headers: {
+				"Content-Type": "text/html; charset=utf-8",
+			},
+		});
+	}
+	
 	// Check if this is a TikTok verification file (by filename pattern)
-	if (filename.includes("tiktok") || path.includes("tiktok")) {
+	if (isTiktokVerification) {
 		// Try to extract verification code from filename
 		// Pattern 1: tiktok-developers-site-verification=CODE
 		let verificationCode = path.match(/tiktok-developers-site-verification=([^/.\s]+)/)?.[1];
