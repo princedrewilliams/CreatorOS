@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import Replicate from "replicate";
 import crypto from "crypto";
+import { writeFile, mkdir } from "fs/promises";
+import { existsSync } from "fs";
+import path from "path";
 
 // Store for video hashes and processing status (in production, use a database)
 const videoCache = new Map<string, { clips: any[]; timestamp: number }>();
 const processingJobs = new Map<string, { status: string; progress: number; clips?: any[] }>();
+const videoStorage = new Map<string, string>(); // Store original video paths
 
 export async function POST(request: NextRequest) {
 	try {
@@ -39,6 +43,15 @@ export async function POST(request: NextRequest) {
 		const arrayBuffer = await file.arrayBuffer();
 		const buffer = Buffer.from(arrayBuffer);
 		const hash = crypto.createHash("sha256").update(buffer).digest("hex");
+
+		// Save video file to temporary storage for FFmpeg processing
+		const tmpDir = path.join(process.cwd(), "tmp", "videos");
+		if (!existsSync(tmpDir)) {
+			await mkdir(tmpDir, { recursive: true });
+		}
+		const videoPath = path.join(tmpDir, `${hash}-${file.name}`);
+		await writeFile(videoPath, buffer);
+		videoStorage.set(hash, videoPath);
 
 		// Check for duplicates
 		const cached = videoCache.get(hash);
