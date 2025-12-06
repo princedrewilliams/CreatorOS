@@ -35,14 +35,8 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		// Set session cookies
-		await setUserSession({
-			whop_user_id: userAccount.whop_user_id,
-			whop_username: userAccount.whop_username,
-			email: userAccount.email,
-		});
-
-		return NextResponse.json({
+		// Create response
+		const response = NextResponse.json({
 			success: true,
 			user: {
 				whop_user_id: userAccount.whop_user_id,
@@ -50,6 +44,33 @@ export async function POST(request: NextRequest) {
 				email: userAccount.email,
 			},
 		});
+
+		// Set session cookies on the response
+		response.cookies.set("whop_user_id", userAccount.whop_user_id, {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === "production",
+			sameSite: "lax",
+			maxAge: 60 * 60 * 24 * 30, // 30 days
+			path: "/",
+		});
+		response.cookies.set("whop_username", userAccount.whop_username, {
+			httpOnly: false,
+			secure: process.env.NODE_ENV === "production",
+			sameSite: "lax",
+			maxAge: 60 * 60 * 24 * 30,
+			path: "/",
+		});
+		if (userAccount.email) {
+			response.cookies.set("user_email", userAccount.email, {
+				httpOnly: false,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "lax",
+				maxAge: 60 * 60 * 24 * 30,
+				path: "/",
+			});
+		}
+
+		return response;
 	} catch (error) {
 		console.error("[Login] Error:", error);
 		return NextResponse.json(

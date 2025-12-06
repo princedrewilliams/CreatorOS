@@ -16,7 +16,9 @@ export function Navbar() {
 
 	useEffect(() => {
 		// Check if user is logged in
-		fetch("/api/auth/me")
+		fetch("/api/auth/me", {
+			credentials: "include",
+		})
 			.then((res) => res.json())
 			.then((data) => {
 				if (data.success && data.user) {
@@ -34,9 +36,27 @@ export function Navbar() {
 	}, [setUser]);
 
 	const handleLogout = async () => {
-		await fetch("/api/auth/logout", { method: "POST" });
-		setUser(null);
-		router.push("/");
+		try {
+			await fetch("/api/auth/logout", { 
+				method: "POST",
+				credentials: "include",
+			});
+			setUser(null);
+			// Clear social connections
+			const { setSocialConnection } = useAppStore.getState();
+			["youtube", "instagram", "tiktok"].forEach((platform) => {
+				setSocialConnection({
+					platform: platform as "youtube" | "instagram" | "tiktok",
+					connected: false,
+				});
+			});
+			router.push("/");
+		} catch (err) {
+			console.error("Logout error:", err);
+			// Still clear user state even if API call fails
+			setUser(null);
+			router.push("/");
+		}
 	};
 
 	const isDashboard = pathname === "/" || pathname === "/dashboard" || pathname === "/about";

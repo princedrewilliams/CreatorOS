@@ -19,7 +19,9 @@ export default function LoginPage() {
 
 	useEffect(() => {
 		// Check if user is already logged in
-		fetch("/api/auth/me")
+		fetch("/api/auth/me", {
+			credentials: "include",
+		})
 			.then((res) => res.json())
 			.then((data) => {
 				if (data.success && data.user) {
@@ -44,6 +46,7 @@ export default function LoginPage() {
 			const response = await fetch(endpoint, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
+				credentials: "include",
 				body: JSON.stringify({ 
 					email, 
 					password,
@@ -57,12 +60,25 @@ export default function LoginPage() {
 				throw new Error(data.error || `Failed to ${isRegister ? "register" : "login"}`);
 			}
 
-			setUser(data.user);
-			// Sync user data (social connections, subscription)
-			await syncUserData();
-			// Redirect to dashboard or previous page
-			const redirectUrl = new URLSearchParams(window.location.search).get("redirect") || "/dashboard";
-			router.push(redirectUrl);
+			// Wait a moment for cookies to be set
+			await new Promise(resolve => setTimeout(resolve, 100));
+			
+			// Verify login by checking /api/auth/me
+			const verifyResponse = await fetch("/api/auth/me", {
+				credentials: "include",
+			});
+			const verifyData = await verifyResponse.json();
+			
+			if (verifyData.success && verifyData.user) {
+				setUser(verifyData.user);
+				// Sync user data (social connections, subscription)
+				await syncUserData();
+				// Redirect to dashboard or previous page
+				const redirectUrl = new URLSearchParams(window.location.search).get("redirect") || "/dashboard";
+				router.push(redirectUrl);
+			} else {
+				throw new Error("Login verification failed. Please try again.");
+			}
 		} catch (err) {
 			setError(err instanceof Error ? err.message : `Failed to ${isRegister ? "register" : "login"}`);
 		} finally {
@@ -72,7 +88,9 @@ export default function LoginPage() {
 
 	const syncUserData = async () => {
 		try {
-			const response = await fetch("/api/user/sync");
+			const response = await fetch("/api/user/sync", {
+				credentials: "include",
+			});
 			const data = await response.json();
 			if (response.ok && data.success) {
 				// Update store with synced data
@@ -105,9 +123,18 @@ export default function LoginPage() {
 		try {
 			await fetch("/api/auth/logout", {
 				method: "POST",
+				credentials: "include",
 			});
 			setUser(null);
 			setEmail("");
+			// Clear any stored data
+			const { setSocialConnection } = useAppStore.getState();
+			["youtube", "instagram", "tiktok"].forEach((platform) => {
+				setSocialConnection({
+					platform: platform as "youtube" | "instagram" | "tiktok",
+					connected: false,
+				});
+			});
 			router.push("/");
 		} catch (err) {
 			console.error("Failed to logout:", err);

@@ -40,14 +40,8 @@ export async function POST(request: NextRequest) {
 
 		userAccounts.set(email.toLowerCase(), userAccount);
 
-		// Set session cookies
-		await setUserSession({
-			whop_user_id,
-			whop_username,
-			email: email.toLowerCase(),
-		});
-
-		return NextResponse.json({
+		// Create response
+		const response = NextResponse.json({
 			success: true,
 			user: {
 				whop_user_id,
@@ -55,6 +49,31 @@ export async function POST(request: NextRequest) {
 				email: email.toLowerCase(),
 			},
 		});
+
+		// Set session cookies on the response
+		response.cookies.set("whop_user_id", whop_user_id, {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === "production",
+			sameSite: "lax",
+			maxAge: 60 * 60 * 24 * 30, // 30 days
+			path: "/",
+		});
+		response.cookies.set("whop_username", whop_username, {
+			httpOnly: false,
+			secure: process.env.NODE_ENV === "production",
+			sameSite: "lax",
+			maxAge: 60 * 60 * 24 * 30,
+			path: "/",
+		});
+		response.cookies.set("user_email", email.toLowerCase(), {
+			httpOnly: false,
+			secure: process.env.NODE_ENV === "production",
+			sameSite: "lax",
+			maxAge: 60 * 60 * 24 * 30,
+			path: "/",
+		});
+
+		return response;
 	} catch (error) {
 		console.error("[Register] Error:", error);
 		return NextResponse.json(

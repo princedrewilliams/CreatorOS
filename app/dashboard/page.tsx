@@ -69,7 +69,9 @@ export default function DashboardPage() {
 			if (!user) return;
 			
 			try {
-				const response = await fetch("/api/user/sync");
+				const response = await fetch("/api/user/sync", {
+					credentials: "include",
+				});
 				const data = await response.json();
 				if (response.ok && data.success) {
 					// Update social connections
