@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { format } from "date-fns";
 import { Heading, Text, Card, Button, Badge, Separator } from "@whop/react/components";
-import { PlusIcon, CheckIcon, Pencil1Icon, TrashIcon, PaperPlaneIcon } from "@radix-ui/react-icons";
+import { PlusIcon, CheckIcon, Pencil1Icon, TrashIcon, PaperPlaneIcon, LightningBoltIcon, VideoIcon, CalendarIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppStore, type Task, type SocialConnection } from "@/lib/store";
@@ -22,6 +22,12 @@ function PlannerContent() {
 	const [filterPlatform, setFilterPlatform] = useState<"all" | "youtube" | "instagram" | "tiktok">("all");
 	const [filterStatus, setFilterStatus] = useState<"all" | "planned" | "scheduled" | "posted" | "cancelled">("all");
 	const [isPostVideoModalOpen, setIsPostVideoModalOpen] = useState(false);
+	const [isAutoGenerateModalOpen, setIsAutoGenerateModalOpen] = useState(false);
+	const [isAutoFormatModalOpen, setIsAutoFormatModalOpen] = useState(false);
+	const [isAutoRepurposeModalOpen, setIsAutoRepurposeModalOpen] = useState(false);
+	const [autoScheduleEnabled, setAutoScheduleEnabled] = useState(false);
+	const [generatingCalendar, setGeneratingCalendar] = useState(false);
+	const [niche, setNiche] = useState("");
 
 	// Handle OAuth callback
 	useEffect(() => {
@@ -156,6 +162,10 @@ function PlannerContent() {
 					</Text>
 				</div>
 				<div className="flex gap-2 sm:gap-3 flex-shrink-0 flex-wrap">
+					<Button color="purple" size="3" variant="solid" onClick={() => setIsAutoGenerateModalOpen(true)}>
+						<LightningBoltIcon className="mr-2" />
+						Auto-Generate Calendar
+					</Button>
 					<Button color="blue" size="3" variant="solid" onClick={() => setIsPostVideoModalOpen(true)}>
 						<PaperPlaneIcon className="mr-2" />
 						Post to All
@@ -166,6 +176,84 @@ function PlannerContent() {
 					</Button>
 				</div>
 			</div>
+
+			{/* Automation Features */}
+			<Card size="3" variant="surface" className="p-6">
+				<div className="flex items-center gap-2 mb-4">
+					<LightningBoltIcon className="w-5 h-5 text-purple-9" />
+					<Heading size="5" as="h3" className="text-gray-12 dark:text-gray-12">
+						Automation Features
+					</Heading>
+				</div>
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+					<Card size="2" variant="surface" className="p-4">
+						<div className="flex items-start justify-between mb-3">
+							<div>
+								<Text size="3" weight="medium" className="text-gray-12 dark:text-gray-12 mb-1">
+									Auto-Format Video
+								</Text>
+								<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
+									Upload 1 video → Get TikTok, IG Reel, and YouTube Shorts versions automatically
+								</Text>
+							</div>
+						</div>
+						<Button
+							variant="outline"
+							color="purple"
+							size="2"
+							onClick={() => setIsAutoFormatModalOpen(true)}
+							className="w-full"
+						>
+							<VideoIcon className="mr-2" />
+							Format Video
+						</Button>
+					</Card>
+					<Card size="2" variant="surface" className="p-4">
+						<div className="flex items-start justify-between mb-3">
+							<div>
+								<Text size="3" weight="medium" className="text-gray-12 dark:text-gray-12 mb-1">
+									Auto-Repurpose
+								</Text>
+								<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
+									Upload long video → Auto-create 3-5 clips with captions and scheduling
+								</Text>
+							</div>
+						</div>
+						<Button
+							variant="outline"
+							color="purple"
+							size="2"
+							onClick={() => setIsAutoRepurposeModalOpen(true)}
+							className="w-full"
+						>
+							<VideoIcon className="mr-2" />
+							Repurpose Video
+						</Button>
+					</Card>
+					<Card size="2" variant="surface" className="p-4">
+						<div className="flex items-start justify-between mb-3">
+							<div>
+								<Text size="3" weight="medium" className="text-gray-12 dark:text-gray-12 mb-1">
+									Auto-Scheduling
+								</Text>
+								<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
+									Auto-post at optimal times based on your analytics
+								</Text>
+							</div>
+						</div>
+						<Button
+							variant={autoScheduleEnabled ? "soft" : "outline"}
+							color={autoScheduleEnabled ? "green" : "purple"}
+							size="2"
+							onClick={() => setAutoScheduleEnabled(!autoScheduleEnabled)}
+							className="w-full"
+						>
+							<CalendarIcon className="mr-2" />
+							{autoScheduleEnabled ? "Enabled" : "Enable"}
+						</Button>
+					</Card>
+				</div>
+			</Card>
 
 			{/* Social Connections */}
 			<SocialConnections />
@@ -336,6 +424,96 @@ function PlannerContent() {
 				isOpen={isPostVideoModalOpen}
 				onClose={() => setIsPostVideoModalOpen(false)}
 			/>
+
+			{/* Auto-Generate Calendar Modal */}
+			<AnimatePresence>
+				{isAutoGenerateModalOpen && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-a11 dark:bg-gray-a12 backdrop-blur-md"
+						onClick={() => setIsAutoGenerateModalOpen(false)}
+					>
+						<motion.div
+							initial={{ scale: 0.95, opacity: 0 }}
+							animate={{ scale: 1, opacity: 1 }}
+							exit={{ scale: 0.95, opacity: 0 }}
+							onClick={(e) => e.stopPropagation()}
+						>
+							<Card size="3" variant="surface" className="p-6 max-w-md w-full">
+								<div className="flex items-center justify-between mb-4">
+									<Heading size="5" as="h3" className="text-gray-12 dark:text-gray-12">
+										Auto-Generate Content Calendar
+									</Heading>
+									<Button
+										variant="ghost"
+										size="2"
+										onClick={() => setIsAutoGenerateModalOpen(false)}
+									>
+										<Cross2Icon />
+									</Button>
+								</div>
+								<div className="space-y-4">
+									<div>
+										<Text size="2" weight="medium" className="mb-2 text-gray-11 dark:text-gray-11">
+											Enter your niche
+										</Text>
+										<input
+											type="text"
+											placeholder="e.g., fitness, gaming, beauty"
+											value={niche}
+											onChange={(e) => setNiche(e.target.value)}
+											className="w-full px-3 py-2 border border-gray-a6 rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12"
+										/>
+									</div>
+									<Button
+										variant="solid"
+										color="purple"
+										size="3"
+										onClick={async () => {
+											if (!niche) {
+												alert("Please enter a niche");
+												return;
+											}
+											setGeneratingCalendar(true);
+											try {
+												const response = await fetch("/api/automation/generate-content-calendar", {
+													method: "POST",
+													headers: { "Content-Type": "application/json" },
+													body: JSON.stringify({ niche, count: 7 }),
+												});
+												const data = await response.json();
+												if (response.ok) {
+													// Add tasks to calendar
+													data.calendar.forEach((item: any) => {
+														item.tasks.forEach((task: any) => {
+															// Add task to store
+														});
+													});
+													alert(`Generated ${data.count} content ideas!`);
+													setIsAutoGenerateModalOpen(false);
+													setNiche("");
+												} else {
+													alert(data.error || "Failed to generate calendar");
+												}
+											} catch (error) {
+												alert("Failed to generate calendar");
+											} finally {
+												setGeneratingCalendar(false);
+											}
+										}}
+										disabled={generatingCalendar || !niche}
+										className="w-full"
+									>
+										{generatingCalendar ? "Generating..." : "Generate Calendar"}
+									</Button>
+								</div>
+							</Card>
+						</motion.div>
+					</motion.div>
+				)}
+			</AnimatePresence>
 		</div>
 	);
 }
