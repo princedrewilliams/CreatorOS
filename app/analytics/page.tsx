@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { Heading, Text, Card, Button, Badge, Separator } from "@whop/react/components";
-import { BarChartIcon, ReloadIcon, DownloadIcon, HeartIcon, ChatBubbleIcon, Share1Icon, ArrowUpIcon, VideoIcon, LightningBoltIcon, ExclamationTriangleIcon, TrendingUpIcon } from "@radix-ui/react-icons";
+import { BarChartIcon, ReloadIcon, DownloadIcon, HeartIcon, ChatBubbleIcon, Share1Icon, ArrowUpIcon, VideoIcon, LightningBoltIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { SocialConnections } from "@/components/SocialConnections";
@@ -291,7 +291,7 @@ export default function AnalyticsPage() {
 								</div>
 							</div>
 							<Button
-								variant={autoInsightsEnabled ? "soft" : "outline"}
+								variant={autoInsightsEnabled ? "soft" : "ghost"}
 								color={autoInsightsEnabled ? "green" : "gray"}
 								size="2"
 								onClick={() => setAutoInsightsEnabled(!autoInsightsEnabled)}
@@ -315,7 +315,7 @@ export default function AnalyticsPage() {
 								</div>
 							</div>
 							<Button
-								variant={autoAlertsEnabled ? "soft" : "outline"}
+								variant={autoAlertsEnabled ? "soft" : "ghost"}
 								color={autoAlertsEnabled ? "green" : "gray"}
 								size="2"
 								onClick={() => setAutoAlertsEnabled(!autoAlertsEnabled)}
@@ -328,7 +328,7 @@ export default function AnalyticsPage() {
 							<div className="flex items-start justify-between mb-3">
 								<div className="flex-1">
 									<div className="flex items-center gap-2 mb-2">
-										<TrendingUpIcon className="w-4 h-4 text-purple-9" />
+										<ArrowUpIcon className="w-4 h-4 text-purple-9" />
 										<Text size="3" weight="medium" className="text-gray-12 dark:text-gray-12">
 											Auto-Compare
 										</Text>
@@ -339,7 +339,7 @@ export default function AnalyticsPage() {
 								</div>
 							</div>
 							<Button
-								variant={autoCompareEnabled ? "soft" : "outline"}
+								variant={autoCompareEnabled ? "soft" : "ghost"}
 								color={autoCompareEnabled ? "green" : "gray"}
 								size="2"
 								onClick={() => setAutoCompareEnabled(!autoCompareEnabled)}
@@ -363,7 +363,7 @@ export default function AnalyticsPage() {
 								</div>
 							</div>
 							<Button
-								variant={trendAutomationEnabled ? "soft" : "outline"}
+								variant={trendAutomationEnabled ? "soft" : "ghost"}
 								color={trendAutomationEnabled ? "green" : "gray"}
 								size="2"
 								onClick={() => setTrendAutomationEnabled(!trendAutomationEnabled)}

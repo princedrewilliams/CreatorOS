@@ -234,7 +234,7 @@ export default function VideoDownloaderPage() {
 							</div>
 						</div>
 						<Button
-							variant={autoSaveEnabled ? "soft" : "outline"}
+							variant={autoSaveEnabled ? "soft" : "ghost"}
 							color={autoSaveEnabled ? "green" : "gray"}
 							size="2"
 							onClick={() => setAutoSaveEnabled(!autoSaveEnabled)}
@@ -258,7 +258,7 @@ export default function VideoDownloaderPage() {
 							</div>
 						</div>
 						<Button
-							variant={autoRepurposeEnabled ? "soft" : "outline"}
+							variant={autoRepurposeEnabled ? "soft" : "ghost"}
 							color={autoRepurposeEnabled ? "green" : "gray"}
 							size="2"
 							onClick={() => setAutoRepurposeEnabled(!autoRepurposeEnabled)}
@@ -282,7 +282,7 @@ export default function VideoDownloaderPage() {
 							</div>
 						</div>
 						<Button
-							variant={autoInsightsEnabled ? "soft" : "outline"}
+							variant={autoInsightsEnabled ? "soft" : "ghost"}
 							color={autoInsightsEnabled ? "green" : "gray"}
 							size="2"
 							onClick={() => setAutoInsightsEnabled(!autoInsightsEnabled)}

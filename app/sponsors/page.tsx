@@ -69,7 +69,7 @@ export default function SponsorsPage() {
 		};
 	}, [sponsors]);
 
-	const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+		const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 
 		const amountValue = Number.parseFloat(draft.amount.replace(/[^0-9.]/g, ""));
@@ -313,7 +313,7 @@ export default function SponsorsPage() {
 							</div>
 						</div>
 						<Button
-							variant={autoTrackingEnabled ? "soft" : "outline"}
+							variant={autoTrackingEnabled ? "soft" : "ghost"}
 							color={autoTrackingEnabled ? "green" : "gray"}
 							size="2"
 							onClick={() => setAutoTrackingEnabled(!autoTrackingEnabled)}
@@ -337,7 +337,7 @@ export default function SponsorsPage() {
 							</div>
 						</div>
 						<Button
-							variant={autoInvoiceEnabled ? "soft" : "outline"}
+							variant={autoInvoiceEnabled ? "soft" : "ghost"}
 							color={autoInvoiceEnabled ? "green" : "gray"}
 							size="2"
 							onClick={() => setAutoInvoiceEnabled(!autoInvoiceEnabled)}
@@ -361,7 +361,7 @@ export default function SponsorsPage() {
 							</div>
 						</div>
 						<Button
-							variant={autoTimelineEnabled ? "soft" : "outline"}
+							variant={autoTimelineEnabled ? "soft" : "ghost"}
 							color={autoTimelineEnabled ? "green" : "gray"}
 							size="2"
 							onClick={() => setAutoTimelineEnabled(!autoTimelineEnabled)}
@@ -385,7 +385,7 @@ export default function SponsorsPage() {
 							</div>
 						</div>
 						<Button
-							variant={autoReportingEnabled ? "soft" : "outline"}
+							variant={autoReportingEnabled ? "soft" : "ghost"}
 							color={autoReportingEnabled ? "green" : "gray"}
 							size="2"
 							onClick={() => setAutoReportingEnabled(!autoReportingEnabled)}
