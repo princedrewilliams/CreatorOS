@@ -6,6 +6,7 @@ import { PlusIcon, FileTextIcon, SymbolIcon, TrashIcon, DownloadIcon, LightningB
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAppStore, type SponsorDeal, type SponsorStatus } from "@/lib/store";
+import { InvoiceModal, type InvoiceFormData } from "@/components/InvoiceModal";
 
 const statusOptions: SponsorStatus[] = ["active", "pending", "completed"];
 
@@ -54,6 +55,8 @@ export default function SponsorsPage() {
 	const [autoTimelineEnabled, setAutoTimelineEnabled] = useState(true);
 	const [autoReportingEnabled, setAutoReportingEnabled] = useState(true);
 	const [generatingInvoice, setGeneratingInvoice] = useState<string | null>(null);
+	const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
+	const [selectedDeal, setSelectedDeal] = useState<SponsorDeal | null>(null);
 
 	const stats = useMemo(() => {
 		const totalRevenue = sponsors.reduce((sum, deal) => sum + deal.amount, 0);
@@ -133,6 +136,62 @@ export default function SponsorsPage() {
 
 	const handleStatusChange = (deal: SponsorDeal, status: SponsorStatus) => {
 		updateSponsor(deal.id, { status });
+	};
+
+	const handleGenerateInvoice = async (formData: InvoiceFormData) => {
+		setGeneratingInvoice(formData.companyName);
+		try {
+			const response = await fetch("/api/automation/generate-invoice", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(formData),
+			});
+
+			const data = await response.json();
+
+			if (!response.ok) {
+				throw new Error(data.error || "Failed to generate invoice");
+			}
+
+			// Download PDF
+			if (data.invoice?.pdfBase64) {
+				const binaryString = atob(data.invoice.pdfBase64);
+				const bytes = new Uint8Array(binaryString.length);
+				for (let i = 0; i < binaryString.length; i++) {
+					bytes[i] = binaryString.charCodeAt(i);
+				}
+				const blob = new Blob([bytes], { type: "application/pdf" });
+				const url = URL.createObjectURL(blob);
+				const a = document.createElement("a");
+				a.href = url;
+				a.download = `invoice-${data.invoice.id}.pdf`;
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
+				URL.revokeObjectURL(url);
+			}
+
+			// Show success message with payment link
+			if (data.invoice?.paymentLink) {
+				const openLink = window.confirm(
+					`Invoice generated successfully!\n\nWould you like to open the Stripe payment link?`
+				);
+				if (openLink) {
+					window.open(data.invoice.paymentLink, "_blank");
+				}
+			} else {
+				alert(`Invoice generated successfully for ${formData.companyName}!`);
+			}
+		} catch (error) {
+			throw error;
+		} finally {
+			setGeneratingInvoice(null);
+		}
+	};
+
+	const openInvoiceModal = (deal: SponsorDeal) => {
+		setSelectedDeal(deal);
+		setInvoiceModalOpen(true);
 	};
 
 	return (
@@ -541,41 +600,16 @@ export default function SponsorsPage() {
 									</td>
 									<td className="py-3 px-4 text-right">
 										<div className="flex items-center justify-end gap-2">
-											{autoInvoiceEnabled && (
-												<Button
-													variant="ghost"
-													size="1"
-													color="blue"
-													onClick={async () => {
-														setGeneratingInvoice(deal.brand);
-														try {
-															const response = await fetch("/api/automation/generate-invoice", {
-																method: "POST",
-																headers: { "Content-Type": "application/json" },
-																body: JSON.stringify({
-																	brandName: deal.brand,
-																	dealAmount: deal.amount,
-																	deliverables: [deal.type],
-																	dueDate: deal.deadline,
-																	autoSend: false,
-																}),
-															});
-															const invoiceData = await response.json();
-															if (response.ok) {
-																alert(`Invoice generated for ${deal.brand}!`);
-															}
-														} catch (error) {
-															alert("Failed to generate invoice");
-														} finally {
-															setGeneratingInvoice(null);
-														}
-													}}
-													disabled={generatingInvoice === deal.brand}
-													title="Generate Invoice"
-												>
-													<FileTextIcon />
-												</Button>
-											)}
+											<Button
+												variant="ghost"
+												size="1"
+												color="blue"
+												onClick={() => openInvoiceModal(deal)}
+												disabled={generatingInvoice === deal.brand}
+												title="Generate Invoice"
+											>
+												<FileTextIcon />
+											</Button>
 											<Button
 												variant="ghost"
 												size="1"
@@ -598,6 +632,22 @@ export default function SponsorsPage() {
 					</Text>
 				)}
 			</Card>
+
+			{/* Invoice Modal */}
+			<InvoiceModal
+				isOpen={invoiceModalOpen}
+				onClose={() => {
+					setInvoiceModalOpen(false);
+					setSelectedDeal(null);
+				}}
+				onGenerate={handleGenerateInvoice}
+				initialData={selectedDeal ? {
+					brandName: selectedDeal.brand,
+					dealAmount: selectedDeal.amount,
+					deliverables: [selectedDeal.type],
+					deadline: selectedDeal.deadline,
+				} : undefined}
+			/>
 		</div>
 	);
 }

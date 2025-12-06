@@ -11,17 +11,20 @@
 	"dependencies": {
 		"@frosted-ui/icons": "0.0.1-canary.20",
 		"@radix-ui/react-icons": "^1.3.2",
+		"@stripe/stripe-js": "^8.5.3",
 		"@vercel/functions": "^3.1.4",
 		"@whop/react": "0.3.0",
 		"@whop/sdk": "0.0.3",
 		"bcryptjs": "^3.0.3",
 		"date-fns": "^4.1.0",
 		"framer-motion": "^12.23.24",
+		"jspdf": "^3.0.4",
 		"next": "^16.0.7",
 		"react": "19.2.0",
 		"react-dom": "19.2.0",
 		"recharts": "^3.5.1",
 		"replicate": "^1.3.1",
+		"stripe": "^20.0.0",
 		"zustand": "^5.0.8"
 	},
 	"devDependencies": {
