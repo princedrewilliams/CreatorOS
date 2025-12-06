@@ -28,8 +28,8 @@ export async function GET(request: NextRequest) {
 		}
 
 		// Get the original video path from storage
-		// Try to find video in tmp/videos directory using jobId
-		const tmpVideosDir = path.join(process.cwd(), "tmp", "videos");
+		// Use /tmp directory for Vercel serverless functions
+		const tmpVideosDir = process.env.VERCEL ? "/tmp/videos" : path.join(process.cwd(), "tmp", "videos");
 		let originalVideoPath = videoStorage.get(jobId);
 		
 		// If not in memory, try to find by jobId pattern in tmp/videos
@@ -52,7 +52,8 @@ export async function GET(request: NextRequest) {
 		}
 
 		// Create clips directory if it doesn't exist
-		const clipsDir = path.join(process.cwd(), "tmp", "clips");
+		// Use /tmp directory for Vercel serverless functions
+		const clipsDir = process.env.VERCEL ? "/tmp/clips" : path.join(process.cwd(), "tmp", "clips");
 		if (!existsSync(clipsDir)) {
 			await mkdir(clipsDir, { recursive: true });
 		}
@@ -77,14 +78,20 @@ export async function GET(request: NextRequest) {
 		const duration = end - start;
 
 		// Extract clip using FFmpeg
-		const ffmpegCommand = `ffmpeg -i "${originalVideoPath}" -ss ${start} -t ${duration} -c:v libx264 -c:a aac -preset fast -crf 22 -avoid_negative_ts make_zero "${clipPath}"`;
+		// Note: On Vercel, FFmpeg needs to be available in the PATH or use a custom binary
+		// For production, consider using a video processing service or Lambda with FFmpeg layer
+		const ffmpegPath = process.env.FFMPEG_PATH || "ffmpeg";
+		const ffmpegCommand = `${ffmpegPath} -i "${originalVideoPath}" -ss ${start} -t ${duration} -c:v libx264 -c:a aac -preset fast -crf 22 -avoid_negative_ts make_zero -y "${clipPath}"`;
 
 		try {
 			await execAsync(ffmpegCommand);
 		} catch (error) {
 			console.error("[Download Clip] FFmpeg error:", error);
 			return NextResponse.json(
-				{ error: "Failed to extract clip. Please ensure FFmpeg is installed and accessible." },
+				{ 
+					error: "Failed to extract clip. FFmpeg may not be available in this environment. For production, consider using a video processing service.",
+					details: process.env.VERCEL ? "Vercel serverless functions require FFmpeg to be bundled or use an external service." : "Please ensure FFmpeg is installed and accessible."
+				},
 				{ status: 500 }
 			);
 		}

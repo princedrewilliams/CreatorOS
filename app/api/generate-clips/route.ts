@@ -45,11 +45,12 @@ export async function POST(request: NextRequest) {
 		const hash = crypto.createHash("sha256").update(buffer).digest("hex");
 
 		// Save video file to temporary storage for FFmpeg processing
-		const tmpDir = path.join(process.cwd(), "tmp", "videos");
+		// Use /tmp directory for Vercel serverless functions (writable filesystem)
+		const tmpDir = process.env.VERCEL ? "/tmp/videos" : path.join(process.cwd(), "tmp", "videos");
 		if (!existsSync(tmpDir)) {
 			await mkdir(tmpDir, { recursive: true });
 		}
-		const videoPath = path.join(tmpDir, `${hash}-${file.name}`);
+		const videoPath = path.join(tmpDir, `${hash}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`);
 		await writeFile(videoPath, buffer);
 		videoStorage.set(hash, videoPath);
 
