@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
 		
 		// For video transcription, we'll use Whisper
 		// Note: In production, you might want to extract audio first
-		// Use the correct Whisper model - try multiple options
+		// Use the correct Whisper model with retry logic for rate limiting
 		let transcriptionPrediction;
 		const whisperModels = [
 			"openai/whisper-large-v3",
@@ -121,29 +121,68 @@ export async function POST(request: NextRequest) {
 			"vaibhavs10/incredibly-fast-whisper",
 		];
 		
+		// Retry helper function with exponential backoff
+		const retryWithBackoff = async (fn: () => Promise<any>, maxRetries = 3, baseDelay = 1000) => {
+			for (let attempt = 0; attempt < maxRetries; attempt++) {
+				try {
+					return await fn();
+				} catch (error: any) {
+					const isRateLimit = error?.status === 429 || error?.message?.includes("429") || error?.message?.includes("rate limit");
+					
+					if (isRateLimit && attempt < maxRetries - 1) {
+						// Extract retry_after from error if available
+						const retryAfter = error?.retry_after || error?.detail?.match(/resets in ~(\d+)s/)?.[1] || baseDelay / 1000;
+						const delay = Math.min(retryAfter * 1000, 60000); // Max 60 seconds
+						console.log(`[Generate Clips] Rate limited. Retrying after ${delay / 1000}s (attempt ${attempt + 1}/${maxRetries})`);
+						await new Promise(resolve => setTimeout(resolve, delay));
+						continue;
+					}
+					throw error;
+				}
+			}
+		};
+		
 		let lastError: Error | null = null;
 		for (const model of whisperModels) {
 			try {
 				console.log(`[Generate Clips] Trying Whisper model: ${model}`);
-				transcriptionPrediction = await replicate.predictions.create({
-					model: model,
-					input: {
-						audio: dataUrl,
-						language: "en",
-						...(model.includes("whisper-large-v3") ? { timestamp_granularities: ["word"] } : {}),
-					},
+				transcriptionPrediction = await retryWithBackoff(async () => {
+					return await replicate.predictions.create({
+						model: model,
+						input: {
+							audio: dataUrl,
+							language: "en",
+							...(model.includes("whisper-large-v3") ? { timestamp_granularities: ["word"] } : {}),
+						},
+					});
 				});
 				console.log(`[Generate Clips] Successfully started transcription with model: ${model}`);
 				break; // Success, exit loop
-			} catch (error) {
+			} catch (error: any) {
 				console.error(`[Generate Clips] Model ${model} failed:`, error);
 				lastError = error instanceof Error ? error : new Error(String(error));
+				
+				// If it's a rate limit error, wait before trying next model
+				if (error?.status === 429 || error?.message?.includes("429")) {
+					const retryAfter = error?.retry_after || 10;
+					console.log(`[Generate Clips] Rate limited. Waiting ${retryAfter}s before trying next model...`);
+					await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+				}
 				continue; // Try next model
 			}
 		}
 		
 		if (!transcriptionPrediction) {
-			throw lastError || new Error("All Whisper models failed. Please check Replicate API and model availability.");
+			const errorMessage = lastError?.message || "All Whisper models failed";
+			return NextResponse.json(
+				{ 
+					error: errorMessage.includes("rate limit") || errorMessage.includes("429")
+						? "Rate limit exceeded. Please add a payment method to your Replicate account or try again later."
+						: "Failed to transcribe video. Please check Replicate API and model availability.",
+					details: errorMessage
+				},
+				{ status: 500, headers: corsHeaders() }
+			);
 		}
 
 		// Poll for transcription completion
