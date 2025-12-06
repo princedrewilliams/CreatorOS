@@ -15,6 +15,12 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: process.cwd(),
   },
+  // Increase body size limit for video uploads (50MB)
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "50mb",
+    },
+  },
 };
 
 const hasWhopApp = Boolean(process.env.NEXT_PUBLIC_WHOP_APP_ID);

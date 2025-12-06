@@ -10,13 +10,29 @@ const videoCache = new Map<string, { clips: any[]; timestamp: number }>();
 const processingJobs = new Map<string, { status: string; progress: number; clips?: any[] }>();
 const videoStorage = new Map<string, string>(); // Store original video paths
 
+// Add CORS headers helper
+function corsHeaders() {
+	return {
+		"Access-Control-Allow-Origin": "*",
+		"Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+		"Access-Control-Allow-Headers": "Content-Type",
+	};
+}
+
+export async function OPTIONS() {
+	return new NextResponse(null, {
+		status: 200,
+		headers: corsHeaders(),
+	});
+}
+
 export async function POST(request: NextRequest) {
 	try {
 		const apiToken = process.env.REPLICATE_API_TOKEN;
 		if (!apiToken) {
 			return NextResponse.json(
 				{ error: "Replicate API token is not configured." },
-				{ status: 500 }
+				{ status: 500, headers: corsHeaders() }
 			);
 		}
 
@@ -24,10 +40,19 @@ export async function POST(request: NextRequest) {
 		const file = formData.get("video") as File;
 		const clipCount = parseInt(formData.get("clipCount") as string) || 5;
 
+		// Check file size (Vercel has limits: 4.5MB for Hobby, 50MB for Pro)
+		const maxSize = 50 * 1024 * 1024; // 50MB
+		if (file.size > maxSize) {
+			return NextResponse.json(
+				{ error: `File size exceeds limit. Maximum size is ${maxSize / 1024 / 1024}MB.` },
+				{ status: 413, headers: corsHeaders() }
+			);
+		}
+
 		if (!file) {
 			return NextResponse.json(
 				{ error: "Video file is required" },
-				{ status: 400 }
+				{ status: 400, headers: corsHeaders() }
 			);
 		}
 
@@ -35,7 +60,7 @@ export async function POST(request: NextRequest) {
 		if (clipCount < 5 || clipCount > 10) {
 			return NextResponse.json(
 				{ error: "Clip count must be between 5 and 10" },
-				{ status: 400 }
+				{ status: 400, headers: corsHeaders() }
 			);
 		}
 
@@ -107,8 +132,8 @@ export async function POST(request: NextRequest) {
 		if (transcriptionResult.status !== "succeeded") {
 			processingJobs.set(jobId, { status: "failed", progress: 0 });
 			return NextResponse.json(
-				{ error: "Failed to transcribe video" },
-				{ status: 500 }
+				{ error: "Failed to transcribe video", details: transcriptionResult.error },
+				{ status: 500, headers: corsHeaders() }
 			);
 		}
 
@@ -185,16 +210,22 @@ export async function POST(request: NextRequest) {
 			jobId,
 			clips,
 			cached: false,
+		}, {
+			headers: corsHeaders(),
 		});
 	} catch (error) {
 		console.error("[Generate Clips] Error:", error);
-		processingJobs.set(crypto.createHash("sha256").update(Date.now().toString()).digest("hex"), { 
+		const errorHash = crypto.createHash("sha256").update(Date.now().toString()).digest("hex");
+		processingJobs.set(errorHash, { 
 			status: "failed", 
 			progress: 0 
 		});
 		return NextResponse.json(
-			{ error: error instanceof Error ? error.message : "Failed to process video" },
-			{ status: 500 }
+			{ 
+				error: error instanceof Error ? error.message : "Failed to process video",
+				details: error instanceof Error ? error.stack : undefined
+			},
+			{ status: 500, headers: corsHeaders() }
 		);
 	}
 }
@@ -240,24 +271,26 @@ export async function GET(request: NextRequest) {
 	const searchParams = request.nextUrl.searchParams;
 	const jobId = searchParams.get("jobId");
 
-	if (!jobId) {
-		return NextResponse.json(
-			{ error: "Job ID is required" },
-			{ status: 400 }
-		);
-	}
+		if (!jobId) {
+			return NextResponse.json(
+				{ error: "Job ID is required" },
+				{ status: 400, headers: corsHeaders() }
+			);
+		}
 
-	const job = processingJobs.get(jobId);
-	if (!job) {
-		return NextResponse.json(
-			{ error: "Job not found" },
-			{ status: 404 }
-		);
-	}
+		const job = processingJobs.get(jobId);
+		if (!job) {
+			return NextResponse.json(
+				{ error: "Job not found" },
+				{ status: 404, headers: corsHeaders() }
+			);
+		}
 
 	return NextResponse.json({
 		status: job.status,
 		progress: job.progress,
 		clips: job.clips || null,
+	}, {
+		headers: corsHeaders(),
 	});
 }
