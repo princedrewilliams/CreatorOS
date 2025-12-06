@@ -113,14 +113,30 @@ export async function POST(request: NextRequest) {
 		
 		// For video transcription, we'll use Whisper
 		// Note: In production, you might want to extract audio first
-		const transcriptionPrediction = await replicate.predictions.create({
-			model: "openai/whisper",
-			input: {
-				audio: dataUrl,
-				language: "en",
-				timestamp_granularities: ["word"],
-			},
-		});
+		// Try different Whisper model paths
+		let transcriptionPrediction;
+		try {
+			// Try the correct Whisper model path
+			transcriptionPrediction = await replicate.predictions.create({
+				model: "openai/whisper-large-v3",
+				input: {
+					audio: dataUrl,
+					language: "en",
+					timestamp_granularities: ["word"],
+				},
+			});
+		} catch (modelError) {
+			// Fallback to alternative model
+			console.log("[Generate Clips] Trying alternative Whisper model...");
+			transcriptionPrediction = await replicate.predictions.create({
+				model: "vaibhavs10/incredibly-fast-whisper",
+				input: {
+					audio: dataUrl,
+					language: "en",
+					timestamp_granularities: ["word"],
+				},
+			});
+		}
 
 		// Poll for transcription completion
 		let transcriptionResult = transcriptionPrediction;
