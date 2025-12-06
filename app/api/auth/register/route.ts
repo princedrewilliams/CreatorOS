@@ -1,18 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { setUserSession } from "@/lib/auth";
 import bcrypt from "bcryptjs";
-
-// In production, this would use a database
-// For now, we'll use a simple in-memory store
-interface UserAccount {
-	whop_user_id: string;
-	whop_username: string;
-	email: string;
-	passwordHash: string;
-	createdAt: string;
-}
-
-const userAccounts = new Map<string, UserAccount>();
+import { userAccounts, type UserAccount } from "@/lib/user-accounts";
 
 export async function POST(request: NextRequest) {
 	try {
@@ -74,7 +63,4 @@ export async function POST(request: NextRequest) {
 		);
 	}
 }
-
-// Export for use in login route
-export { userAccounts };
 

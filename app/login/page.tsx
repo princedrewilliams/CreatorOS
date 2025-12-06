@@ -5,16 +5,17 @@ import { Heading, Text, Card, Button } from "@whop/react/components";
 import { EnvelopeOpenIcon, LockOpen1Icon } from "@radix-ui/react-icons";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { useAppStore } from "@/lib/store";
 
 export default function LoginPage() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const [user, setUser] = useState<any>(null);
 	const [isRegister, setIsRegister] = useState(false);
 	const [username, setUsername] = useState("");
 	const router = useRouter();
+	const { user, setUser } = useAppStore();
 
 	useEffect(() => {
 		// Check if user is already logged in
@@ -23,12 +24,15 @@ export default function LoginPage() {
 			.then((data) => {
 				if (data.success && data.user) {
 					setUser(data.user);
+				} else {
+					setUser(null);
 				}
 			})
 			.catch(() => {
 				// Not logged in
+				setUser(null);
 			});
-	}, []);
+	}, [setUser]);
 
 	const handleLogin = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -57,7 +61,8 @@ export default function LoginPage() {
 			// Sync user data (social connections, subscription)
 			await syncUserData();
 			// Redirect to dashboard or previous page
-			router.push("/dashboard");
+			const redirectUrl = new URLSearchParams(window.location.search).get("redirect") || "/dashboard";
+			router.push(redirectUrl);
 		} catch (err) {
 			setError(err instanceof Error ? err.message : `Failed to ${isRegister ? "register" : "login"}`);
 		} finally {
@@ -72,18 +77,20 @@ export default function LoginPage() {
 			if (response.ok && data.success) {
 				// Update store with synced data
 				const { setSocialConnection, setIsPro } = useAppStore.getState();
-				data.socialConnections.forEach((conn: any) => {
-					setSocialConnection({
-						platform: conn.platform,
-						connected: conn.connected,
-						accessToken: conn.accessToken,
-						refreshToken: conn.refreshToken,
-						expiresAt: conn.expiresAt,
-						username: conn.username,
-						userId: conn.userPlatformId,
-						profilePicture: conn.profilePicture,
+				if (data.socialConnections && Array.isArray(data.socialConnections)) {
+					data.socialConnections.forEach((conn: any) => {
+						setSocialConnection({
+							platform: conn.platform,
+							connected: conn.connected,
+							accessToken: conn.accessToken,
+							refreshToken: conn.refreshToken,
+							expiresAt: conn.expiresAt,
+							username: conn.username,
+							userId: conn.userPlatformId,
+							profilePicture: conn.profilePicture,
+						});
 					});
-				});
+				}
 				if (data.subscription) {
 					setIsPro(data.subscription.isPro);
 				}

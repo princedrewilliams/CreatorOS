@@ -70,6 +70,7 @@ export async function GET(request: NextRequest) {
 		// Get user info
 		let username = "TikTok User";
 		let profilePicture: string | undefined;
+		let userPlatformId: string | undefined;
 		if (tokens.data?.access_token) {
 			try {
 				const userResponse = await fetch("https://open.tiktokapis.com/v2/user/info/", {
@@ -88,6 +89,9 @@ export async function GET(request: NextRequest) {
 					const user = userInfo.data?.user || userInfo.user || userInfo.data;
 					
 					if (user) {
+						// Get user ID
+						userPlatformId = user.open_id || user.union_id || user.user_id || user.id;
+						
 						// Prefer unique_id (handle/@username) over display_name
 						username = user.unique_id || user.username || user.display_name || user.nickname || username;
 						
@@ -122,6 +126,7 @@ export async function GET(request: NextRequest) {
 				refreshToken: tokens.data.refresh_token,
 				expiresAt: tokens.data.expires_in ? Date.now() + tokens.data.expires_in * 1000 : undefined,
 				username,
+				userPlatformId,
 				profilePicture,
 			});
 		}

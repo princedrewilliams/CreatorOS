@@ -69,6 +69,7 @@ export async function GET(request: NextRequest) {
 		// Get user info from YouTube API
 		let username = "YouTube User";
 		let profilePicture: string | undefined;
+		let userPlatformId: string | undefined;
 		try {
 			// First try to get channel info from YouTube Data API v3
 			const channelResponse = await fetch(
@@ -82,7 +83,9 @@ export async function GET(request: NextRequest) {
 			if (channelResponse.ok) {
 				const channelData = await channelResponse.json();
 				if (channelData.items && channelData.items.length > 0) {
-					const snippet = channelData.items[0].snippet;
+					const channel = channelData.items[0];
+					userPlatformId = channel.id;
+					const snippet = channel.snippet;
 					username = snippet?.title || snippet?.customUrl || username;
 					profilePicture = snippet?.thumbnails?.high?.url || snippet?.thumbnails?.medium?.url || snippet?.thumbnails?.default?.url;
 				}
@@ -100,6 +103,7 @@ export async function GET(request: NextRequest) {
 					const userInfo = await userResponse.json();
 					username = userInfo.name || userInfo.email || username;
 					profilePicture = userInfo.picture;
+					userPlatformId = userInfo.id;
 				}
 			} catch (fallbackError) {
 				console.warn("Failed to fetch user info:", fallbackError);
@@ -119,7 +123,7 @@ export async function GET(request: NextRequest) {
 				refreshToken: tokens.refresh_token,
 				expiresAt: tokens.expires_in ? Date.now() + tokens.expires_in * 1000 : undefined,
 				username,
-				userPlatformId: userId,
+				userPlatformId,
 				profilePicture,
 			});
 		}
