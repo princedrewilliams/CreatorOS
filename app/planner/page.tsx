@@ -198,7 +198,7 @@ function PlannerContent() {
 							</div>
 						</div>
 						<Button
-							variant="outline"
+							variant="ghost"
 							color="purple"
 							size="2"
 							onClick={() => setIsAutoFormatModalOpen(true)}
@@ -220,7 +220,7 @@ function PlannerContent() {
 							</div>
 						</div>
 						<Button
-							variant="outline"
+							variant="ghost"
 							color="purple"
 							size="2"
 							onClick={() => setIsAutoRepurposeModalOpen(true)}
@@ -242,7 +242,7 @@ function PlannerContent() {
 							</div>
 						</div>
 						<Button
-							variant={autoScheduleEnabled ? "soft" : "outline"}
+							variant={autoScheduleEnabled ? "soft" : "ghost"}
 							color={autoScheduleEnabled ? "green" : "purple"}
 							size="2"
 							onClick={() => setAutoScheduleEnabled(!autoScheduleEnabled)}
