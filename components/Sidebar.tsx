@@ -8,6 +8,7 @@ import {
 	FileTextIcon,
 	BarChartIcon,
 	DownloadIcon,
+	VideoIcon,
 } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -17,6 +18,7 @@ import { motion, AnimatePresence } from "framer-motion";
 const navItems = [
 	{ href: "/dashboard", label: "Dashboard", icon: HomeIcon },
 	{ href: "/planner", label: "Content Planner", icon: CalendarIcon },
+	{ href: "/library", label: "Content Library", icon: VideoIcon },
 	{ href: "/sponsors", label: "Sponsors", icon: FileTextIcon },
 	{ href: "/video-downloader", label: "Video Downloader", icon: DownloadIcon },
 	{ href: "/analytics", label: "Analytics", icon: BarChartIcon },

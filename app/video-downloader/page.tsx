@@ -131,12 +131,59 @@ export default function VideoDownloaderPage() {
 			}));
 
 			// Auto-save to content library
-			if (autoSaveEnabled) {
+			if (autoSaveEnabled && data.downloadUrl) {
 				setProcessing(true);
 				try {
-					// Simulate auto-save
-					await new Promise((resolve) => setTimeout(resolve, 1000));
-					console.log("Video saved to content library");
+					// Get video insights for metadata
+					let title = `Video from ${platform}`;
+					let description = "";
+					let hashtags: string[] = [];
+					let ideas: string[] = [];
+
+					// Try to get insights if enabled
+					if (autoInsightsEnabled) {
+						try {
+							const insightsResponse = await fetch("/api/automation/video-insights", {
+								method: "POST",
+								headers: { "Content-Type": "application/json" },
+								body: JSON.stringify({ videoUrl: data.downloadUrl }),
+							});
+							const insightsData = await insightsResponse.json();
+							if (insightsResponse.ok && insightsData.insights) {
+								title = insightsData.insights.keywords?.[0] 
+									? `${insightsData.insights.keywords[0]} Video` 
+									: title;
+								hashtags = insightsData.insights.keywords || [];
+								ideas = insightsData.insights.similarIdeas || [];
+							}
+						} catch (insightsError) {
+							console.error("Failed to get insights for library:", insightsError);
+						}
+					}
+
+					// Save to library
+					const saveResponse = await fetch("/api/library/save", {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({
+							videoUrl: data.downloadUrl,
+							platform: platform,
+							title,
+							description,
+							hashtags,
+							ideas,
+							metadata: {
+								format: data.formatInfo?.mime || "video/mp4",
+								size: file?.size,
+							},
+						}),
+					});
+
+					if (saveResponse.ok) {
+						console.log("Video saved to content library");
+					} else {
+						console.error("Failed to save to library");
+					}
 				} catch (error) {
 					console.error("Failed to save to library:", error);
 				} finally {
