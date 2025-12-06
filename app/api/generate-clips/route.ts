@@ -5,6 +5,11 @@ import { writeFile, mkdir } from "fs/promises";
 import { existsSync } from "fs";
 import path from "path";
 
+// Configure route for larger requests and longer execution time
+export const maxDuration = 300; // 5 minutes (Vercel Pro plan limit)
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 // Store for video hashes and processing status (in production, use a database)
 const videoCache = new Map<string, { clips: any[]; timestamp: number }>();
 const processingJobs = new Map<string, { status: string; progress: number; clips?: any[] }>();

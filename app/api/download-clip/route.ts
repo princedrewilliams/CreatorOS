@@ -7,6 +7,11 @@ import path from "path";
 
 const execAsync = promisify(exec);
 
+// Configure route for longer execution time (video processing)
+export const maxDuration = 300; // 5 minutes
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 // Store for video file paths (in production, use cloud storage or database)
 // For now, we'll use a simple in-memory map (shared across requests in same process)
 // In production, store paths in a database or use absolute paths
