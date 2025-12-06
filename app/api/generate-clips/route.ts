@@ -36,10 +36,17 @@ export async function OPTIONS() {
 
 export async function POST(request: NextRequest) {
 	try {
-		const apiToken = process.env.REPLICATE_API_TOKEN;
-		if (!apiToken) {
+		// Check if at least one transcription service is configured
+		const hasAssemblyAI = Boolean(process.env.ASSEMBLYAI_API_KEY);
+		const hasReplicate = Boolean(process.env.REPLICATE_API_TOKEN);
+		
+		if (!hasAssemblyAI && !hasReplicate) {
 			return NextResponse.json(
-				{ error: "Replicate API token is not configured." },
+				{ 
+					error: "No transcription service configured",
+					details: "Please configure either ASSEMBLYAI_API_KEY or REPLICATE_API_TOKEN in your environment variables.",
+					suggestion: "We recommend AssemblyAI for better free tier limits (5 hours/month). Get your API key at https://www.assemblyai.com/"
+				},
 				{ status: 500, headers: corsHeaders() }
 			);
 		}
@@ -99,17 +106,18 @@ export async function POST(request: NextRequest) {
 			});
 		}
 
-		const replicate = new Replicate({
-			auth: apiToken,
-		});
-
 		// Initialize processing job
 		const jobId = hash;
 		processingJobs.set(jobId, { status: "uploading", progress: 10 });
 
-		// Convert file to base64 for processing
-		const base64 = buffer.toString("base64");
-		const dataUrl = `data:${file.type};base64,${base64}`;
+		// Check if Replicate API token is available (only needed if AssemblyAI is not used)
+		const replicateApiToken = process.env.REPLICATE_API_TOKEN;
+		let replicate: Replicate | null = null;
+		if (replicateApiToken) {
+			replicate = new Replicate({
+				auth: replicateApiToken,
+			});
+		}
 
 		// Step 1: Transcribe video to find engaging moments
 		processingJobs.set(jobId, { status: "transcribing", progress: 20 });
@@ -135,7 +143,21 @@ export async function POST(request: NextRequest) {
 		
 		if (!useAssemblyAI) {
 			// Use Replicate for transcription (with retry logic for rate limiting)
+			if (!replicate) {
+				return NextResponse.json(
+					{ 
+						error: "No transcription service available. Please configure either ASSEMBLYAI_API_KEY or REPLICATE_API_TOKEN in your environment variables.",
+						details: "AssemblyAI is recommended for better free tier limits (5 hours/month)."
+					},
+					{ status: 500, headers: corsHeaders() }
+				);
+			}
+
 			console.log("[Generate Clips] Using Replicate for transcription");
+			
+			// Upload video to a temporary URL first (Replicate models may not accept base64 data URLs)
+			// For now, we'll try using the file directly or a data URL
+			// Note: Some Replicate models require the audio to be uploaded to a URL first
 			
 			// Retry helper function with exponential backoff
 			const retryWithBackoff = async (fn: () => Promise<any>, maxRetries = 3, baseDelay = 1000) => {
@@ -158,33 +180,56 @@ export async function POST(request: NextRequest) {
 				}
 			};
 			
+			// Try different model configurations
 			const whisperModels = [
-				"openai/whisper-large-v3",
-				"fofr/whisper-large-v3",
-				"vaibhavs10/incredibly-fast-whisper",
+				{ name: "openai/whisper-large-v3", useFile: false },
+				{ name: "fofr/whisper-large-v3", useFile: false },
+				{ name: "vaibhavs10/incredibly-fast-whisper", useFile: false },
 			];
 			
 			let transcriptionPrediction;
 			let lastError: Error | null = null;
 			
-			for (const model of whisperModels) {
+			for (const modelConfig of whisperModels) {
 				try {
-					console.log(`[Generate Clips] Trying Whisper model: ${model}`);
+					console.log(`[Generate Clips] Trying Whisper model: ${modelConfig.name}`);
+					
+					// Convert file to base64 for processing
+					const base64 = buffer.toString("base64");
+					const dataUrl = `data:${file.type};base64,${base64}`;
+					
 					transcriptionPrediction = await retryWithBackoff(async () => {
-						return await replicate.predictions.create({
-							model: model,
-							input: {
-								audio: dataUrl,
-								language: "en",
-								...(model.includes("whisper-large-v3") ? { timestamp_granularities: ["word"] } : {}),
-							},
+						const input: any = {
+							language: "en",
+						};
+						
+						// Try different input formats based on model
+						if (modelConfig.name.includes("whisper-large-v3")) {
+							input.audio = dataUrl;
+							input.timestamp_granularities = ["word"];
+						} else {
+							// For incredibly-fast-whisper, try file path or data URL
+							input.audio = dataUrl;
+						}
+						
+						return await replicate!.predictions.create({
+							model: modelConfig.name,
+							input: input,
 						});
 					});
-					console.log(`[Generate Clips] Successfully started transcription with model: ${model}`);
+					
+					console.log(`[Generate Clips] Successfully started transcription with model: ${modelConfig.name}`);
 					break; // Success, exit loop
 				} catch (error: any) {
-					console.error(`[Generate Clips] Model ${model} failed:`, error);
-					lastError = error instanceof Error ? error : new Error(String(error));
+					const errorDetails = error?.response?.data || error?.message || String(error);
+					console.error(`[Generate Clips] Model ${modelConfig.name} failed:`, errorDetails);
+					
+					// Store more detailed error information
+					if (!lastError) {
+						lastError = new Error(`Model ${modelConfig.name}: ${errorDetails}`);
+					} else {
+						lastError = new Error(`${lastError.message}; ${modelConfig.name}: ${errorDetails}`);
+					}
 					
 					// If it's a rate limit error, wait before trying next model
 					if (error?.status === 429 || error?.message?.includes("429")) {
@@ -198,12 +243,17 @@ export async function POST(request: NextRequest) {
 			
 			if (!transcriptionPrediction) {
 				const errorMessage = lastError?.message || "All Whisper models failed";
+				console.error("[Generate Clips] All transcription attempts failed:", errorMessage);
+				
 				return NextResponse.json(
 					{ 
 						error: errorMessage.includes("rate limit") || errorMessage.includes("429")
-							? "Rate limit exceeded. Please add ASSEMBLYAI_API_KEY to your environment variables for better free tier limits, or add a payment method to your Replicate account."
-							: "Failed to transcribe video. Please check Replicate API and model availability.",
-						details: errorMessage
+							? "Rate limit exceeded. Please add ASSEMBLYAI_API_KEY to your environment variables for better free tier limits (5 hours/month), or add a payment method to your Replicate account."
+							: errorMessage.includes("404") || errorMessage.includes("Not Found")
+							? "Transcription model not found. Please check your Replicate API token and model availability."
+							: "Failed to transcribe video. Please check Replicate API and model availability, or configure ASSEMBLYAI_API_KEY for a more reliable service.",
+						details: errorMessage,
+						suggestion: "We recommend using AssemblyAI (free tier: 5 hours/month). Add ASSEMBLYAI_API_KEY to your environment variables."
 					},
 					{ status: 500, headers: corsHeaders() }
 				);
@@ -211,25 +261,74 @@ export async function POST(request: NextRequest) {
 
 			// Poll for transcription completion
 			let transcriptionResult = transcriptionPrediction;
+			let pollAttempts = 0;
+			const maxPollAttempts = 150; // 5 minutes max (150 * 2 seconds)
+			
 			while (
 				transcriptionResult.status === "starting" ||
 				transcriptionResult.status === "processing"
 			) {
 				await new Promise((resolve) => setTimeout(resolve, 2000));
-				transcriptionResult = await replicate.predictions.get(transcriptionPrediction.id);
+				transcriptionResult = await replicate!.predictions.get(transcriptionPrediction.id);
 				const progress = Math.min(20 + (transcriptionResult.status === "processing" ? 30 : 0), 50);
 				processingJobs.set(jobId, { status: "transcribing", progress });
+				
+				pollAttempts++;
+				if (pollAttempts >= maxPollAttempts) {
+					processingJobs.set(jobId, { status: "failed", progress: 0 });
+					return NextResponse.json(
+						{ 
+							error: "Transcription timeout. The video may be too long or the service is taking too long to process.",
+							details: `Polled for ${pollAttempts * 2} seconds without completion. Status: ${transcriptionResult.status}`
+						},
+						{ status: 500, headers: corsHeaders() }
+					);
+				}
 			}
 
 			if (transcriptionResult.status !== "succeeded") {
 				processingJobs.set(jobId, { status: "failed", progress: 0 });
+				const errorDetails = transcriptionResult.error || transcriptionResult.status;
+				console.error("[Generate Clips] Transcription failed:", errorDetails);
+				
 				return NextResponse.json(
-					{ error: "Failed to transcribe video", details: transcriptionResult.error },
+					{ 
+						error: "Failed to transcribe video",
+						details: errorDetails,
+						status: transcriptionResult.status,
+						suggestion: "Try using AssemblyAI instead by adding ASSEMBLYAI_API_KEY to your environment variables."
+					},
 					{ status: 500, headers: corsHeaders() }
 				);
 			}
 
 			transcriptionData = transcriptionResult.output;
+			
+			// Validate transcription data
+			if (!transcriptionData || (!transcriptionData.segments && !transcriptionData.text && !transcriptionData.words)) {
+				console.error("[Generate Clips] Invalid transcription data:", transcriptionData);
+				return NextResponse.json(
+					{ 
+						error: "Transcription completed but returned invalid data format",
+						details: "The transcription service returned data in an unexpected format.",
+						suggestion: "Try using AssemblyAI instead by adding ASSEMBLYAI_API_KEY to your environment variables."
+					},
+					{ status: 500, headers: corsHeaders() }
+				);
+			}
+		}
+
+		// Validate transcription data exists
+		if (!transcriptionData) {
+			processingJobs.set(jobId, { status: "failed", progress: 0 });
+			return NextResponse.json(
+				{ 
+					error: "Transcription data is missing",
+					details: "The transcription service did not return any data.",
+					suggestion: "Try using AssemblyAI instead by adding ASSEMBLYAI_API_KEY to your environment variables."
+				},
+				{ status: 500, headers: corsHeaders() }
+			);
 		}
 
 		// Step 2: Analyze transcription for engaging moments
@@ -240,7 +339,7 @@ export async function POST(request: NextRequest) {
 		if (transcriptionData.words && Array.isArray(transcriptionData.words)) {
 			// AssemblyAI format: words array with start/end times
 			segments = groupWordsIntoSegments(transcriptionData.words);
-		} else if (transcriptionData.segments) {
+		} else if (transcriptionData.segments && Array.isArray(transcriptionData.segments)) {
 			// Replicate/Whisper format: segments array
 			segments = transcriptionData.segments;
 		} else if (transcriptionData.text) {
@@ -250,6 +349,32 @@ export async function POST(request: NextRequest) {
 				end: 60, // Estimate
 				text: transcriptionData.text,
 			}];
+		} else {
+			// No valid transcription data found
+			console.error("[Generate Clips] No valid segments found in transcription data:", transcriptionData);
+			processingJobs.set(jobId, { status: "failed", progress: 0 });
+			return NextResponse.json(
+				{ 
+					error: "Could not extract transcription segments",
+					details: "The transcription service returned data but it could not be parsed into segments.",
+					rawData: transcriptionData,
+					suggestion: "Try using AssemblyAI instead by adding ASSEMBLYAI_API_KEY to your environment variables."
+				},
+				{ status: 500, headers: corsHeaders() }
+			);
+		}
+		
+		// Validate we have segments
+		if (segments.length === 0) {
+			processingJobs.set(jobId, { status: "failed", progress: 0 });
+			return NextResponse.json(
+				{ 
+					error: "No transcription segments found",
+					details: "The video may not contain any speech or the transcription failed to identify segments.",
+					suggestion: "Ensure your video contains audio with speech."
+				},
+				{ status: 500, headers: corsHeaders() }
+			);
 		}
 		
 		// Estimate video duration (in seconds)
