@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { setUserSession } from "@/lib/auth";
 import bcrypt from "bcryptjs";
-import { userAccounts } from "./register/route";
+import { userAccounts } from "@/lib/user-accounts";
 
 export async function POST(request: NextRequest) {
 	try {
@@ -58,4 +58,3 @@ export async function POST(request: NextRequest) {
 		);
 	}
 }
-
