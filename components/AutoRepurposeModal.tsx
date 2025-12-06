@@ -204,10 +204,10 @@ export function AutoRepurposeModal({ isOpen, onClose, onClipsGenerated }: AutoRe
 											</div>
 										</Card>
 									))}
-									{data?.scheduled && (
+									{clips.length > 0 && (
 										<Card size="1" variant="surface" className="p-3 bg-green-a2 border-green-a6">
 											<Text size="2" color="green" className="text-green-11">
-												✓ Clips have been scheduled to your content calendar
+												✓ {clips.length} clips generated with captions and ready to download
 											</Text>
 										</Card>
 									)}
