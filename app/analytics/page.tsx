@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { Heading, Text, Card, Button, Badge, Separator } from "@whop/react/components";
-import { BarChartIcon, ReloadIcon, DownloadIcon, HeartIcon, ChatBubbleIcon, Share1Icon, ArrowUpIcon, VideoIcon } from "@radix-ui/react-icons";
+import { BarChartIcon, ReloadIcon, DownloadIcon, HeartIcon, ChatBubbleIcon, Share1Icon, ArrowUpIcon, VideoIcon, LightningBoltIcon, ExclamationTriangleIcon, TrendingUpIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { SocialConnections } from "@/components/SocialConnections";
@@ -58,6 +58,13 @@ export default function AnalyticsPage() {
 	const [followersChartType, setFollowersChartType] = useState<ChartType>("bar");
 	const [engagementChartType, setEngagementChartType] = useState<ChartType>("line");
 	const [revenueChartType, setRevenueChartType] = useState<ChartType>("pie");
+	const [autoInsightsEnabled, setAutoInsightsEnabled] = useState(true);
+	const [autoAlertsEnabled, setAutoAlertsEnabled] = useState(true);
+	const [autoCompareEnabled, setAutoCompareEnabled] = useState(true);
+	const [trendAutomationEnabled, setTrendAutomationEnabled] = useState(true);
+	const [dailyInsights, setDailyInsights] = useState<any>(null);
+	const [alerts, setAlerts] = useState<any[]>([]);
+	const [loadingInsights, setLoadingInsights] = useState(false);
 
 	const connectedPlatforms = useMemo(
 		() =>
