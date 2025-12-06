@@ -4,8 +4,6 @@ import { useEffect, useState, useMemo } from "react";
 import { Heading, Text, Card, Button, Badge, Separator } from "@whop/react/components";
 import {
 	CalendarIcon,
-	VideoIcon,
-	ImageIcon,
 	FileTextIcon,
 	BarChartIcon,
 	ArrowRightIcon,
@@ -35,20 +33,6 @@ const features = [
 		icon: CalendarIcon,
 		href: "/planner",
 		color: "blue" as const,
-	},
-	{
-		title: "Auto Clip",
-		description: "Automatically create engaging clips from your videos",
-		icon: VideoIcon,
-		href: "/autoclip",
-		color: "purple" as const,
-	},
-	{
-		title: "Thumbnail Generator",
-		description: "Generate eye-catching thumbnails with AI",
-		icon: ImageIcon,
-		href: "/thumbnail",
-		color: "violet" as const,
 	},
 	{
 		title: "Video Downloader",

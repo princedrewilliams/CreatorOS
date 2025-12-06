@@ -5,8 +5,6 @@ import {
 	Cross2Icon,
 	HomeIcon,
 	CalendarIcon,
-	PersonIcon,
-	ImageIcon,
 	FileTextIcon,
 	BarChartIcon,
 	DownloadIcon,
@@ -19,8 +17,6 @@ import { motion, AnimatePresence } from "framer-motion";
 const navItems = [
 	{ href: "/dashboard", label: "Dashboard", icon: HomeIcon },
 	{ href: "/planner", label: "Content Planner", icon: CalendarIcon },
-	{ href: "/auto-collab", label: "Auto-Collab Finder", icon: PersonIcon },
-	{ href: "/thumbnail", label: "Thumbnail Gen", icon: ImageIcon },
 	{ href: "/sponsors", label: "Sponsors", icon: FileTextIcon },
 	{ href: "/video-downloader", label: "Video Downloader", icon: DownloadIcon },
 	{ href: "/analytics", label: "Analytics", icon: BarChartIcon },
