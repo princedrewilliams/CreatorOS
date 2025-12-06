@@ -10,6 +10,7 @@ import {
 	Link2Icon,
 } from "@radix-ui/react-icons";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 interface LibraryItem {
 	id: string;
@@ -45,6 +46,27 @@ export default function LibraryPage() {
 	const [libraryItems, setLibraryItems] = useState<LibraryItem[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+	const [user, setUser] = useState<any>(null);
+	const router = useRouter();
+
+	useEffect(() => {
+		// Check authentication
+		fetch("/api/auth/me")
+			.then((res) => res.json())
+			.then((data) => {
+				if (data.success && data.user) {
+					setUser(data.user);
+					fetchLibrary();
+				} else {
+					setError("Please login to access your content library");
+					setLoading(false);
+				}
+			})
+			.catch(() => {
+				setError("Please login to access your content library");
+				setLoading(false);
+			});
+	}, []);
 
 	const fetchLibrary = async () => {
 		setLoading(true);
@@ -54,6 +76,9 @@ export default function LibraryPage() {
 			const data = await response.json();
 			if (response.ok) {
 				setLibraryItems(data.items || []);
+			} else if (response.status === 401) {
+				setError("Please login to access your content library");
+				setUser(null);
 			} else {
 				setError(data.error || "Failed to load library");
 			}
@@ -63,10 +88,6 @@ export default function LibraryPage() {
 			setLoading(false);
 		}
 	};
-
-	useEffect(() => {
-		fetchLibrary();
-	}, []);
 
 	const handleDelete = async (itemId: string) => {
 		if (!confirm("Are you sure you want to delete this item from your library?")) {
@@ -144,6 +165,19 @@ export default function LibraryPage() {
 					<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11">
 						Loading library...
 					</Text>
+				</Card>
+			) : !user ? (
+				<Card size="3" variant="surface" className="p-8 text-center">
+					<VideoIcon className="w-16 h-16 mx-auto mb-4 text-gray-9 dark:text-gray-10" />
+					<Heading size="5" as="h2" className="mb-2 text-gray-12 dark:text-gray-12">
+						Login Required
+					</Heading>
+					<Text size="3" color="gray" className="mb-4 text-gray-11 dark:text-gray-11">
+						Please login to access your content library. Your videos are saved per account.
+					</Text>
+					<Button variant="solid" color="blue" size="3" onClick={() => router.push("/login")}>
+						Go to Login
+					</Button>
 				</Card>
 			) : libraryItems.length === 0 ? (
 				<Card size="3" variant="surface" className="p-8 text-center">

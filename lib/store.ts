@@ -45,7 +45,15 @@ const generateId = () => {
 	return `id-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 };
 
+export interface User {
+	whop_user_id: string;
+	whop_username: string;
+	email?: string;
+}
+
 interface AppState {
+	user: User | null;
+	setUser: (user: User | null) => void;
 	isPro: boolean;
 	setIsPro: (isPro: boolean) => void;
 	sidebarOpen: boolean;
@@ -67,6 +75,8 @@ interface AppState {
 export const useAppStore = create<AppState>()(
     persist(
         (set, get) => ({
+			user: null,
+			setUser: (user) => set({ user }),
 			isPro: false,
 			setIsPro: (isPro) => set({ isPro }),
 			sidebarOpen: false,

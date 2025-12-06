@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth";
 
-interface LibraryItem {
+export interface LibraryItem {
 	id: string;
 	videoUrl: string;
 	platform: "tiktok" | "instagram" | "youtube";
@@ -16,6 +17,7 @@ interface LibraryItem {
 		format?: string;
 		size?: number;
 	};
+	userId: string; // Store user ID with each item
 }
 
 // In production, this would use a database
@@ -24,6 +26,15 @@ const libraryStore = new Map<string, LibraryItem[]>();
 
 export async function POST(request: NextRequest) {
 	try {
+		const user = await getCurrentUser();
+		
+		if (!user) {
+			return NextResponse.json(
+				{ error: "Authentication required. Please login." },
+				{ status: 401 }
+			);
+		}
+
 		const body = await request.json();
 		const { videoUrl, platform, title, description, hashtags, ideas, audioUrl, thumbnail, metadata } = body;
 
@@ -35,13 +46,11 @@ export async function POST(request: NextRequest) {
 		}
 
 		// In production, you would:
-		// 1. Get user ID from session/auth
-		// 2. Store in database (e.g., PostgreSQL, MongoDB)
-		// 3. Extract and store metadata properly
-		// 4. Handle file storage (S3, Cloudinary, etc.)
+		// 1. Store in database (e.g., PostgreSQL, MongoDB)
+		// 2. Extract and store metadata properly
+		// 3. Handle file storage (S3, Cloudinary, etc.)
 
-		// For now, use a simple user identifier (in production, get from auth)
-		const userId = "default"; // Replace with actual user ID from auth
+		const userId = user.whop_user_id;
 
 		const libraryItem: LibraryItem = {
 			id: `lib-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -55,6 +64,7 @@ export async function POST(request: NextRequest) {
 			thumbnail,
 			savedAt: new Date().toISOString(),
 			metadata: metadata || {},
+			userId,
 		};
 
 		// Get user's library
@@ -79,9 +89,16 @@ export async function POST(request: NextRequest) {
 // GET endpoint to retrieve library items
 export async function GET(request: NextRequest) {
 	try {
-		// In production, get user ID from session/auth
-		const userId = "default"; // Replace with actual user ID from auth
+		const user = await getCurrentUser();
+		
+		if (!user) {
+			return NextResponse.json(
+				{ error: "Authentication required. Please login." },
+				{ status: 401 }
+			);
+		}
 
+		const userId = user.whop_user_id;
 		const userLibrary = libraryStore.get(userId) || [];
 
 		return NextResponse.json({

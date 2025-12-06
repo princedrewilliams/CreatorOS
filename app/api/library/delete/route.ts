@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { libraryStore } from "../save/route";
+import { getCurrentUser } from "@/lib/auth";
 
 export async function DELETE(request: NextRequest) {
 	try {
+		const user = await getCurrentUser();
+		
+		if (!user) {
+			return NextResponse.json(
+				{ error: "Authentication required. Please login." },
+				{ status: 401 }
+			);
+		}
+
 		const body = await request.json();
 		const { itemId } = body;
 
@@ -13,10 +23,18 @@ export async function DELETE(request: NextRequest) {
 			);
 		}
 
-		// In production, get user ID from session/auth
-		const userId = "default"; // Replace with actual user ID from auth
-
+		const userId = user.whop_user_id;
 		const userLibrary = libraryStore.get(userId) || [];
+		
+		// Ensure user owns the item before deleting
+		const item = userLibrary.find((item) => item.id === itemId);
+		if (!item || item.userId !== userId) {
+			return NextResponse.json(
+				{ error: "Item not found or access denied" },
+				{ status: 404 }
+			);
+		}
+
 		const filteredLibrary = userLibrary.filter((item) => item.id !== itemId);
 		libraryStore.set(userId, filteredLibrary);
 

@@ -1,15 +1,43 @@
 "use client";
 
-import { Button } from "@whop/react/components";
-import { HamburgerMenuIcon } from "@radix-ui/react-icons";
+import { Button, Text } from "@whop/react/components";
+import { HamburgerMenuIcon, PersonIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 export function Navbar() {
 	const pathname = usePathname();
-	const { setSidebarOpen, isPro } = useAppStore();
+	const router = useRouter();
+	const { setSidebarOpen, isPro, user, setUser } = useAppStore();
+	const [loading, setLoading] = useState(true);
+
+	useEffect(() => {
+		// Check if user is logged in
+		fetch("/api/auth/me")
+			.then((res) => res.json())
+			.then((data) => {
+				if (data.success && data.user) {
+					setUser(data.user);
+				} else {
+					setUser(null);
+				}
+			})
+			.catch(() => {
+				setUser(null);
+			})
+			.finally(() => {
+				setLoading(false);
+			});
+	}, [setUser]);
+
+	const handleLogout = async () => {
+		await fetch("/api/auth/logout", { method: "POST" });
+		setUser(null);
+		router.push("/");
+	};
 
 	const isDashboard = pathname === "/" || pathname === "/dashboard" || pathname === "/about";
 
@@ -31,7 +59,36 @@ export function Navbar() {
 				</div>
 
 				<div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-					{!isPro && (
+					{user ? (
+						<>
+							<Text size="2" color="gray" className="hidden sm:block text-gray-11 dark:text-gray-11">
+								{user.whop_username}
+							</Text>
+							<Button
+								variant="ghost"
+								color="gray"
+								size="2"
+								onClick={handleLogout}
+								className="hidden sm:inline-flex"
+							>
+								Logout
+							</Button>
+						</>
+					) : (
+						<Button
+							variant="solid"
+							color="blue"
+							size="2"
+							className="hidden sm:inline-flex"
+							asChild
+						>
+							<Link href="/login">
+								<PersonIcon className="mr-2" />
+								Login
+							</Link>
+						</Button>
+					)}
+					{!isPro && user && (
 						<Button
 							variant="solid"
 							color="blue"
