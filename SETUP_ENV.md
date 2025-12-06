@@ -13,6 +13,14 @@ WHOP_WEBHOOK_SECRET=your_webhook_secret
 # Replicate API Token (for AI thumbnail generation)
 REPLICATE_API_TOKEN=your_replicate_api_token_here
 
+# AssemblyAI (Optional - Better free tier for transcription, recommended over Replicate)
+# Get your API key from https://www.assemblyai.com/
+# Free tier: 5 hours/month
+ASSEMBLYAI_API_KEY=your_assemblyai_api_key_here
+
+# Force Replicate even if AssemblyAI is configured (optional)
+# FORCE_REPLICATE=true
+
 # YouTube OAuth & API access
 YOUTUBE_CLIENT_ID=123569225352-r93e3tvet1uk4t64qhpngqst3s1qdtuf.apps.googleusercontent.com
 YOUTUBE_CLIENT_SECRET=your_youtube_client_secret
