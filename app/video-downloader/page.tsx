@@ -174,7 +174,6 @@ export default function VideoDownloaderPage() {
 							ideas,
 							metadata: {
 								format: data.formatInfo?.mime || "video/mp4",
-								size: file?.size,
 							},
 						}),
 					});

@@ -14,7 +14,7 @@ import { PostVideoModal } from "@/components/PostVideoModal";
 import { useSearchParams } from "next/navigation";
 
 function PlannerContent() {
-	const { tasks, updateTask, deleteTask, socialConnections, setSocialConnection } = useAppStore();
+	const { tasks, addTask, updateTask, deleteTask, socialConnections, setSocialConnection } = useAppStore();
 	const searchParams = useSearchParams();
 	const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 	const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -425,6 +425,22 @@ function PlannerContent() {
 				onClose={() => setIsPostVideoModalOpen(false)}
 			/>
 
+			{/* Auto Format Modal */}
+			<AutoFormatModal
+				isOpen={isAutoFormatModalOpen}
+				onClose={() => setIsAutoFormatModalOpen(false)}
+			/>
+
+			{/* Auto Repurpose Modal */}
+			<AutoRepurposeModal
+				isOpen={isAutoRepurposeModalOpen}
+				onClose={() => setIsAutoRepurposeModalOpen(false)}
+				onClipsGenerated={(clips) => {
+					// Optionally add clips as tasks to calendar
+					console.log("Clips generated:", clips);
+				}}
+			/>
+
 			{/* Auto-Generate Calendar Modal */}
 			<AnimatePresence>
 				{isAutoGenerateModalOpen && (
@@ -484,14 +500,41 @@ function PlannerContent() {
 													body: JSON.stringify({ niche, count: 7 }),
 												});
 												const data = await response.json();
-												if (response.ok) {
+												if (response.ok && data.calendar) {
 													// Add tasks to calendar
+													let tasksAdded = 0;
 													data.calendar.forEach((item: any) => {
-														item.tasks.forEach((task: any) => {
-															// Add task to store
+														const scheduledDate = new Date(item.scheduledDate);
+														const dateStr = scheduledDate.toISOString().split("T")[0];
+														
+														// Add main task for the content idea
+														addTask({
+															title: item.title,
+															description: `${item.hook}\n\n${item.caption}`,
+															date: dateStr,
+															time: item.bestPostTime || "12:00",
+															platforms: [item.platform],
+															status: "planned",
 														});
+														tasksAdded++;
+
+														// Add subtasks if they exist
+														if (item.tasks && Array.isArray(item.tasks)) {
+															item.tasks.forEach((subtask: any) => {
+																const taskDate = new Date(subtask.dueDate);
+																const taskDateStr = taskDate.toISOString().split("T")[0];
+																addTask({
+																	title: subtask.title,
+																	description: `Part of: ${item.title}`,
+																	date: taskDateStr,
+																	platforms: [item.platform],
+																	status: subtask.status || "planned",
+																});
+																tasksAdded++;
+															});
+														}
 													});
-													alert(`Generated ${data.count} content ideas!`);
+													alert(`Generated ${data.count} content ideas and added ${tasksAdded} tasks to your calendar!`);
 													setIsAutoGenerateModalOpen(false);
 													setNiche("");
 												} else {
