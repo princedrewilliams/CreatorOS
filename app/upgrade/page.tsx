@@ -5,7 +5,8 @@ import { ArrowLeftIcon, CheckIcon, StarIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAppStore } from "@/lib/store";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const features = [
 	"Unlimited AI-powered video clips",
@@ -37,27 +38,52 @@ const plans = [
 
 export default function UpgradePage() {
 	const [loading, setLoading] = useState(false);
-	const { setIsPro } = useAppStore();
+	const [error, setError] = useState<string | null>(null);
+	const { setIsPro, user } = useAppStore();
+	const router = useRouter();
+
+	useEffect(() => {
+		// Check if user is logged in
+		if (!user) {
+			router.push("/login?redirect=/upgrade");
+		}
+	}, [user, router]);
 
 	const handlePurchase = async (planName: string) => {
+		if (!user) {
+			setError("Please login to purchase a plan");
+			router.push("/login?redirect=/upgrade");
+			return;
+		}
+
 		setLoading(true);
+		setError(null);
+		
 		// TODO: Integrate with Whop in-app purchases
 		// Reference: https://docs.whop.com/apps/guides/payins#in-app-purchases
 		try {
-			// Placeholder for Whop purchase flow
-			// const purchase = await whopSDK.purchases.create({
-			//   productId: planName === "Pro Monthly" ? "pro-monthly" : "pro-annual",
-			// });
+			const planType = planName === "Pro Monthly" ? "monthly" : "annual";
 			
-			// Simulate purchase for demo
-			setTimeout(() => {
-				setIsPro(true);
-				setLoading(false);
-				alert("Purchase successful! You now have Pro access.");
-			}, 1000);
+			const response = await fetch("/api/subscription/purchase", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ planType }),
+			});
+
+			const data = await response.json();
+
+			if (!response.ok) {
+				throw new Error(data.error || "Purchase failed");
+			}
+
+			// Update local state
+			setIsPro(true);
+			alert("Purchase successful! You now have Pro access. Your subscription is saved to your account and will sync across all devices.");
 		} catch (error) {
-			setLoading(false);
+			setError(error instanceof Error ? error.message : "Purchase failed");
 			console.error("Purchase failed:", error);
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -175,10 +201,21 @@ export default function UpgradePage() {
 				))}
 			</div>
 
+			{/* Error Message */}
+			{error && (
+				<Card size="2" variant="surface" className="p-4 bg-red-a2 border-red-a6">
+					<Text size="2" color="red" className="text-red-11">
+						{error}
+					</Text>
+				</Card>
+			)}
+
 			{/* Info Card */}
 			<Card size="2" variant="surface" className="p-4 bg-blue-a2 dark:bg-blue-a3 border-blue-6 dark:border-blue-5">
 				<Text size="2" color="gray" align="center" className="text-gray-11 dark:text-gray-11">
 					All plans include a 14-day money-back guarantee. Cancel anytime.
+					<br />
+					Your subscription is tied to your account and syncs across all devices.
 				</Text>
 			</Card>
 		</div>

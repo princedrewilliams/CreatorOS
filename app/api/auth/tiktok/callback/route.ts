@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth";
+import { setUserSocialConnection } from "@/lib/user-data";
 
 export async function GET(request: NextRequest) {
 	try {
@@ -106,6 +108,23 @@ export async function GET(request: NextRequest) {
 
 		// Log the username for debugging
 		console.log("[TikTok OAuth] Setting username:", username);
+		
+		// Get current user to save connection with user ID
+		const user = await getCurrentUser();
+		
+		// Store connection in user data (persists across devices)
+		if (user && tokens.data?.access_token) {
+			setUserSocialConnection(user.whop_user_id, {
+				userId: user.whop_user_id,
+				platform: "tiktok",
+				connected: true,
+				accessToken: tokens.data.access_token,
+				refreshToken: tokens.data.refresh_token,
+				expiresAt: tokens.data.expires_in ? Date.now() + tokens.data.expires_in * 1000 : undefined,
+				username,
+				profilePicture,
+			});
+		}
 		
 		// Store tokens
 		const profilePictureParam = profilePicture ? `&profilePicture=${encodeURIComponent(profilePicture)}` : "";

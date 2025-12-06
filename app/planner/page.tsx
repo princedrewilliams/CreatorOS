@@ -16,7 +16,7 @@ import { AutoRepurposeModal } from "@/components/AutoRepurposeModal";
 import { useSearchParams } from "next/navigation";
 
 function PlannerContent() {
-	const { tasks, addTask, updateTask, deleteTask, socialConnections, setSocialConnection } = useAppStore();
+	const { tasks, addTask, updateTask, deleteTask, socialConnections, setSocialConnection, user } = useAppStore();
 	const searchParams = useSearchParams();
 	const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 	const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -31,18 +31,78 @@ function PlannerContent() {
 	const [generatingCalendar, setGeneratingCalendar] = useState(false);
 	const [niche, setNiche] = useState("");
 
+	// Sync user data on mount (social connections)
+	useEffect(() => {
+		const syncUserData = async () => {
+			if (!user) return;
+			
+			try {
+				const response = await fetch("/api/user/sync");
+				const data = await response.json();
+				if (response.ok && data.success) {
+					// Update social connections from server
+					data.socialConnections.forEach((conn: any) => {
+						setSocialConnection({
+							platform: conn.platform,
+							connected: conn.connected,
+							accessToken: conn.accessToken,
+							refreshToken: conn.refreshToken,
+							expiresAt: conn.expiresAt,
+							username: conn.username,
+							userId: conn.userPlatformId,
+							profilePicture: conn.profilePicture,
+						});
+					});
+				}
+			} catch (err) {
+				console.error("Failed to sync user data:", err);
+			}
+		};
+		
+		syncUserData();
+	}, [user, setSocialConnection]);
+
 	// Handle OAuth callback
 	useEffect(() => {
 		const connected = searchParams.get("connected");
 		if (connected) {
 			const platform = connected as "youtube" | "instagram" | "tiktok";
+			const username = searchParams.get("username") || `${platform.charAt(0).toUpperCase() + platform.slice(1)} User`;
+			const profilePicture = searchParams.get("profilePicture") || undefined;
+			
 			setSocialConnection({
 				platform,
 				connected: true,
-				username: `${platform.charAt(0).toUpperCase() + platform.slice(1)} User`,
+				username,
+				profilePicture,
 			});
+			
+			// Sync again to get latest from server
+			if (user) {
+				fetch("/api/user/sync")
+					.then((res) => res.json())
+					.then((data) => {
+						if (data.success && data.socialConnections) {
+							data.socialConnections.forEach((conn: any) => {
+								if (conn.platform === platform) {
+									setSocialConnection({
+										platform: conn.platform,
+										connected: conn.connected,
+										accessToken: conn.accessToken,
+										refreshToken: conn.refreshToken,
+										expiresAt: conn.expiresAt,
+										username: conn.username,
+										userId: conn.userPlatformId,
+										profilePicture: conn.profilePicture,
+									});
+								}
+							});
+						}
+					})
+					.catch(console.error);
+			}
 		}
-	}, [searchParams, setSocialConnection]);
+	}, [searchParams, setSocialConnection, user]);
 
 	const handleDateSelect = (date: Date) => {
 		setSelectedDate(date);

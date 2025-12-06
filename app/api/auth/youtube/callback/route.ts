@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth";
+import { setUserSocialConnection } from "@/lib/user-data";
 
 export async function GET(request: NextRequest) {
 	try {
@@ -104,14 +106,31 @@ export async function GET(request: NextRequest) {
 			}
 		}
 
+		// Get current user to save connection with user ID
+		const user = await getCurrentUser();
+		
+		// Store connection in user data (persists across devices)
+		if (user) {
+			setUserSocialConnection(user.whop_user_id, {
+				userId: user.whop_user_id,
+				platform: "youtube",
+				connected: true,
+				accessToken: tokens.access_token,
+				refreshToken: tokens.refresh_token,
+				expiresAt: tokens.expires_in ? Date.now() + tokens.expires_in * 1000 : undefined,
+				username,
+				userPlatformId: userId,
+				profilePicture,
+			});
+		}
+		
 		// Store tokens in a secure cookie (in production, use a database)
 		const profilePictureParam = profilePicture ? `&profilePicture=${encodeURIComponent(profilePicture)}` : "";
 		const response = NextResponse.redirect(
 			new URL(`/planner?connected=youtube&username=${encodeURIComponent(username)}${profilePictureParam}`, request.url)
 		);
 		
-		// In production, store tokens in a database associated with the user
-		// For MVP, we'll store in a cookie (not ideal for production)
+		// Also store in cookies for immediate access (will sync from user-data on next load)
 		response.cookies.set("youtube_access_token", tokens.access_token, {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === "production",

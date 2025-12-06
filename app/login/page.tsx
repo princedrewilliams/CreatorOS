@@ -8,9 +8,12 @@ import { motion } from "framer-motion";
 
 export default function LoginPage() {
 	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [user, setUser] = useState<any>(null);
+	const [isRegister, setIsRegister] = useState(false);
+	const [username, setUsername] = useState("");
 	const router = useRouter();
 
 	useEffect(() => {
@@ -33,25 +36,60 @@ export default function LoginPage() {
 		setError(null);
 
 		try {
-			const response = await fetch("/api/auth/login", {
+			const endpoint = isRegister ? "/api/auth/register" : "/api/auth/login";
+			const response = await fetch(endpoint, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ email }),
+				body: JSON.stringify({ 
+					email, 
+					password,
+					...(isRegister && username ? { username } : {}),
+				}),
 			});
 
 			const data = await response.json();
 
 			if (!response.ok) {
-				throw new Error(data.error || "Failed to login");
+				throw new Error(data.error || `Failed to ${isRegister ? "register" : "login"}`);
 			}
 
 			setUser(data.user);
+			// Sync user data (social connections, subscription)
+			await syncUserData();
 			// Redirect to dashboard or previous page
 			router.push("/dashboard");
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Failed to login");
+			setError(err instanceof Error ? err.message : `Failed to ${isRegister ? "register" : "login"}`);
 		} finally {
 			setLoading(false);
+		}
+	};
+
+	const syncUserData = async () => {
+		try {
+			const response = await fetch("/api/user/sync");
+			const data = await response.json();
+			if (response.ok && data.success) {
+				// Update store with synced data
+				const { setSocialConnection, setIsPro } = useAppStore.getState();
+				data.socialConnections.forEach((conn: any) => {
+					setSocialConnection({
+						platform: conn.platform,
+						connected: conn.connected,
+						accessToken: conn.accessToken,
+						refreshToken: conn.refreshToken,
+						expiresAt: conn.expiresAt,
+						username: conn.username,
+						userId: conn.userPlatformId,
+						profilePicture: conn.profilePicture,
+					});
+				});
+				if (data.subscription) {
+					setIsPro(data.subscription.isPro);
+				}
+			}
+		} catch (err) {
+			console.error("Failed to sync user data:", err);
 		}
 	};
 
@@ -143,6 +181,20 @@ export default function LoginPage() {
 								className="w-full px-3 py-2 border border-gray-a6 dark:border-gray-a7 rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12 focus:outline-none focus:ring-2 focus:ring-blue-9"
 							/>
 						</div>
+						<div>
+							<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
+								Password
+							</Text>
+							<input
+								type="password"
+								placeholder="Enter your password"
+								value={password}
+								onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+								required
+								disabled={loading}
+								className="w-full px-3 py-2 border border-gray-a6 dark:border-gray-a7 rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12 focus:outline-none focus:ring-2 focus:ring-blue-9"
+							/>
+						</div>
 
 						{error && (
 							<Card size="1" variant="surface" className="p-3 bg-red-a2 border-red-a6">
@@ -158,11 +210,43 @@ export default function LoginPage() {
 							color="blue"
 							size="3"
 							className="w-full"
-							disabled={loading || !email}
+								disabled={loading || !email || !password}
 						>
-							{loading ? "Logging in..." : "Login"}
+							{loading ? (isRegister ? "Registering..." : "Logging in...") : (isRegister ? "Register" : "Login")}
 						</Button>
+						
+						<div className="text-center mt-4">
+							<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
+								{isRegister ? "Already have an account? " : "Don't have an account? "}
+								<button
+									type="button"
+									onClick={() => {
+										setIsRegister(!isRegister);
+										setError(null);
+									}}
+									className="text-blue-11 hover:underline font-medium"
+								>
+									{isRegister ? "Login" : "Register"}
+								</button>
+							</Text>
+						</div>
 					</form>
+
+					{isRegister && (
+						<div className="mt-4">
+							<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
+								Username (optional)
+							</Text>
+							<input
+								type="text"
+								placeholder="Choose a username"
+								value={username}
+								onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
+								disabled={loading}
+								className="w-full px-3 py-2 border border-gray-a6 dark:border-gray-a7 rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12 focus:outline-none focus:ring-2 focus:ring-blue-9"
+							/>
+						</div>
+					)}
 
 					<div className="mt-6 pt-6 border-t border-gray-a6">
 						<Text size="2" color="gray" className="text-center text-gray-10 dark:text-gray-11">

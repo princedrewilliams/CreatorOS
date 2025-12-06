@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth";
+import { setUserSocialConnection } from "@/lib/user-data";
 
 export async function GET(request: NextRequest) {
 	try {
@@ -162,6 +164,23 @@ export async function GET(request: NextRequest) {
 			}
 		}
 
+		// Get current user to save connection with user ID
+		const user = await getCurrentUser();
+		
+		// Store connection in user data (persists across devices)
+		if (user && instagramAccessToken) {
+			setUserSocialConnection(user.whop_user_id, {
+				userId: user.whop_user_id,
+				platform: "instagram",
+				connected: true,
+				accessToken: instagramAccessToken,
+				expiresAt: Date.now() + (60 * 60 * 24 * 60 * 1000), // 60 days
+				username,
+				userPlatformId: userId,
+				profilePicture,
+			});
+		}
+		
 		// Store tokens
 		const profilePictureParam = profilePicture ? `&profilePicture=${encodeURIComponent(profilePicture)}` : "";
 		const response = NextResponse.redirect(

@@ -59,9 +59,44 @@ const features = [
 ];
 
 export default function DashboardPage() {
-	const { socialConnections, tasks, sponsors } = useAppStore();
+	const { socialConnections, tasks, sponsors, user, setSocialConnection, setIsPro } = useAppStore();
 	const [analytics, setAnalytics] = useState<Partial<Record<AnalyticsPlatform, PlatformAnalyticsSnapshot>>>({});
 	const [loading, setLoading] = useState(true);
+
+	// Sync user data on mount (social connections, subscription)
+	useEffect(() => {
+		const syncUserData = async () => {
+			if (!user) return;
+			
+			try {
+				const response = await fetch("/api/user/sync");
+				const data = await response.json();
+				if (response.ok && data.success) {
+					// Update social connections
+					data.socialConnections.forEach((conn: any) => {
+						setSocialConnection({
+							platform: conn.platform,
+							connected: conn.connected,
+							accessToken: conn.accessToken,
+							refreshToken: conn.refreshToken,
+							expiresAt: conn.expiresAt,
+							username: conn.username,
+							userId: conn.userPlatformId,
+							profilePicture: conn.profilePicture,
+						});
+					});
+					// Update subscription
+					if (data.subscription) {
+						setIsPro(data.subscription.isPro);
+					}
+				}
+			} catch (err) {
+				console.error("Failed to sync user data:", err);
+			}
+		};
+		
+		syncUserData();
+	}, [user, setSocialConnection, setIsPro]);
 
 	const connectedPlatforms = useMemo(
 		() =>
