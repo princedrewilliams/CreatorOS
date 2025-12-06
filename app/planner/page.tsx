@@ -11,6 +11,8 @@ import { Calendar } from "@/components/Calendar";
 import { TaskModal } from "@/components/TaskModal";
 import { SocialConnections } from "@/components/SocialConnections";
 import { PostVideoModal } from "@/components/PostVideoModal";
+import { AutoFormatModal } from "@/components/AutoFormatModal";
+import { AutoRepurposeModal } from "@/components/AutoRepurposeModal";
 import { useSearchParams } from "next/navigation";
 
 function PlannerContent() {
