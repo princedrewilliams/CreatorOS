@@ -113,29 +113,37 @@ export async function POST(request: NextRequest) {
 		
 		// For video transcription, we'll use Whisper
 		// Note: In production, you might want to extract audio first
-		// Try different Whisper model paths
+		// Use the correct Whisper model - try multiple options
 		let transcriptionPrediction;
-		try {
-			// Try the correct Whisper model path
-			transcriptionPrediction = await replicate.predictions.create({
-				model: "openai/whisper-large-v3",
-				input: {
-					audio: dataUrl,
-					language: "en",
-					timestamp_granularities: ["word"],
-				},
-			});
-		} catch (modelError) {
-			// Fallback to alternative model
-			console.log("[Generate Clips] Trying alternative Whisper model...");
-			transcriptionPrediction = await replicate.predictions.create({
-				model: "vaibhavs10/incredibly-fast-whisper",
-				input: {
-					audio: dataUrl,
-					language: "en",
-					timestamp_granularities: ["word"],
-				},
-			});
+		const whisperModels = [
+			"openai/whisper-large-v3",
+			"fofr/whisper-large-v3",
+			"vaibhavs10/incredibly-fast-whisper",
+		];
+		
+		let lastError: Error | null = null;
+		for (const model of whisperModels) {
+			try {
+				console.log(`[Generate Clips] Trying Whisper model: ${model}`);
+				transcriptionPrediction = await replicate.predictions.create({
+					model: model,
+					input: {
+						audio: dataUrl,
+						language: "en",
+						...(model.includes("whisper-large-v3") ? { timestamp_granularities: ["word"] } : {}),
+					},
+				});
+				console.log(`[Generate Clips] Successfully started transcription with model: ${model}`);
+				break; // Success, exit loop
+			} catch (error) {
+				console.error(`[Generate Clips] Model ${model} failed:`, error);
+				lastError = error instanceof Error ? error : new Error(String(error));
+				continue; // Try next model
+			}
+		}
+		
+		if (!transcriptionPrediction) {
+			throw lastError || new Error("All Whisper models failed. Please check Replicate API and model availability.");
 		}
 
 		// Poll for transcription completion
