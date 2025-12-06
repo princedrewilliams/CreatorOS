@@ -10,6 +10,7 @@ import {
 	DownloadIcon,
 	LockClosedIcon,
 	EyeOpenIcon,
+	VideoIcon,
 } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion } from "framer-motion";
