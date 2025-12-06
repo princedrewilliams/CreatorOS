@@ -60,8 +60,23 @@ export default function AutoclipPage() {
 			});
 
 			if (!response.ok) {
-				const data = await response.json();
-				throw new Error(data.error || "Failed to generate clips");
+				// Try to parse as JSON, but handle non-JSON responses
+				let errorMessage = "Failed to generate clips";
+				const contentType = response.headers.get("content-type");
+				if (contentType && contentType.includes("application/json")) {
+					try {
+						const data = await response.json();
+						errorMessage = data.error || errorMessage;
+					} catch {
+						// If JSON parsing fails, use status text
+						errorMessage = response.statusText || errorMessage;
+					}
+				} else {
+					// Non-JSON response (like "Forbidden")
+					const text = await response.text();
+					errorMessage = text || response.statusText || errorMessage;
+				}
+				throw new Error(errorMessage);
 			}
 
 			const data = await response.json();
@@ -80,22 +95,46 @@ export default function AutoclipPage() {
 				try {
 					const statusResponse = await fetch(`/api/generate-clips?jobId=${data.jobId}`);
 					if (statusResponse.ok) {
-						const statusData = await statusResponse.json();
-						setProgress(statusData.progress);
+						const contentType = statusResponse.headers.get("content-type");
+						if (contentType && contentType.includes("application/json")) {
+							try {
+								const statusData = await statusResponse.json();
+								setProgress(statusData.progress);
 
-						if (statusData.status === "completed" && statusData.clips) {
+								if (statusData.status === "completed" && statusData.clips) {
+									clearInterval(pollInterval);
+									setClips(statusData.clips);
+									setIsProcessing(false);
+								} else if (statusData.status === "failed") {
+									clearInterval(pollInterval);
+									setError("Failed to generate clips");
+									setIsProcessing(false);
+								}
+							} catch (parseError) {
+								console.error("Failed to parse status response:", parseError);
+								clearInterval(pollInterval);
+								setError("Failed to parse progress update");
+								setIsProcessing(false);
+							}
+						} else {
+							// Non-JSON response
+							const text = await statusResponse.text();
+							console.error("Non-JSON response:", text);
 							clearInterval(pollInterval);
-							setClips(statusData.clips);
-							setIsProcessing(false);
-						} else if (statusData.status === "failed") {
-							clearInterval(pollInterval);
-							setError("Failed to generate clips");
+							setError("Unexpected response format");
 							setIsProcessing(false);
 						}
+					} else {
+						// Handle non-OK responses
+						const text = await statusResponse.text();
+						console.error("Status check failed:", statusResponse.status, text);
+						clearInterval(pollInterval);
+						setError(`Status check failed: ${statusResponse.statusText || statusResponse.status}`);
+						setIsProcessing(false);
 					}
 				} catch (err) {
 					clearInterval(pollInterval);
-					setError("Failed to check progress");
+					setError(err instanceof Error ? err.message : "Failed to check progress");
 					setIsProcessing(false);
 				}
 			}, 2000);
