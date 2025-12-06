@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Heading, Text, Card, Button, Input } from "@whop/react/components";
-import { EnvelopeIcon, LockOpenIcon } from "@radix-ui/react-icons";
+import { Heading, Text, Card, Button } from "@whop/react/components";
+import { EnvelopeOpenIcon, LockOpen1Icon } from "@radix-ui/react-icons";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
@@ -76,7 +76,7 @@ export default function LoginPage() {
 			<div className="flex items-center justify-center min-h-screen p-4">
 				<Card size="3" variant="surface" className="p-8 max-w-md w-full">
 					<div className="text-center space-y-4">
-						<LockOpenIcon className="w-16 h-16 mx-auto text-green-11" />
+						<LockOpen1Icon className="w-16 h-16 mx-auto text-green-11" />
 						<Heading size="6" as="h1" className="text-gray-12 dark:text-gray-12">
 							Welcome back, {user.whop_username}!
 						</Heading>
@@ -118,7 +118,7 @@ export default function LoginPage() {
 			>
 				<Card size="3" variant="surface" className="p-8">
 					<div className="text-center mb-6">
-						<EnvelopeIcon className="w-16 h-16 mx-auto mb-4 text-blue-11" />
+						<EnvelopeOpenIcon className="w-16 h-16 mx-auto mb-4 text-blue-11" />
 						<Heading size="7" as="h1" className="mb-2 text-gray-12 dark:text-gray-12">
 							Login to CreatorOS
 						</Heading>
@@ -128,16 +128,21 @@ export default function LoginPage() {
 					</div>
 
 					<form onSubmit={handleLogin} className="space-y-4">
-						<Input
-							type="email"
-							label="Email"
-							placeholder="your@email.com"
-							value={email}
-							onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-							required
-							disabled={loading}
-							autoFocus
-						/>
+						<div>
+							<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
+								Email
+							</Text>
+							<input
+								type="email"
+								placeholder="your@email.com"
+								value={email}
+								onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+								required
+								disabled={loading}
+								autoFocus
+								className="w-full px-3 py-2 border border-gray-a6 dark:border-gray-a7 rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12 focus:outline-none focus:ring-2 focus:ring-blue-9"
+							/>
+						</div>
 
 						{error && (
 							<Card size="1" variant="surface" className="p-3 bg-red-a2 border-red-a6">

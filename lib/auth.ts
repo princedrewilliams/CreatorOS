@@ -1,5 +1,4 @@
 import { cookies } from "next/headers";
-import { whopsdk, isWhopConfigured } from "./whop-sdk";
 
 export interface User {
 	whop_user_id: string;
@@ -8,10 +7,6 @@ export interface User {
 }
 
 export async function getCurrentUser(): Promise<User | null> {
-	if (!isWhopConfigured || !whopsdk) {
-		return null;
-	}
-
 	try {
 		const cookieStore = await cookies();
 		const userId = cookieStore.get("whop_user_id")?.value;
@@ -21,9 +16,12 @@ export async function getCurrentUser(): Promise<User | null> {
 			return null;
 		}
 
+		const email = cookieStore.get("user_email")?.value;
+
 		return {
 			whop_user_id: userId,
 			whop_username: username,
+			email: email || undefined,
 		};
 	} catch (error) {
 		console.error("[Auth] Error getting current user:", error);
@@ -47,11 +45,20 @@ export async function setUserSession(user: User) {
 		maxAge: 60 * 60 * 24 * 30, // 30 days
 		path: "/",
 	});
+	if (user.email) {
+		cookieStore.set("user_email", user.email, {
+			httpOnly: false,
+			secure: process.env.NODE_ENV === "production",
+			sameSite: "lax",
+			maxAge: 60 * 60 * 24 * 30,
+			path: "/",
+		});
+	}
 }
 
 export async function clearUserSession() {
 	const cookieStore = await cookies();
 	cookieStore.delete("whop_user_id");
 	cookieStore.delete("whop_username");
+	cookieStore.delete("user_email");
 }
-
