@@ -266,6 +266,198 @@ export default function AnalyticsPage() {
 
 			<SocialConnections />
 
+			{/* Automation Features */}
+			{connectedPlatforms.length > 0 && (
+				<Card size="3" variant="surface" className="p-6">
+					<div className="flex items-center gap-2 mb-4">
+						<LightningBoltIcon className="w-5 h-5 text-purple-9" />
+						<Heading size="5" as="h3" className="text-gray-12 dark:text-gray-12">
+							Automation Features
+						</Heading>
+					</div>
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+						<Card size="2" variant="surface" className="p-4">
+							<div className="flex items-start justify-between mb-3">
+								<div className="flex-1">
+									<div className="flex items-center gap-2 mb-2">
+										<BarChartIcon className="w-4 h-4 text-purple-9" />
+										<Text size="3" weight="medium" className="text-gray-12 dark:text-gray-12">
+											Auto Daily Insights
+										</Text>
+									</div>
+									<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
+										Get growth summary, underperforming videos, and recommendations daily
+									</Text>
+								</div>
+							</div>
+							<Button
+								variant={autoInsightsEnabled ? "soft" : "outline"}
+								color={autoInsightsEnabled ? "green" : "gray"}
+								size="2"
+								onClick={() => setAutoInsightsEnabled(!autoInsightsEnabled)}
+								className="w-full"
+							>
+								{autoInsightsEnabled ? "Enabled" : "Enable"}
+							</Button>
+						</Card>
+						<Card size="2" variant="surface" className="p-4">
+							<div className="flex items-start justify-between mb-3">
+								<div className="flex-1">
+									<div className="flex items-center gap-2 mb-2">
+										<ExclamationTriangleIcon className="w-4 h-4 text-purple-9" />
+										<Text size="3" weight="medium" className="text-gray-12 dark:text-gray-12">
+											Auto Alerts
+										</Text>
+									</div>
+									<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
+										Get alerts for underperforming videos with optimization suggestions
+									</Text>
+								</div>
+							</div>
+							<Button
+								variant={autoAlertsEnabled ? "soft" : "outline"}
+								color={autoAlertsEnabled ? "green" : "gray"}
+								size="2"
+								onClick={() => setAutoAlertsEnabled(!autoAlertsEnabled)}
+								className="w-full"
+							>
+								{autoAlertsEnabled ? "Enabled" : "Enable"}
+							</Button>
+						</Card>
+						<Card size="2" variant="surface" className="p-4">
+							<div className="flex items-start justify-between mb-3">
+								<div className="flex-1">
+									<div className="flex items-center gap-2 mb-2">
+										<TrendingUpIcon className="w-4 h-4 text-purple-9" />
+										<Text size="3" weight="medium" className="text-gray-12 dark:text-gray-12">
+											Auto-Compare
+										</Text>
+									</div>
+									<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
+										Compare CTR and engagement across platforms with suggestions
+									</Text>
+								</div>
+							</div>
+							<Button
+								variant={autoCompareEnabled ? "soft" : "outline"}
+								color={autoCompareEnabled ? "green" : "gray"}
+								size="2"
+								onClick={() => setAutoCompareEnabled(!autoCompareEnabled)}
+								className="w-full"
+							>
+								{autoCompareEnabled ? "Enabled" : "Enable"}
+							</Button>
+						</Card>
+						<Card size="2" variant="surface" className="p-4">
+							<div className="flex items-start justify-between mb-3">
+								<div className="flex-1">
+									<div className="flex items-center gap-2 mb-2">
+										<VideoIcon className="w-4 h-4 text-purple-9" />
+										<Text size="3" weight="medium" className="text-gray-12 dark:text-gray-12">
+											Trend Automation
+										</Text>
+									</div>
+									<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
+										Detect trending sounds/hashtags and auto-suggest content ideas
+									</Text>
+								</div>
+							</div>
+							<Button
+								variant={trendAutomationEnabled ? "soft" : "outline"}
+								color={trendAutomationEnabled ? "green" : "gray"}
+								size="2"
+								onClick={() => setTrendAutomationEnabled(!trendAutomationEnabled)}
+								className="w-full"
+							>
+								{trendAutomationEnabled ? "Enabled" : "Enable"}
+							</Button>
+						</Card>
+					</div>
+				</Card>
+			)}
+
+			{/* Daily Insights */}
+			{dailyInsights && autoInsightsEnabled && connectedPlatforms.length > 0 && (
+				<Card size="3" variant="surface" className="p-6">
+					<Heading size="5" as="h3" className="mb-4 text-gray-12 dark:text-gray-12">
+						Daily Insights
+					</Heading>
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+						<Card size="2" variant="surface" className="p-4">
+							<Text size="2" weight="medium" className="mb-2 text-gray-11 dark:text-gray-11">
+								Followers Growth
+							</Text>
+							<Text size="4" weight="bold" className={`${dailyInsights.growthSummary?.followers?.trend === "up" ? "text-green-11" : "text-red-11"}`}>
+								{dailyInsights.growthSummary?.followers?.trend === "up" ? "+" : ""}
+								{formatCompact(dailyInsights.growthSummary?.followers?.change || 0)} ({dailyInsights.growthSummary?.followers?.percent?.toFixed(1)}%)
+							</Text>
+						</Card>
+						<Card size="2" variant="surface" className="p-4">
+							<Text size="2" weight="medium" className="mb-2 text-gray-11 dark:text-gray-11">
+								Views Growth
+							</Text>
+							<Text size="4" weight="bold" className={`${dailyInsights.growthSummary?.views?.trend === "up" ? "text-green-11" : "text-red-11"}`}>
+								{dailyInsights.growthSummary?.views?.trend === "up" ? "+" : ""}
+								{formatCompact(dailyInsights.growthSummary?.views?.change || 0)} ({dailyInsights.growthSummary?.views?.percent?.toFixed(1)}%)
+							</Text>
+						</Card>
+						<Card size="2" variant="surface" className="p-4">
+							<Text size="2" weight="medium" className="mb-2 text-gray-11 dark:text-gray-11">
+								Engagement Growth
+							</Text>
+							<Text size="4" weight="bold" className={`${dailyInsights.growthSummary?.engagement?.trend === "up" ? "text-green-11" : "text-red-11"}`}>
+								{dailyInsights.growthSummary?.engagement?.trend === "up" ? "+" : ""}
+								{dailyInsights.growthSummary?.engagement?.change?.toFixed(1)}% ({dailyInsights.growthSummary?.engagement?.percent?.toFixed(1)}%)
+							</Text>
+						</Card>
+					</div>
+					{dailyInsights.recommendations && dailyInsights.recommendations.length > 0 && (
+						<div className="space-y-2">
+							<Text size="3" weight="medium" className="text-gray-12 dark:text-gray-12">
+								Recommendations
+							</Text>
+							{dailyInsights.recommendations.map((rec: string, i: number) => (
+								<Card key={i} size="1" variant="surface" className="p-3">
+									<Text size="2" className="text-gray-11 dark:text-gray-11">
+										• {rec}
+									</Text>
+								</Card>
+							))}
+						</div>
+					)}
+				</Card>
+			)}
+
+			{/* Alerts */}
+			{alerts.length > 0 && autoAlertsEnabled && connectedPlatforms.length > 0 && (
+				<Card size="3" variant="surface" className="p-6 border-amber-a6 bg-amber-a2">
+					<div className="flex items-center gap-2 mb-4">
+						<ExclamationTriangleIcon className="w-5 h-5 text-amber-11" />
+						<Heading size="5" as="h3" className="text-amber-11">
+							Performance Alerts
+						</Heading>
+					</div>
+					<div className="space-y-3">
+						{alerts.map((alert: any, i: number) => (
+							<Card key={i} size="2" variant="surface" className="p-4">
+								<Text size="3" weight="medium" className="mb-2 text-gray-12 dark:text-gray-12">
+									{alert.message}
+								</Text>
+								{alert.suggestions && (
+									<ul className="space-y-1 mt-2">
+										{alert.suggestions.map((suggestion: string, j: number) => (
+											<li key={j} className="text-sm text-gray-11 dark:text-gray-11">
+												• {suggestion}
+											</li>
+										))}
+									</ul>
+								)}
+							</Card>
+						))}
+					</div>
+				</Card>
+			)}
+
 			{connectedPlatforms.length === 0 ? (
 				<Card size="3" variant="surface" className="p-8 border-dashed border-gray-a5">
 					<Heading size="5" as="h2" className="mb-3 text-gray-12 dark:text-gray-12">
