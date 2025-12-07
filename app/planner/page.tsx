@@ -12,6 +12,7 @@ import { TaskModal } from "@/components/TaskModal";
 import { SocialConnections } from "@/components/SocialConnections";
 import { PostVideoModal } from "@/components/PostVideoModal";
 import { AutoFormatModal } from "@/components/AutoFormatModal";
+import { BackButton } from "@/components/BackButton";
 import { useSearchParams } from "next/navigation";
 
 function PlannerContent() {
@@ -233,6 +234,9 @@ function PlannerContent() {
 
 	return (
 		<div className="space-y-6 sm:space-y-8">
+			<div className="flex items-center gap-3 mb-4">
+				<BackButton href="/dashboard" />
+			</div>
 			{/* Header */}
 			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 				<div className="min-w-0 flex-1">

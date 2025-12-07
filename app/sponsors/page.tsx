@@ -7,6 +7,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAppStore, type SponsorDeal, type SponsorStatus } from "@/lib/store";
 import { InvoiceModal, type InvoiceFormData } from "@/components/InvoiceModal";
+import { BackButton } from "@/components/BackButton";
 
 const statusOptions: SponsorStatus[] = ["active", "pending", "completed"];
 
@@ -194,6 +195,9 @@ export default function SponsorsPage() {
 
 	return (
 		<div className="space-y-6 sm:space-y-8">
+			<div className="flex items-center gap-3 mb-4">
+				<BackButton href="/dashboard" />
+			</div>
 			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 				<div className="min-w-0 flex-1">
 					<Heading size="7" as="h1" className="mb-2 text-gray-12 dark:text-gray-12 sm:text-8">

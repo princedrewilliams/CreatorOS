@@ -6,6 +6,7 @@ import { PersonIcon, Pencil1Icon, VideoIcon, EnvelopeClosedIcon, Link2Icon } fro
 import { motion } from "framer-motion";
 import { useAppStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
+import { BackButton } from "@/components/BackButton";
 
 const NICHE_CATEGORIES = [
 	{ id: "fitness", label: "Fitness", icon: "💪", color: "red" as const },
@@ -26,6 +27,7 @@ export default function ProfilePage() {
 		username: user?.whop_username || "",
 		niche: "",
 		bio: "",
+		profilePicture: "",
 		socialLinks: {
 			youtube: "",
 			instagram: "",
@@ -42,13 +44,22 @@ export default function ProfilePage() {
 		// Load user profile data
 		const loadProfile = async () => {
 			try {
-				const response = await fetch("/api/user/profile", {
-					credentials: "include",
-				});
-				if (response.ok) {
-					const data = await response.json();
+				const [profileResponse, pictureResponse] = await Promise.all([
+					fetch("/api/user/profile", { credentials: "include" }),
+					fetch("/api/user/profile/picture", { credentials: "include" }),
+				]);
+				
+				if (profileResponse.ok) {
+					const data = await profileResponse.json();
 					if (data.profile) {
-						setProfile(data.profile);
+						setProfile((prev) => ({ ...prev, ...data.profile }));
+					}
+				}
+				
+				if (pictureResponse.ok) {
+					const pictureData = await pictureResponse.json();
+					if (pictureData.profilePictureUrl) {
+						setProfile((prev) => ({ ...prev, profilePicture: pictureData.profilePictureUrl }));
 					}
 				}
 			} catch (err) {
@@ -69,6 +80,15 @@ export default function ProfilePage() {
 			});
 
 			if (response.ok) {
+				// Also save profile picture if provided
+				if (profile.profilePicture) {
+					await fetch("/api/user/profile/picture", {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						credentials: "include",
+						body: JSON.stringify({ profilePictureUrl: profile.profilePicture }),
+					});
+				}
 				setIsEditing(false);
 				alert("Profile updated successfully!");
 			} else {
@@ -98,6 +118,9 @@ export default function ProfilePage() {
 
 	return (
 		<div className="space-y-6 sm:space-y-8">
+			<div className="flex items-center gap-3 mb-4">
+				<BackButton href="/dashboard" />
+			</div>
 			{/* Header */}
 			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 				<div className="min-w-0 flex-1">
@@ -128,12 +151,66 @@ export default function ProfilePage() {
 			{/* Profile Card */}
 			<Card size="3" variant="surface" className="p-6">
 				<div className="flex items-start gap-6 mb-6">
-					<div className="w-24 h-24 rounded-full bg-gray-a3 dark:bg-gray-a4 flex items-center justify-center flex-shrink-0">
-						<PersonIcon className="w-12 h-12 text-gray-11" />
+					<div className="relative">
+						<div className="w-24 h-24 rounded-full bg-gray-a3 dark:bg-gray-a4 flex items-center justify-center flex-shrink-0 overflow-hidden">
+							{profile.profilePicture ? (
+								<img
+									src={profile.profilePicture}
+									alt={profile.username || user.whop_username}
+									className="w-full h-full object-cover"
+								/>
+							) : (
+								<PersonIcon className="w-12 h-12 text-gray-11" />
+							)}
+						</div>
+						{isEditing && (
+							<label className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-blue-9 flex items-center justify-center cursor-pointer hover:bg-blue-10 transition-colors">
+								<Pencil1Icon className="w-4 h-4 text-white" />
+								<input
+									type="file"
+									accept="image/*"
+									className="hidden"
+									onChange={async (e) => {
+										const file = e.target.files?.[0];
+										if (file) {
+											// Convert to data URL for preview
+											const reader = new FileReader();
+											reader.onloadend = () => {
+												const dataUrl = reader.result as string;
+												setProfile({ ...profile, profilePicture: dataUrl });
+												// Save to server
+												fetch("/api/user/profile/picture", {
+													method: "POST",
+													headers: { "Content-Type": "application/json" },
+													credentials: "include",
+													body: JSON.stringify({ profilePictureUrl: dataUrl }),
+												}).catch(console.error);
+											};
+											reader.readAsDataURL(file);
+										}
+									}}
+								/>
+							</label>
+						)}
 					</div>
 					<div className="flex-1">
 						{isEditing ? (
 							<div className="space-y-4">
+								<div>
+									<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
+										Profile Picture URL
+									</Text>
+									<input
+										type="url"
+										value={profile.profilePicture}
+										onChange={(e) => setProfile({ ...profile, profilePicture: e.target.value })}
+										placeholder="https://example.com/your-picture.jpg"
+										className="w-full px-3 py-2 border border-gray-a6 dark:border-gray-a7 rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12 mb-2"
+									/>
+									<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mb-4">
+										Or click the camera icon on your profile picture to upload
+									</Text>
+								</div>
 								<div>
 									<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
 										Username

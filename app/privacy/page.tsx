@@ -2,6 +2,7 @@
 
 import { Heading, Text, Card } from "@whop/react/components";
 import Link from "next/link";
+import { BackButton } from "@/components/BackButton";
 
 const sections = [
 	{
@@ -141,6 +142,9 @@ const sections = [
 export default function PrivacyPolicyPage() {
 	return (
 		<div className="space-y-8">
+			<div className="flex items-center gap-3 mb-4">
+				<BackButton href="/dashboard" />
+			</div>
 			<div className="space-y-2">
 				<Heading size="8" as="h1" className="text-gray-12 dark:text-gray-12">
 					Privacy Policy

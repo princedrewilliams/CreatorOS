@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAppStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import { NicheChat } from "@/components/NicheChat";
+import { BackButton } from "@/components/BackButton";
 
 const NICHE_CATEGORIES = [
 	{ id: "fitness", label: "Fitness", icon: "💪", color: "red" as const },
@@ -185,6 +186,9 @@ export default function CollabPage() {
 
 	return (
 		<div className="space-y-6 sm:space-y-8">
+			<div className="flex items-center gap-3 mb-4">
+				<BackButton href="/dashboard" />
+			</div>
 			{/* Header */}
 			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 				<div className="min-w-0 flex-1">

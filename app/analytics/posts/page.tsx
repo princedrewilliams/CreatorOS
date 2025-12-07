@@ -6,6 +6,7 @@ import { ReloadIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
+import { BackButton } from "@/components/BackButton";
 import type { AnalyticsPlatform } from "@/lib/mockAnalytics";
 
 const formatCompact = (value: number) =>
@@ -72,6 +73,9 @@ function PostsContent() {
 
 	return (
 		<div className="space-y-6 sm:space-y-8">
+			<div className="flex items-center gap-3 mb-4">
+				<BackButton href="/analytics" />
+			</div>
 			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 				<div className="min-w-0 flex-1">
 					<Heading size="7" as="h1" className="mb-2 text-gray-12 dark:text-gray-12 sm:text-8">

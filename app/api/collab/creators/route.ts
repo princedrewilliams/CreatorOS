@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
+import { userProfiles } from "@/app/api/user/profile/route";
 
 // In-memory store for creator profiles (replace with database in production)
 // This stores public creator profiles that are visible in the collab section
-const creatorProfiles = new Map<string, any>();
+export const creatorProfiles = new Map<string, any>();
 
 // Mock some initial creators
 const initialCreators = [
@@ -45,7 +46,56 @@ export async function GET(request: NextRequest) {
 		const niche = searchParams.get("niche");
 
 		// Get all creator profiles
-		const creators = Array.from(creatorProfiles.values());
+		let creators = Array.from(creatorProfiles.values());
+
+		// Also include user profiles that have a niche (sync from userProfiles)
+		if (user) {
+			const userProfile = userProfiles.get(user.whop_user_id);
+			if (userProfile && userProfile.niche) {
+				// Check if already in creatorProfiles
+				if (!creatorProfiles.has(user.whop_user_id)) {
+					// Add to creator profiles
+					const creatorProfile = {
+						userId: user.whop_user_id,
+						id: user.whop_user_id,
+						username: userProfile.username,
+						niche: userProfile.niche,
+						followers: 0, // Will be calculated from social connections
+						highestViews: 0,
+						platforms: [],
+						profilePicture: userProfile.profilePicture || "",
+						socialLinks: userProfile.socialLinks || {},
+						createdAt: new Date().toISOString(),
+						updatedAt: userProfile.updatedAt || new Date().toISOString(),
+					};
+					creatorProfiles.set(user.whop_user_id, creatorProfile);
+					creators = Array.from(creatorProfiles.values());
+				}
+			}
+		}
+
+		// Also sync all user profiles that have niches
+		userProfiles.forEach((userProfile, userId) => {
+			if (userProfile.niche && !creatorProfiles.has(userId)) {
+				const creatorProfile = {
+					userId: userId,
+					id: userId,
+					username: userProfile.username,
+					niche: userProfile.niche,
+					followers: 0,
+					highestViews: 0,
+					platforms: [],
+					profilePicture: userProfile.profilePicture || "",
+					socialLinks: userProfile.socialLinks || {},
+					createdAt: new Date().toISOString(),
+					updatedAt: userProfile.updatedAt || new Date().toISOString(),
+				};
+				creatorProfiles.set(userId, creatorProfile);
+			}
+		});
+
+		// Refresh creators list after syncing
+		creators = Array.from(creatorProfiles.values());
 
 		// Filter by niche if specified
 		const filteredCreators = niche

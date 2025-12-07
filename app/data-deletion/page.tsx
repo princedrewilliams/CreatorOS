@@ -3,10 +3,14 @@
 import { Heading, Text, Card, Button } from "@whop/react/components";
 import Link from "next/link";
 import { TrashIcon, ExternalLinkIcon } from "@radix-ui/react-icons";
+import { BackButton } from "@/components/BackButton";
 
 export default function DataDeletionPage() {
 	return (
 		<div className="space-y-8">
+			<div className="flex items-center gap-3 mb-4">
+				<BackButton href="/dashboard" />
+			</div>
 			<div className="space-y-2">
 				<Heading size="8" as="h1" className="text-gray-12 dark:text-gray-12">
 					Data Deletion Request

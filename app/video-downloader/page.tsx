@@ -13,6 +13,7 @@ import {
 	BarChartIcon,
 } from "@radix-ui/react-icons";
 import Link from "next/link";
+import { BackButton } from "@/components/BackButton";
 
 type PlatformId = "tiktok" | "instagram" | "youtube";
 
@@ -245,6 +246,9 @@ export default function VideoDownloaderPage() {
 
 	return (
 		<div className="space-y-8">
+			<div className="flex items-center gap-3 mb-4">
+				<BackButton href="/dashboard" />
+			</div>
 			<div className="flex items-center justify-between">
 				<div>
 					<Heading size="8" as="h1" className="mb-2 text-gray-12 dark:text-gray-12">

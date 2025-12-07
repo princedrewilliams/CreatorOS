@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { useAppStore } from "@/lib/store";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { BackButton } from "@/components/BackButton";
 
 const features = [
 	"Unlimited AI-powered video clips",
@@ -89,14 +90,11 @@ export default function UpgradePage() {
 
 	return (
 		<div className="space-y-8">
+			<div className="flex items-center gap-3 mb-4">
+				<BackButton href="/dashboard" />
+			</div>
 			<div className="flex items-center justify-between">
 				<div>
-					<Link href="/dashboard">
-						<Button variant="ghost" size="2" className="mb-4">
-							<ArrowLeftIcon className="mr-2" />
-							Back
-						</Button>
-					</Link>
 					<Heading size="8" as="h1" className="mb-2 text-gray-12 dark:text-gray-12">
 						Upgrade to Pro
 					</Heading>

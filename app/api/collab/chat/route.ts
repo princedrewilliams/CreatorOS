@@ -9,7 +9,12 @@ const nicheChats = new Map<string, Array<{
 	message: string;
 	niche: string;
 	timestamp: string;
+	profilePicture?: string;
 }>>();
+
+// Store user profile pictures (in production, fetch from user profile API)
+// This is shared with the profile picture API
+export const userProfilePictures = new Map<string, string>();
 
 export async function GET(request: NextRequest) {
 	try {
@@ -26,9 +31,15 @@ export async function GET(request: NextRequest) {
 		// Get messages for this niche
 		const messages = nicheChats.get(niche) || [];
 
+		// Add profile pictures to messages
+		const messagesWithPictures = messages.map((msg) => ({
+			...msg,
+			profilePicture: userProfilePictures.get(msg.userId),
+		}));
+
 		return NextResponse.json({
 			success: true,
-			messages: messages.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()),
+			messages: messagesWithPictures.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()),
 		});
 	} catch (error) {
 		console.error("[Get Chat Messages] Error:", error);
@@ -63,6 +74,9 @@ export async function POST(request: NextRequest) {
 		// Get existing messages for this niche
 		const messages = nicheChats.get(niche) || [];
 
+		// Get user's profile picture if available
+		const profilePicture = userProfilePictures.get(user.whop_user_id);
+
 		// Create new message
 		const newMessage = {
 			id: `msg-${Date.now()}-${Math.random().toString(36).substring(7)}`,
@@ -71,6 +85,7 @@ export async function POST(request: NextRequest) {
 			message: message.trim(),
 			niche,
 			timestamp: new Date().toISOString(),
+			profilePicture,
 		};
 
 		// Add to messages (keep last 100 messages per niche)

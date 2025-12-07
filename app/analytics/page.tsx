@@ -7,6 +7,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { SocialConnections } from "@/components/SocialConnections";
 import { ScheduleModal } from "@/components/ScheduleModal";
+import { BackButton } from "@/components/BackButton";
 import { useAppStore, type SocialConnection } from "@/lib/store";
 import type { AnalyticsPlatform, PlatformAnalyticsSnapshot } from "@/lib/mockAnalytics";
 import {
@@ -51,7 +52,7 @@ const formatPercent = (value: number) =>
 type ChartType = "bar" | "pie" | "line" | "area";
 
 export default function AnalyticsPage() {
-	const { socialConnections } = useAppStore();
+	const { socialConnections, user, setSocialConnection, setIsPro } = useAppStore();
 	const [analytics, setAnalytics] = useState<AnalyticsMap>({});
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -68,6 +69,45 @@ export default function AnalyticsPage() {
 	const [dailyInsights, setDailyInsights] = useState<any>(null);
 	const [alerts, setAlerts] = useState<any[]>([]);
 	const [loadingInsights, setLoadingInsights] = useState(false);
+
+	// Sync user data on mount (social connections, subscription)
+	useEffect(() => {
+		const syncUserData = async () => {
+			if (!user) return;
+			
+			try {
+				const response = await fetch("/api/user/sync", {
+					credentials: "include",
+				});
+				const data = await response.json();
+				if (response.ok && data.success) {
+					// Update social connections
+					if (data.socialConnections && Array.isArray(data.socialConnections)) {
+						data.socialConnections.forEach((conn: any) => {
+							setSocialConnection({
+								platform: conn.platform,
+								connected: conn.connected,
+								accessToken: conn.accessToken,
+								refreshToken: conn.refreshToken,
+								expiresAt: conn.expiresAt,
+								username: conn.username,
+								userId: conn.userPlatformId,
+								profilePicture: conn.profilePicture,
+							});
+						});
+					}
+					// Update subscription
+					if (data.subscription) {
+						setIsPro(data.subscription.isPro);
+					}
+				}
+			} catch (err) {
+				console.error("Failed to sync user data:", err);
+			}
+		};
+		
+		syncUserData();
+	}, [user, setSocialConnection, setIsPro]);
 
 	const connectedPlatforms = useMemo(
 		() =>
@@ -231,6 +271,9 @@ export default function AnalyticsPage() {
 	return (
 		<>
 		<div className="space-y-6 sm:space-y-8">
+			<div className="flex items-center gap-3 mb-4">
+				<BackButton href="/dashboard" />
+			</div>
 			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 				<div className="min-w-0 flex-1">
 					<Heading size="7" as="h1" className="mb-2 text-gray-12 dark:text-gray-12 sm:text-8">

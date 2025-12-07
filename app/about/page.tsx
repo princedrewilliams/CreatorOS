@@ -85,6 +85,11 @@ const dataUsagePurposes = [
 export default function AboutPage() {
 	return (
 		<div className="min-h-screen">
+			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+				<div className="flex items-center gap-3 mb-4">
+					<BackButton href="/dashboard" />
+				</div>
+			</div>
 			{/* Hero Section */}
 			<div className="bg-gradient-to-br from-blue-a2 to-purple-a2 dark:from-blue-a3 dark:to-purple-a3 py-20 sm:py-28">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

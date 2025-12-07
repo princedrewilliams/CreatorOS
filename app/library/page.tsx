@@ -11,6 +11,7 @@ import {
 } from "@radix-ui/react-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { BackButton } from "@/components/BackButton";
 
 interface LibraryItem {
 	id: string;
@@ -131,6 +132,9 @@ export default function LibraryPage() {
 
 	return (
 		<div className="space-y-8">
+			<div className="flex items-center gap-3 mb-4">
+				<BackButton href="/dashboard" />
+			</div>
 			<div className="flex items-center justify-between">
 				<div>
 					<Heading size="8" as="h1" className="mb-2 text-gray-12 dark:text-gray-12">
