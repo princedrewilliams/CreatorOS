@@ -13,6 +13,7 @@ import {
 } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { BackButton } from "@/components/BackButton";
 
 const features = [
 	{
