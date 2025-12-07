@@ -186,6 +186,15 @@ export default function CollabPage() {
 									</Button>
 									<Button
 										variant="ghost"
+										color="blue"
+										size="2"
+										asChild
+										className="text-xs"
+									>
+										<a href="/profile">My Profile</a>
+									</Button>
+									<Button
+										variant="ghost"
 										color="purple"
 										size="2"
 										onClick={() => {
