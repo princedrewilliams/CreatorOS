@@ -12,7 +12,6 @@ import { TaskModal } from "@/components/TaskModal";
 import { SocialConnections } from "@/components/SocialConnections";
 import { PostVideoModal } from "@/components/PostVideoModal";
 import { AutoFormatModal } from "@/components/AutoFormatModal";
-import { AutoRepurposeModal } from "@/components/AutoRepurposeModal";
 import { useSearchParams } from "next/navigation";
 
 function PlannerContent() {
@@ -26,10 +25,27 @@ function PlannerContent() {
 	const [isPostVideoModalOpen, setIsPostVideoModalOpen] = useState(false);
 	const [isAutoGenerateModalOpen, setIsAutoGenerateModalOpen] = useState(false);
 	const [isAutoFormatModalOpen, setIsAutoFormatModalOpen] = useState(false);
-	const [isAutoRepurposeModalOpen, setIsAutoRepurposeModalOpen] = useState(false);
 	const [autoScheduleEnabled, setAutoScheduleEnabled] = useState(false);
 	const [generatingCalendar, setGeneratingCalendar] = useState(false);
 	const [niche, setNiche] = useState("");
+	const [calendarCount, setCalendarCount] = useState(7);
+
+	// Check and update task statuses for past scheduled dates
+	useEffect(() => {
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+		
+		tasks.forEach((task) => {
+			if (task.status === "scheduled") {
+				const taskDate = new Date(`${task.date} ${task.time || "23:59"}`);
+				taskDate.setHours(0, 0, 0, 0);
+				
+				if (taskDate < today) {
+					updateTask(task.id, { status: "planned" });
+				}
+			}
+		});
+	}, [tasks, updateTask]);
 
 	// Sync user data on mount (social connections)
 	useEffect(() => {
@@ -278,28 +294,6 @@ function PlannerContent() {
 						<div className="flex items-start justify-between mb-3">
 							<div>
 								<Text size="3" weight="medium" className="text-gray-12 dark:text-gray-12 mb-1">
-									Auto-Repurpose
-								</Text>
-								<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
-									Upload long video → Auto-create 3-5 clips with captions and scheduling
-								</Text>
-							</div>
-						</div>
-						<Button
-							variant="ghost"
-							color="purple"
-							size="2"
-							onClick={() => setIsAutoRepurposeModalOpen(true)}
-							className="w-full"
-						>
-							<VideoIcon className="mr-2" />
-							Repurpose Video
-						</Button>
-					</Card>
-					<Card size="2" variant="surface" className="p-4">
-						<div className="flex items-start justify-between mb-3">
-							<div>
-								<Text size="3" weight="medium" className="text-gray-12 dark:text-gray-12 mb-1">
 									Auto-Scheduling
 								</Text>
 								<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
@@ -497,15 +491,6 @@ function PlannerContent() {
 				onClose={() => setIsAutoFormatModalOpen(false)}
 			/>
 
-			{/* Auto Repurpose Modal */}
-			<AutoRepurposeModal
-				isOpen={isAutoRepurposeModalOpen}
-				onClose={() => setIsAutoRepurposeModalOpen(false)}
-				onClipsGenerated={(clips) => {
-					// Optionally add clips as tasks to calendar
-					console.log("Clips generated:", clips);
-				}}
-			/>
 
 			{/* Auto-Generate Calendar Modal */}
 			<AnimatePresence>
@@ -549,6 +534,19 @@ function PlannerContent() {
 											className="w-full px-3 py-2 border border-gray-a6 rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12"
 										/>
 									</div>
+									<div>
+										<Text size="2" weight="medium" className="mb-2 text-gray-11 dark:text-gray-11">
+											Number of content ideas (1-30)
+										</Text>
+										<input
+											type="number"
+											min="1"
+											max="30"
+											value={calendarCount}
+											onChange={(e) => setCalendarCount(Math.min(30, Math.max(1, parseInt(e.target.value) || 1)))}
+											className="w-full px-3 py-2 border border-gray-a6 rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12"
+										/>
+									</div>
 									<Button
 										variant="solid"
 										color="purple"
@@ -563,7 +561,7 @@ function PlannerContent() {
 												const response = await fetch("/api/automation/generate-content-calendar", {
 													method: "POST",
 													headers: { "Content-Type": "application/json" },
-													body: JSON.stringify({ niche, count: 7 }),
+													body: JSON.stringify({ niche, count: calendarCount }),
 												});
 												const data = await response.json();
 												if (response.ok && data.calendar) {
