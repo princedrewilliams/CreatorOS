@@ -113,22 +113,28 @@ export function Calendar({ selectedDate, onDateSelect }: CalendarProps) {
 							key={dateStr}
 							onClick={() => handleDateClick(date)}
 							className={`
-								h-20 rounded-lg border p-2 text-left transition-colors
+								h-20 rounded-lg border p-2 text-left transition-colors relative
 								${isCurrentMonth ? "border-gray-a4 bg-gray-a2 dark:border-gray-a6 dark:bg-gray-a3" : "border-gray-a3 bg-gray-a1 dark:border-gray-a5 dark:bg-gray-a2"}
-								${isSelected ? "ring-2 ring-blue-6 border-blue-6 dark:ring-blue-5 dark:border-blue-5" : ""}
-								${isToday ? "border-blue-8 bg-blue-a2 dark:border-blue-7 dark:bg-blue-a3" : ""}
+								${isToday ? "ring-2 ring-blue-9 border-blue-9 bg-blue-a3 dark:ring-blue-8 dark:border-blue-8 dark:bg-blue-a4 shadow-md" : ""}
+								${isSelected && !isToday ? "ring-2 ring-blue-6 border-blue-6 dark:ring-blue-5 dark:border-blue-5" : ""}
+								${isSelected && isToday ? "ring-2 ring-blue-9 border-blue-9 dark:ring-blue-8 dark:border-blue-8" : ""}
 								hover:bg-gray-a3 dark:hover:bg-gray-a4 hover:border-gray-a6 dark:hover:border-gray-a7
 							`}
 							whileHover={{ scale: 1.02 }}
 							whileTap={{ scale: 0.98 }}
 						>
-							<Text
-								size="2"
-								weight={isToday ? "bold" : "medium"}
-								className={isCurrentMonth ? "text-gray-12 dark:text-gray-12" : "text-gray-9 dark:text-gray-9"}
-							>
-								{format(date, "d")}
-							</Text>
+							<div className="flex items-center justify-between">
+								<Text
+									size="2"
+									weight={isToday ? "bold" : "medium"}
+									className={isToday ? "text-blue-12 dark:text-blue-11" : isCurrentMonth ? "text-gray-12 dark:text-gray-12" : "text-gray-9 dark:text-gray-9"}
+								>
+									{format(date, "d")}
+								</Text>
+								{isToday && (
+									<div className="w-1.5 h-1.5 rounded-full bg-blue-9 dark:bg-blue-8" />
+								)}
+							</div>
 							{dayTasks.length > 0 && (
 								<div className="mt-1 flex flex-wrap gap-1">
 									{dayTasks.slice(0, 2).map((task) => (
