@@ -17,12 +17,15 @@ interface InvoiceModalProps {
 	};
 }
 
+export type InvoiceTemplate = "modern" | "classic" | "minimal" | "professional";
+
 export interface InvoiceFormData {
 	companyName: string;
 	amount: number;
 	dueDate: string;
 	deliverables: string[];
 	description?: string;
+	template?: InvoiceTemplate;
 }
 
 export function InvoiceModal({ isOpen, onClose, onGenerate, initialData }: InvoiceModalProps) {
@@ -32,6 +35,7 @@ export function InvoiceModal({ isOpen, onClose, onGenerate, initialData }: Invoi
 		dueDate: initialData?.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
 		deliverables: initialData?.deliverables || [],
 		description: "",
+		template: "modern",
 	});
 	const [deliverableInput, setDeliverableInput] = useState("");
 	const [loading, setLoading] = useState(false);
@@ -155,6 +159,36 @@ export function InvoiceModal({ isOpen, onClose, onGenerate, initialData }: Invoi
 										min={new Date().toISOString().split("T")[0]}
 										className="w-full px-3 py-2 border border-gray-a6 dark:border-gray-a7 rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12 focus:outline-none focus:ring-2 focus:ring-blue-9"
 									/>
+								</div>
+
+								<div>
+									<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
+										Invoice Template
+									</Text>
+									<div className="grid grid-cols-2 gap-3">
+										{(["modern", "classic", "minimal", "professional"] as InvoiceTemplate[]).map((template) => (
+											<button
+												key={template}
+												type="button"
+												onClick={() => setFormData((prev) => ({ ...prev, template }))}
+												className={`p-3 border-2 rounded-lg text-left transition-all ${
+													formData.template === template
+														? "border-blue-9 bg-blue-a2 dark:bg-blue-a3"
+														: "border-gray-a6 dark:border-gray-a7 bg-white dark:bg-gray-a2 hover:border-gray-a8"
+												}`}
+											>
+												<Text size="2" weight="medium" className="capitalize text-gray-12 dark:text-gray-12">
+													{template}
+												</Text>
+												<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
+													{template === "modern" && "Clean, contemporary design"}
+													{template === "classic" && "Traditional business style"}
+													{template === "minimal" && "Simple and elegant"}
+													{template === "professional" && "Corporate standard format"}
+												</Text>
+											</button>
+										))}
+									</div>
 								</div>
 
 								<div>

@@ -1,8 +1,8 @@
 "use client";
 
-import { FormEvent, ReactNode, useMemo, useState } from "react";
-import { Heading, Text, Card, Button } from "@whop/react/components";
-import { PlusIcon, FileTextIcon, SymbolIcon, TrashIcon, DownloadIcon, LightningBoltIcon, CalendarIcon, EnvelopeClosedIcon, BarChartIcon } from "@radix-ui/react-icons";
+import { FormEvent, ReactNode, useMemo, useState, useEffect } from "react";
+import { Heading, Text, Card, Button, Badge } from "@whop/react/components";
+import { PlusIcon, FileTextIcon, SymbolIcon, TrashIcon, DownloadIcon, EnvelopeClosedIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAppStore, type SponsorDeal, type SponsorStatus } from "@/lib/store";
@@ -50,13 +50,44 @@ export default function SponsorsPage() {
 	const [isFormOpen, setIsFormOpen] = useState(false);
 	const [draft, setDraft] = useState<DraftSponsor>(initialDraft);
 	const [error, setError] = useState<string | null>(null);
-	const [autoTrackingEnabled, setAutoTrackingEnabled] = useState(true);
-	const [autoInvoiceEnabled, setAutoInvoiceEnabled] = useState(false);
-	const [autoTimelineEnabled, setAutoTimelineEnabled] = useState(true);
-	const [autoReportingEnabled, setAutoReportingEnabled] = useState(true);
 	const [generatingInvoice, setGeneratingInvoice] = useState<string | null>(null);
 	const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
 	const [selectedDeal, setSelectedDeal] = useState<SponsorDeal | null>(null);
+	const [stripeConnected, setStripeConnected] = useState(false);
+	const { user } = useAppStore();
+
+	// Check Stripe connection status and handle OAuth redirects
+	useEffect(() => {
+		const checkStripeConnection = async () => {
+			if (!user) return;
+			try {
+				const response = await fetch("/api/user/sync", {
+					credentials: "include",
+				});
+				const data = await response.json();
+				if (response.ok && data.success) {
+					setStripeConnected(data.stripeConnection?.connected || false);
+				}
+			} catch (err) {
+				console.error("Failed to check Stripe connection:", err);
+			}
+		};
+		checkStripeConnection();
+
+		// Handle OAuth redirect messages
+		const params = new URLSearchParams(window.location.search);
+		if (params.get("stripe_connected") === "true") {
+			setStripeConnected(true);
+			alert("Stripe account connected successfully!");
+			// Clean up URL
+			window.history.replaceState({}, "", "/sponsors");
+		} else if (params.get("error")) {
+			const error = params.get("error");
+			alert(`Stripe connection error: ${error}`);
+			// Clean up URL
+			window.history.replaceState({}, "", "/sponsors");
+		}
+	}, [user]);
 
 	const stats = useMemo(() => {
 		const totalRevenue = sponsors.reduce((sum, deal) => sum + deal.amount, 0);
@@ -348,111 +379,103 @@ export default function SponsorsPage() {
 				</Card>
 			)}
 
-			{/* Automation Features */}
-			<Card size="3" variant="surface" className="p-6">
-				<div className="flex items-center gap-2 mb-4">
-					<LightningBoltIcon className="w-5 h-5 text-purple-9" />
-					<Heading size="5" as="h3" className="text-gray-12 dark:text-gray-12">
-						Automation Features
-					</Heading>
+			{/* Stripe Connection */}
+			<Card size="3" variant="surface" className="p-6 border-blue-a6 bg-blue-a2">
+				<div className="flex items-center justify-between mb-4">
+					<div className="flex items-center gap-2">
+						<SymbolIcon className="w-5 h-5 text-blue-11" />
+						<Heading size="5" as="h3" className="text-gray-12 dark:text-gray-12">
+							Stripe Account
+						</Heading>
+					</div>
+					{stripeConnected ? (
+						<Badge color="green" size="2" variant="soft">
+							Connected
+						</Badge>
+					) : (
+						<Badge color="gray" size="2" variant="soft">
+							Not Connected
+						</Badge>
+					)}
 				</div>
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-					<Card size="2" variant="surface" className="p-4">
-						<div className="flex items-start justify-between mb-3">
-							<div className="flex-1">
-								<div className="flex items-center gap-2 mb-2">
-									<CalendarIcon className="w-4 h-4 text-purple-9" />
-									<Text size="3" weight="medium" className="text-gray-12 dark:text-gray-12">
-										Auto-Track Payments
-									</Text>
-								</div>
-								<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
-									Calculate timeline, send reminders, and follow-ups automatically
-								</Text>
-							</div>
-						</div>
+				<Text size="2" color="gray" className="mb-4 text-gray-11 dark:text-gray-11">
+					Connect your Stripe account to create payment links for invoices. Payments will go directly to your Stripe account.
+				</Text>
+				{stripeConnected ? (
+					<div className="flex gap-3">
 						<Button
-							variant={autoTrackingEnabled ? "soft" : "ghost"}
-							color={autoTrackingEnabled ? "green" : "gray"}
+							variant="soft"
+							color="green"
 							size="2"
-							onClick={() => setAutoTrackingEnabled(!autoTrackingEnabled)}
-							className="w-full"
+							disabled
+							className="flex-1"
 						>
-							{autoTrackingEnabled ? "Enabled" : "Enable"}
+							Stripe Connected
 						</Button>
-					</Card>
-					<Card size="2" variant="surface" className="p-4">
-						<div className="flex items-start justify-between mb-3">
-							<div className="flex-1">
-								<div className="flex items-center gap-2 mb-2">
-									<FileTextIcon className="w-4 h-4 text-purple-9" />
-									<Text size="3" weight="medium" className="text-gray-12 dark:text-gray-12">
-										Auto-Generate Invoices
-									</Text>
-								</div>
-								<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
-									Generate PDF invoices, payment links, and deliverable checklists
-								</Text>
-							</div>
-						</div>
 						<Button
-							variant={autoInvoiceEnabled ? "soft" : "ghost"}
-							color={autoInvoiceEnabled ? "green" : "gray"}
+							variant="ghost"
+							color="red"
 							size="2"
-							onClick={() => setAutoInvoiceEnabled(!autoInvoiceEnabled)}
-							className="w-full"
+							onClick={async () => {
+								try {
+									const response = await fetch("/api/auth/stripe/disconnect", {
+										method: "POST",
+										credentials: "include",
+									});
+									if (response.ok) {
+										setStripeConnected(false);
+										alert("Stripe account disconnected");
+									}
+								} catch (err) {
+									console.error("Failed to disconnect Stripe:", err);
+								}
+							}}
 						>
-							{autoInvoiceEnabled ? "Enabled" : "Enable"}
+							Disconnect
 						</Button>
-					</Card>
-					<Card size="2" variant="surface" className="p-4">
-						<div className="flex items-start justify-between mb-3">
-							<div className="flex-1">
-								<div className="flex items-center gap-2 mb-2">
-									<CalendarIcon className="w-4 h-4 text-purple-9" />
-									<Text size="3" weight="medium" className="text-gray-12 dark:text-gray-12">
-										Auto Campaign Timeline
-									</Text>
-								</div>
-								<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
-									Auto-create script, filming, draft, and posting deadlines
-								</Text>
-							</div>
+					</div>
+				) : (
+					<Button
+						variant="solid"
+						color="blue"
+						size="3"
+						onClick={() => {
+							window.location.href = "/api/auth/stripe";
+						}}
+						className="w-full"
+					>
+						<SymbolIcon className="mr-2" />
+						Connect Stripe Account
+					</Button>
+				)}
+			</Card>
+
+			{/* Generate Invoice */}
+			<Card size="3" variant="surface" className="p-6">
+				<div className="flex items-center justify-between">
+					<div className="flex items-center gap-3">
+						<FileTextIcon className="w-6 h-6 text-blue-11" />
+						<div>
+							<Heading size="5" as="h3" className="text-gray-12 dark:text-gray-12">
+								Generate Invoice
+							</Heading>
+							<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
+								Create PDF invoices with payment links and deliverable checklists
+							</Text>
 						</div>
-						<Button
-							variant={autoTimelineEnabled ? "soft" : "ghost"}
-							color={autoTimelineEnabled ? "green" : "gray"}
-							size="2"
-							onClick={() => setAutoTimelineEnabled(!autoTimelineEnabled)}
-							className="w-full"
-						>
-							{autoTimelineEnabled ? "Enabled" : "Enable"}
-						</Button>
-					</Card>
-					<Card size="2" variant="surface" className="p-4">
-						<div className="flex items-start justify-between mb-3">
-							<div className="flex-1">
-								<div className="flex items-center gap-2 mb-2">
-									<BarChartIcon className="w-4 h-4 text-purple-9" />
-									<Text size="3" weight="medium" className="text-gray-12 dark:text-gray-12">
-										Auto Reporting
-									</Text>
-								</div>
-								<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
-									Auto-pull analytics after post and send sponsor reports
-								</Text>
-							</div>
-						</div>
-						<Button
-							variant={autoReportingEnabled ? "soft" : "ghost"}
-							color={autoReportingEnabled ? "green" : "gray"}
-							size="2"
-							onClick={() => setAutoReportingEnabled(!autoReportingEnabled)}
-							className="w-full"
-						>
-							{autoReportingEnabled ? "Enabled" : "Enable"}
-						</Button>
-					</Card>
+					</div>
+					<Button
+						variant="solid"
+						color="blue"
+						size="3"
+						onClick={() => {
+							setSelectedDeal(null);
+							setInvoiceModalOpen(true);
+						}}
+					>
+						<FileTextIcon className="mr-2" />
+						Generate Invoice
+					</Button>
 				</div>
 			</Card>
 

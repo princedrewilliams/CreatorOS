@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { jsPDF } from "jspdf";
+import { getCurrentUser } from "@/lib/auth";
+import { getUserStripeConnection } from "@/lib/user-data";
 
 // Initialize Stripe (only if key is provided)
 const getStripe = () => {
@@ -22,6 +24,7 @@ export async function POST(request: NextRequest) {
 			dueDate,
 			deliverables = [],
 			description,
+			template = "modern",
 		} = body;
 
 		if (!companyName || !amount || !dueDate) {
@@ -38,28 +41,113 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		// Create Stripe Payment Link
+		// Get current user and their Stripe connection
+		const user = await getCurrentUser();
 		let paymentLink: string | null = null;
 		let stripePaymentLinkId: string | null = null;
 
-		const stripe = getStripe();
+		// Try to use user's connected Stripe account first
+		let stripe: Stripe | null = null;
+		if (user) {
+			const stripeConnection = getUserStripeConnection(user.whop_user_id);
+			if (stripeConnection?.connected && stripeConnection.accessToken) {
+				// Use user's Stripe access token to create payment links on their account
+				try {
+					// Check if token needs refresh
+					if (stripeConnection.expiresAt && stripeConnection.expiresAt < Date.now()) {
+						// Token expired, try to refresh
+						if (stripeConnection.refreshToken) {
+							const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+							if (stripeSecretKey) {
+								try {
+									const refreshResponse = await fetch("https://connect.stripe.com/oauth/token", {
+										method: "POST",
+										headers: {
+											"Content-Type": "application/x-www-form-urlencoded",
+										},
+										body: new URLSearchParams({
+											client_secret: stripeSecretKey,
+											refresh_token: stripeConnection.refreshToken,
+											grant_type: "refresh_token",
+										}),
+									});
+
+									if (refreshResponse.ok) {
+										const newTokens = await refreshResponse.json();
+										// Update connection with new tokens
+										const { setUserStripeConnection } = await import("@/lib/user-data");
+										setUserStripeConnection(user.whop_user_id, {
+											...stripeConnection,
+											accessToken: newTokens.access_token,
+											refreshToken: newTokens.refresh_token,
+											expiresAt: Date.now() + 3600000,
+										});
+										// Use new access token
+										stripe = new Stripe(newTokens.access_token, {
+											apiVersion: "2025-11-17.clover",
+										});
+									} else {
+										console.warn("[Stripe] Failed to refresh token, falling back to app key");
+									}
+								} catch (refreshError) {
+									console.error("[Stripe] Error refreshing token:", refreshError);
+								}
+							}
+						}
+					} else {
+						// Token is still valid, use platform Stripe with connected account
+						const platformStripe = getStripe();
+						if (platformStripe && stripeConnection.stripeAccountId) {
+							stripe = platformStripe;
+							(stripe as any).connectedAccountId = stripeConnection.stripeAccountId;
+						} else {
+							// Fallback: try using access token directly
+							stripe = new Stripe(stripeConnection.accessToken, {
+								apiVersion: "2025-11-17.clover",
+							});
+						}
+					}
+				} catch (error) {
+					console.error("[Stripe] Error initializing with user token:", error);
+				}
+			}
+		}
+
+		// Fallback to app's Stripe key if user doesn't have connected account
+		if (!stripe) {
+			stripe = getStripe();
+		}
+
 		if (stripe) {
 			try {
+				const connectedAccountId = (stripe as any).connectedAccountId;
+				
 				// Create a product for this invoice
-				const product = await stripe.products.create({
+				const productOptions: any = {
 					name: `Invoice for ${companyName}`,
 					description: description || `Invoice payment for ${companyName}`,
-				});
+				};
+				// If using connected account, create on their account
+				const product = connectedAccountId
+					? await stripe.products.create(productOptions, {
+							stripeAccount: connectedAccountId,
+						})
+					: await stripe.products.create(productOptions);
 
 				// Create a price for the product
-				const price = await stripe.prices.create({
+				const priceOptions: any = {
 					product: product.id,
 					unit_amount: Math.round(amount * 100), // Convert to cents
 					currency: "usd",
-				});
+				};
+				const price = connectedAccountId
+					? await stripe.prices.create(priceOptions, {
+							stripeAccount: connectedAccountId,
+						})
+					: await stripe.prices.create(priceOptions);
 
 				// Create a payment link
-				const paymentLinkResponse = await stripe.paymentLinks.create({
+				const paymentLinkOptions: any = {
 					line_items: [
 						{
 							price: price.id,
@@ -70,7 +158,12 @@ export async function POST(request: NextRequest) {
 						invoice_company: companyName,
 						due_date: dueDate,
 					},
-				});
+				};
+				const paymentLinkResponse = connectedAccountId
+					? await stripe.paymentLinks.create(paymentLinkOptions, {
+							stripeAccount: connectedAccountId,
+						})
+					: await stripe.paymentLinks.create(paymentLinkOptions);
 
 				paymentLink = paymentLinkResponse.url;
 				stripePaymentLinkId = paymentLinkResponse.id;
@@ -82,10 +175,10 @@ export async function POST(request: NextRequest) {
 				}
 			}
 		} else {
-			console.warn("[Stripe] STRIPE_SECRET_KEY not configured. Payment links will not be generated.");
+			console.warn("[Stripe] No Stripe connection available. Payment links will not be generated.");
 		}
 
-		// Generate PDF Invoice
+		// Generate PDF Invoice with selected template
 		const invoiceId = `INV-${Date.now()}`;
 		const invoiceDate = new Date().toLocaleDateString("en-US", {
 			year: "numeric",
@@ -100,64 +193,242 @@ export async function POST(request: NextRequest) {
 
 		const doc = new jsPDF();
 		
-		// Header
-		doc.setFontSize(24);
-		doc.text("INVOICE", 20, 30);
-		
-		doc.setFontSize(12);
-		doc.text(`Invoice #: ${invoiceId}`, 20, 45);
-		doc.text(`Date: ${invoiceDate}`, 20, 52);
-		doc.text(`Due Date: ${formattedDueDate}`, 20, 59);
-
-		// Company Information
-		doc.setFontSize(14);
-		doc.text("Bill To:", 20, 75);
-		doc.setFontSize(12);
-		doc.text(companyName, 20, 82);
-
-		// Description
-		let yPos = 100;
-		if (description) {
-			doc.setFontSize(12);
-			doc.text("Description:", 20, yPos);
-			yPos += 7;
-			const splitDescription = doc.splitTextToSize(description, 170);
-			doc.text(splitDescription, 20, yPos);
-			yPos += splitDescription.length * 7 + 5;
-		}
-
-		// Deliverables Checklist
-		if (deliverables.length > 0) {
-			doc.setFontSize(14);
-			doc.text("Deliverables Checklist:", 20, yPos);
-			yPos += 10;
-			doc.setFontSize(12);
-			deliverables.forEach((item: string, index: number) => {
-				// Check if we need a new page
-				if (yPos > 250) {
-					doc.addPage();
-					yPos = 20;
+		// Apply template-specific styling
+		switch (template) {
+			case "modern":
+				// Modern template: Clean, contemporary design with colored header
+				doc.setFillColor(59, 130, 246); // Blue
+				doc.rect(0, 0, 210, 40, "F");
+				doc.setTextColor(255, 255, 255);
+				doc.setFontSize(28);
+				doc.text("INVOICE", 20, 25);
+				doc.setTextColor(0, 0, 0);
+				doc.setFontSize(10);
+				doc.text(`Invoice #: ${invoiceId}`, 150, 20);
+				doc.text(`Date: ${invoiceDate}`, 150, 27);
+				doc.text(`Due Date: ${formattedDueDate}`, 150, 34);
+				
+				// Company Information
+				doc.setFontSize(14);
+				doc.text("Bill To:", 20, 55);
+				doc.setFontSize(12);
+				doc.text(companyName, 20, 62);
+				
+				let yPos = 80;
+				if (description) {
+					doc.setFontSize(12);
+					doc.text("Description:", 20, yPos);
+					yPos += 7;
+					const splitDescription = doc.splitTextToSize(description, 170);
+					doc.text(splitDescription, 20, yPos);
+					yPos += splitDescription.length * 7 + 5;
 				}
-				doc.text(`☐ ${item}`, 25, yPos);
-				yPos += 7;
-			});
-			yPos += 5;
-		}
-
-		// Amount Section
-		doc.setFontSize(14);
-		doc.text("Amount Due:", 20, yPos);
-		doc.setFontSize(18);
-		doc.text(`$${amount.toFixed(2)}`, 20, yPos + 10);
-
-		// Payment Link
-		if (paymentLink) {
-			doc.setFontSize(10);
-			doc.setTextColor(0, 100, 200);
-			doc.text("Pay online using the link below:", 20, yPos + 25);
-			const splitPayment = doc.splitTextToSize(paymentLink, 170);
-			doc.text(splitPayment, 20, yPos + 32);
-			doc.setTextColor(0, 0, 0);
+				
+				if (deliverables.length > 0) {
+					doc.setFontSize(14);
+					doc.text("Deliverables Checklist:", 20, yPos);
+					yPos += 10;
+					doc.setFontSize(12);
+					deliverables.forEach((item: string) => {
+						if (yPos > 250) {
+							doc.addPage();
+							yPos = 20;
+						}
+						doc.text(`☐ ${item}`, 25, yPos);
+						yPos += 7;
+					});
+					yPos += 5;
+				}
+				
+				// Amount Section with box
+				doc.setFillColor(240, 240, 240);
+				doc.roundedRect(20, yPos, 170, 30, 3, 3, "F");
+				doc.setFontSize(14);
+				doc.text("Amount Due:", 30, yPos + 10);
+				doc.setFontSize(20);
+				doc.text(`$${amount.toFixed(2)}`, 30, yPos + 25);
+				
+				if (paymentLink) {
+					doc.setFontSize(10);
+					doc.setTextColor(59, 130, 246);
+					doc.text("Pay online:", 20, yPos + 45);
+					const splitPayment = doc.splitTextToSize(paymentLink, 170);
+					doc.text(splitPayment, 20, yPos + 52);
+					doc.setTextColor(0, 0, 0);
+				}
+				break;
+				
+			case "classic":
+				// Classic template: Traditional business style
+				doc.setFontSize(24);
+				doc.text("INVOICE", 20, 30);
+				doc.setDrawColor(0, 0, 0);
+				doc.line(20, 35, 190, 35);
+				
+				doc.setFontSize(10);
+				doc.text(`Invoice #: ${invoiceId}`, 20, 45);
+				doc.text(`Date: ${invoiceDate}`, 20, 52);
+				doc.text(`Due Date: ${formattedDueDate}`, 20, 59);
+				
+				doc.setFontSize(14);
+				doc.text("Bill To:", 20, 75);
+				doc.setFontSize(12);
+				doc.text(companyName, 20, 82);
+				
+				let yPosClassic = 100;
+				if (description) {
+					doc.setFontSize(12);
+					doc.text("Description:", 20, yPosClassic);
+					yPosClassic += 7;
+					const splitDescription = doc.splitTextToSize(description, 170);
+					doc.text(splitDescription, 20, yPosClassic);
+					yPosClassic += splitDescription.length * 7 + 5;
+				}
+				
+				if (deliverables.length > 0) {
+					doc.setFontSize(14);
+					doc.text("Deliverables Checklist:", 20, yPosClassic);
+					yPosClassic += 10;
+					doc.setFontSize(12);
+					deliverables.forEach((item: string) => {
+						if (yPosClassic > 250) {
+							doc.addPage();
+							yPosClassic = 20;
+						}
+						doc.text(`☐ ${item}`, 25, yPosClassic);
+						yPosClassic += 7;
+					});
+					yPosClassic += 5;
+				}
+				
+				doc.setFontSize(14);
+				doc.text("Amount Due:", 20, yPosClassic);
+				doc.setFontSize(18);
+				doc.text(`$${amount.toFixed(2)}`, 20, yPosClassic + 10);
+				
+				if (paymentLink) {
+					doc.setFontSize(10);
+					doc.text("Pay online using the link below:", 20, yPosClassic + 25);
+					const splitPayment = doc.splitTextToSize(paymentLink, 170);
+					doc.text(splitPayment, 20, yPosClassic + 32);
+				}
+				break;
+				
+			case "minimal":
+				// Minimal template: Simple and elegant
+				doc.setFontSize(20);
+				doc.text("INVOICE", 20, 30);
+				
+				doc.setFontSize(9);
+				doc.setTextColor(128, 128, 128);
+				doc.text(`#${invoiceId}`, 20, 40);
+				doc.text(invoiceDate, 20, 47);
+				doc.setTextColor(0, 0, 0);
+				
+				doc.setFontSize(12);
+				doc.text("Bill To:", 20, 65);
+				doc.setFontSize(11);
+				doc.text(companyName, 20, 72);
+				
+				let yPosMinimal = 90;
+				if (description) {
+					doc.setFontSize(10);
+					doc.text(description, 20, yPosMinimal);
+					yPosMinimal += doc.getTextWidth(description) > 170 ? 15 : 10;
+				}
+				
+				if (deliverables.length > 0) {
+					deliverables.forEach((item: string) => {
+						if (yPosMinimal > 250) {
+							doc.addPage();
+							yPosMinimal = 20;
+						}
+						doc.setFontSize(10);
+						doc.text(`• ${item}`, 20, yPosMinimal);
+						yPosMinimal += 7;
+					});
+					yPosMinimal += 5;
+				}
+				
+				doc.setFontSize(16);
+				doc.text(`$${amount.toFixed(2)}`, 20, yPosMinimal);
+				doc.setFontSize(9);
+				doc.setTextColor(128, 128, 128);
+				doc.text(`Due: ${formattedDueDate}`, 20, yPosMinimal + 7);
+				doc.setTextColor(0, 0, 0);
+				
+				if (paymentLink) {
+					doc.setFontSize(9);
+					doc.setTextColor(100, 100, 200);
+					doc.text(paymentLink, 20, yPosMinimal + 20);
+					doc.setTextColor(0, 0, 0);
+				}
+				break;
+				
+			case "professional":
+			default:
+				// Professional template: Corporate standard format
+				doc.setFontSize(22);
+				doc.text("INVOICE", 20, 30);
+				
+				// Table-like layout
+				doc.setFontSize(10);
+				doc.text(`Invoice Number: ${invoiceId}`, 120, 30);
+				doc.text(`Invoice Date: ${invoiceDate}`, 120, 37);
+				doc.text(`Due Date: ${formattedDueDate}`, 120, 44);
+				
+				doc.setDrawColor(200, 200, 200);
+				doc.line(20, 50, 190, 50);
+				
+				doc.setFontSize(12);
+				doc.text("Bill To:", 20, 65);
+				doc.setFontSize(11);
+				doc.text(companyName, 20, 72);
+				
+				let yPosPro = 90;
+				if (description) {
+					doc.setFontSize(11);
+					doc.text("Description:", 20, yPosPro);
+					yPosPro += 7;
+					const splitDescription = doc.splitTextToSize(description, 170);
+					doc.text(splitDescription, 20, yPosPro);
+					yPosPro += splitDescription.length * 7 + 5;
+				}
+				
+				if (deliverables.length > 0) {
+					doc.setFontSize(12);
+					doc.text("Deliverables:", 20, yPosPro);
+					yPosPro += 10;
+					doc.setFontSize(11);
+					deliverables.forEach((item: string) => {
+						if (yPosPro > 250) {
+							doc.addPage();
+							yPosPro = 20;
+						}
+						doc.text(`✓ ${item}`, 25, yPosPro);
+						yPosPro += 7;
+					});
+					yPosPro += 5;
+				}
+				
+				doc.setDrawColor(200, 200, 200);
+				doc.line(20, yPosPro, 190, yPosPro);
+				yPosPro += 10;
+				
+				doc.setFontSize(12);
+				doc.text("Total Amount Due:", 120, yPosPro);
+				doc.setFontSize(16);
+				doc.text(`$${amount.toFixed(2)}`, 120, yPosPro + 10);
+				
+				if (paymentLink) {
+					doc.setFontSize(10);
+					doc.setTextColor(0, 100, 200);
+					doc.text("Payment Link:", 20, yPosPro + 25);
+					const splitPayment = doc.splitTextToSize(paymentLink, 170);
+					doc.text(splitPayment, 20, yPosPro + 32);
+					doc.setTextColor(0, 0, 0);
+				}
+				break;
 		}
 
 		// Footer
@@ -183,6 +454,7 @@ export async function POST(request: NextRequest) {
 			deliverables,
 			dueDate,
 			description: description || "",
+			template: template || "modern",
 			paymentTerms: "Net 30",
 			invoiceDate: new Date().toISOString(),
 			pdfBase64,

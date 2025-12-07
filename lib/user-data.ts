@@ -21,9 +21,22 @@ export interface UserSubscription {
 	expiresAt?: string;
 }
 
+export interface UserStripeConnection {
+	userId: string;
+	connected: boolean;
+	accessToken?: string;
+	refreshToken?: string;
+	stripeAccountId?: string;
+	stripePublishableKey?: string;
+	livemode?: boolean;
+	expiresAt?: number;
+	connectedAt?: string;
+}
+
 // In-memory stores (replace with database in production)
 const userSocialConnections = new Map<string, UserSocialConnection[]>();
 const userSubscriptions = new Map<string, UserSubscription>();
+const userStripeConnections = new Map<string, UserStripeConnection>();
 
 // Social Connections
 export function getUserSocialConnections(userId: string): UserSocialConnection[] {
@@ -60,6 +73,20 @@ export function setUserSubscription(userId: string, subscription: UserSubscripti
 	return subscription;
 }
 
+// Stripe Connections
+export function getUserStripeConnection(userId: string): UserStripeConnection | null {
+	return userStripeConnections.get(userId) || { userId, connected: false };
+}
+
+export function setUserStripeConnection(userId: string, connection: UserStripeConnection) {
+	userStripeConnections.set(userId, connection);
+	return connection;
+}
+
+export function removeUserStripeConnection(userId: string) {
+	userStripeConnections.delete(userId);
+}
+
 // Export stores for API routes
-export { userSocialConnections, userSubscriptions };
+export { userSocialConnections, userSubscriptions, userStripeConnections };
 

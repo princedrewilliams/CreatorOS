@@ -60,6 +60,14 @@ RAPIDAPI_INSTAGRAM_KEY=your_rapidapi_instagram_key
 RAPIDAPI_INSTAGRAM_HOST=instagram120.p.rapidapi.com
 RAPIDAPI_YOUTUBE_KEY=your_rapidapi_youtube_key
 RAPIDAPI_YOUTUBE_HOST=youtube-video-fast-downloader-24-7.p.rapidapi.com
+
+# Stripe OAuth & API (for invoice payment links)
+# Get your Client ID from: https://dashboard.stripe.com/settings/applications (Connect settings)
+# Get your Secret Key from: https://dashboard.stripe.com/apikeys
+STRIPE_CLIENT_ID=ca_xxx  # Your Stripe Connect Client ID
+STRIPE_SECRET_KEY=sk_test_xxx  # Your Stripe Secret Key (test or live)
+STRIPE_TEST_MODE=true  # Set to false for production/live mode
+NEXT_PUBLIC_APP_URL=http://localhost:3000  # Your app URL (update for production)
 ```
 
 ## Setup Instructions

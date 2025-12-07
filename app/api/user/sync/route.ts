@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { getUserSocialConnections, getUserSubscription } from "@/lib/user-data";
+import { getUserSocialConnections, getUserSubscription, getUserStripeConnection } from "@/lib/user-data";
 
 export async function GET(request: NextRequest) {
 	try {
@@ -13,14 +13,20 @@ export async function GET(request: NextRequest) {
 			);
 		}
 
-		// Get user's social connections and subscription
+		// Get user's social connections, subscription, and Stripe connection
 		const socialConnections = getUserSocialConnections(user.whop_user_id);
 		const subscription = getUserSubscription(user.whop_user_id);
+		const stripeConnection = getUserStripeConnection(user.whop_user_id);
 
 		return NextResponse.json({
 			success: true,
 			socialConnections,
 			subscription,
+			stripeConnection: stripeConnection?.connected ? {
+				connected: true,
+				stripeAccountId: stripeConnection.stripeAccountId,
+				livemode: stripeConnection.livemode,
+			} : { connected: false },
 		});
 	} catch (error) {
 		console.error("[Sync User Data] Error:", error);
