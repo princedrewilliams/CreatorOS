@@ -15,17 +15,14 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: process.cwd(),
   },
-  // Disable static page caching for dynamic content
-  experimental: {
-    staleTimes: {
-      dynamic: 0,
-      static: 0,
-    },
-  },
-  // Increase body size limit for video uploads (50MB)
+  // Increase body size limit for video uploads (50MB) and cache control
   experimental: {
     serverActions: {
       bodySizeLimit: "50mb",
+    },
+    staleTimes: {
+      dynamic: 0,
+      static: 0,
     },
   },
 };
