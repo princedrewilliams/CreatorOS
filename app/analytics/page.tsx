@@ -229,6 +229,7 @@ export default function AnalyticsPage() {
 	}, [analytics, connectedPlatforms]);
 
 	return (
+		<>
 		<div className="space-y-6 sm:space-y-8">
 			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 				<div className="min-w-0 flex-1">
@@ -1263,5 +1264,6 @@ export default function AnalyticsPage() {
 			onClose={() => setIsScheduleModalOpen(false)}
 			optimalTime="3 PM"
 		/>
+		</>
 	);
 }
