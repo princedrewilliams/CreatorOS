@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Heading, Text, Card, Button, Badge } from "@whop/react/components";
-import { ChatBubbleIcon, PersonIcon, VideoIcon, EnvelopeClosedIcon } from "@radix-ui/react-icons";
-import { motion } from "framer-motion";
+import { ChatBubbleIcon, PersonIcon, VideoIcon, EnvelopeClosedIcon, PlusIcon, Cross2Icon } from "@radix-ui/react-icons";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAppStore } from "@/lib/store";
+import { useRouter } from "next/navigation";
 
 const NICHE_CATEGORIES = [
 	{ id: "fitness", label: "Fitness", icon: "💪", color: "red" as const },
@@ -61,13 +62,123 @@ const mockCreators: Creator[] = [
 ];
 
 export default function CollabPage() {
-	const { user } = useAppStore();
+	const { user, socialConnections } = useAppStore();
+	const router = useRouter();
 	const [selectedNiche, setSelectedNiche] = useState<string | null>(null);
 	const [selectedCreator, setSelectedCreator] = useState<Creator | null>(null);
+	const [creators, setCreators] = useState<Creator[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+	const [joinForm, setJoinForm] = useState({
+		username: user?.whop_username || "",
+		niche: "",
+		socialLinks: {
+			youtube: "",
+			instagram: "",
+			tiktok: "",
+		},
+	});
 
-	const filteredCreators = selectedNiche
-		? mockCreators.filter((creator) => creator.niche === selectedNiche)
-		: mockCreators;
+	// Load creators from API
+	useEffect(() => {
+		const loadCreators = async () => {
+			setLoading(true);
+			try {
+				const nicheParam = selectedNiche ? `?niche=${selectedNiche}` : "";
+				const response = await fetch(`/api/collab/creators${nicheParam}`, {
+					credentials: "include",
+				});
+				if (response.ok) {
+					const data = await response.json();
+					if (data.success) {
+						setCreators(data.creators || []);
+					}
+				}
+			} catch (err) {
+				console.error("Failed to load creators:", err);
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		loadCreators();
+	}, [selectedNiche]);
+
+	// Update form when user changes
+	useEffect(() => {
+		if (user) {
+			setJoinForm((prev) => ({
+				...prev,
+				username: user.whop_username || prev.username,
+			}));
+		}
+	}, [user]);
+
+	const handleJoinNiche = async () => {
+		if (!user) {
+			router.push("/login?redirect=/collab");
+			return;
+		}
+
+		if (!joinForm.username || !joinForm.niche) {
+			alert("Please enter a username and select a niche");
+			return;
+		}
+
+		try {
+			// Get stats from social connections
+			const connectedPlatforms = socialConnections
+				.filter((conn) => conn.connected)
+				.map((conn) => conn.platform);
+
+			// Mock stats - in production, fetch from analytics
+			const followers = 10000; // Would come from analytics
+			const highestViews = 250000; // Would come from analytics
+
+			const response = await fetch("/api/collab/creators", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				credentials: "include",
+				body: JSON.stringify({
+					username: joinForm.username,
+					niche: joinForm.niche,
+					socialLinks: joinForm.socialLinks,
+					followers,
+					highestViews,
+					platforms: connectedPlatforms,
+				}),
+			});
+
+			if (response.ok) {
+				const data = await response.json();
+				if (data.success) {
+					alert(`Successfully joined ${NICHE_CATEGORIES.find((n) => n.id === joinForm.niche)?.label} niche!`);
+					setIsJoinModalOpen(false);
+					setJoinForm({
+						username: user.whop_username || "",
+						niche: "",
+						socialLinks: { youtube: "", instagram: "", tiktok: "" },
+					});
+					// Reload creators
+					const reloadResponse = await fetch(`/api/collab/creators${selectedNiche ? `?niche=${selectedNiche}` : ""}`, {
+						credentials: "include",
+					});
+					if (reloadResponse.ok) {
+						const reloadData = await reloadResponse.json();
+						if (reloadData.success) {
+							setCreators(reloadData.creators || []);
+						}
+					}
+				}
+			} else {
+				const error = await response.json();
+				alert(error.error || "Failed to join niche");
+			}
+		} catch (err) {
+			console.error("Failed to join niche:", err);
+			alert("Failed to join niche");
+		}
+	};
 
 	return (
 		<div className="space-y-6 sm:space-y-8">
@@ -81,6 +192,26 @@ export default function CollabPage() {
 						Connect and collaborate with creators in your niche
 					</Text>
 				</div>
+				{user ? (
+					<Button
+						variant="solid"
+						color="purple"
+						size="3"
+						onClick={() => setIsJoinModalOpen(true)}
+					>
+						<PlusIcon className="mr-2" />
+						Join Niche
+					</Button>
+				) : (
+					<Button
+						variant="solid"
+						color="blue"
+						size="3"
+						onClick={() => router.push("/login?redirect=/collab")}
+					>
+						Login to Join
+					</Button>
+				)}
 			</div>
 
 			{/* Niche Categories */}
@@ -108,8 +239,21 @@ export default function CollabPage() {
 			</Card>
 
 			{/* Creators List */}
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-				{filteredCreators.map((creator) => {
+			{loading ? (
+				<Card size="3" variant="surface" className="p-6">
+					<Text size="3" color="gray" className="text-center text-gray-11 dark:text-gray-11">
+						Loading creators...
+					</Text>
+				</Card>
+			) : creators.length === 0 ? (
+				<Card size="3" variant="surface" className="p-6">
+					<Text size="3" color="gray" className="text-center text-gray-11 dark:text-gray-11">
+						No creators found in this niche yet. Be the first to join!
+					</Text>
+				</Card>
+			) : (
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+					{creators.map((creator) => {
 					const nicheInfo = NICHE_CATEGORIES.find((n) => n.id === creator.niche);
 					return (
 						<motion.div
@@ -208,8 +352,9 @@ export default function CollabPage() {
 							</Card>
 						</motion.div>
 					);
-				})}
-			</div>
+					})}
+				</div>
+			)}
 
 			{/* Creator Profile Modal */}
 			{selectedCreator && (
@@ -356,6 +501,157 @@ export default function CollabPage() {
 					</motion.div>
 				</motion.div>
 			)}
+
+			{/* Join Niche Modal */}
+			<AnimatePresence>
+				{isJoinModalOpen && (
+					<>
+						<motion.div
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							exit={{ opacity: 0 }}
+							className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-a11 dark:bg-gray-a12 backdrop-blur-md"
+							onClick={() => setIsJoinModalOpen(false)}
+						>
+							<motion.div
+								initial={{ scale: 0.95, opacity: 0 }}
+								animate={{ scale: 1, opacity: 1 }}
+								exit={{ scale: 0.95, opacity: 0 }}
+								onClick={(e) => e.stopPropagation()}
+							>
+								<Card size="3" variant="surface" className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+									<div className="flex items-center justify-between mb-6">
+										<Heading size="5" as="h2" className="text-gray-12 dark:text-gray-12">
+											Join a Niche
+										</Heading>
+										<Button variant="ghost" size="1" onClick={() => setIsJoinModalOpen(false)}>
+											<Cross2Icon className="w-4 h-4" />
+										</Button>
+									</div>
+
+									<div className="space-y-4">
+										<div>
+											<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
+												Username <span className="text-red-11">*</span>
+											</Text>
+											<input
+												type="text"
+												value={joinForm.username}
+												onChange={(e) => setJoinForm({ ...joinForm, username: e.target.value })}
+												placeholder="Your creator username"
+												required
+												className="w-full px-3 py-2 border border-gray-a6 dark:border-gray-a7 rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12"
+											/>
+										</div>
+
+										<div>
+											<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
+												Select Niche <span className="text-red-11">*</span>
+											</Text>
+											<div className="grid grid-cols-4 gap-2">
+												{NICHE_CATEGORIES.map((niche) => (
+													<Button
+														key={niche.id}
+														variant={joinForm.niche === niche.id ? "soft" : "ghost"}
+														color={joinForm.niche === niche.id ? niche.color : "gray"}
+														size="2"
+														onClick={() => setJoinForm({ ...joinForm, niche: niche.id })}
+														className="flex flex-col items-center gap-1 h-auto py-3"
+													>
+														<Text size="4">{niche.icon}</Text>
+														<Text size="1">{niche.label}</Text>
+													</Button>
+												))}
+											</div>
+										</div>
+
+										<div>
+											<Text size="2" weight="medium" className="mb-3 block text-gray-11 dark:text-gray-11">
+												Social Media Links (Optional)
+											</Text>
+											<div className="space-y-2">
+												<div>
+													<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
+														YouTube URL
+													</Text>
+													<input
+														type="url"
+														value={joinForm.socialLinks.youtube}
+														onChange={(e) =>
+															setJoinForm({
+																...joinForm,
+																socialLinks: { ...joinForm.socialLinks, youtube: e.target.value },
+															})
+														}
+														placeholder="https://youtube.com/@yourchannel"
+														className="w-full px-3 py-2 border border-gray-a6 dark:border-gray-a7 rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12"
+													/>
+												</div>
+												<div>
+													<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
+														Instagram URL
+													</Text>
+													<input
+														type="url"
+														value={joinForm.socialLinks.instagram}
+														onChange={(e) =>
+															setJoinForm({
+																...joinForm,
+																socialLinks: { ...joinForm.socialLinks, instagram: e.target.value },
+															})
+														}
+														placeholder="https://instagram.com/yourhandle"
+														className="w-full px-3 py-2 border border-gray-a6 dark:border-gray-a7 rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12"
+													/>
+												</div>
+												<div>
+													<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
+														TikTok URL
+													</Text>
+													<input
+														type="url"
+														value={joinForm.socialLinks.tiktok}
+														onChange={(e) =>
+															setJoinForm({
+																...joinForm,
+																socialLinks: { ...joinForm.socialLinks, tiktok: e.target.value },
+															})
+														}
+														placeholder="https://tiktok.com/@yourhandle"
+														className="w-full px-3 py-2 border border-gray-a6 dark:border-gray-a7 rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12"
+													/>
+												</div>
+											</div>
+										</div>
+
+										<div className="flex gap-3 pt-4">
+											<Button
+												variant="ghost"
+												color="gray"
+												size="3"
+												onClick={() => setIsJoinModalOpen(false)}
+												className="flex-1"
+											>
+												Cancel
+											</Button>
+											<Button
+												variant="solid"
+												color="purple"
+												size="3"
+												onClick={handleJoinNiche}
+												disabled={!joinForm.username || !joinForm.niche}
+												className="flex-1"
+											>
+												Join Niche
+											</Button>
+										</div>
+									</div>
+								</Card>
+							</motion.div>
+						</motion.div>
+					</>
+				)}
+			</AnimatePresence>
 		</div>
 	);
 }
