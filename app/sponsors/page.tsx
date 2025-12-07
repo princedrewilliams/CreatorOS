@@ -123,39 +123,6 @@ export default function SponsorsPage() {
 
 		addSponsor(newDeal);
 
-		// Auto-generate invoice if enabled
-		if (autoInvoiceEnabled) {
-			setGeneratingInvoice(draft.brand);
-			try {
-				const response = await fetch("/api/automation/generate-invoice", {
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({
-						brandName: draft.brand,
-						dealAmount: amountValue,
-						deliverables: draft.type.split(",").map((d) => d.trim()),
-						dueDate: draft.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-						autoSend: false,
-					}),
-				});
-				const invoiceData = await response.json();
-				if (response.ok) {
-					console.log("Invoice generated:", invoiceData);
-					alert(`Invoice generated for ${draft.brand}!`);
-				}
-			} catch (error) {
-				console.error("Failed to generate invoice:", error);
-			} finally {
-				setGeneratingInvoice(null);
-			}
-		}
-
-		// Auto-create campaign timeline if enabled
-		if (autoTimelineEnabled) {
-			// This would create tasks in the content planner
-			console.log("Campaign timeline created for", draft.brand);
-		}
-
 		setDraft(initialDraft);
 		setIsFormOpen(false);
 		setError(null);
