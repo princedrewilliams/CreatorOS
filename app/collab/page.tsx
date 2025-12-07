@@ -6,6 +6,7 @@ import { ChatBubbleIcon, PersonIcon, VideoIcon, EnvelopeClosedIcon, PlusIcon, Cr
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
+import { NicheChat } from "@/components/NicheChat";
 
 const NICHE_CATEGORIES = [
 	{ id: "fitness", label: "Fitness", icon: "💪", color: "red" as const },
@@ -69,6 +70,8 @@ export default function CollabPage() {
 	const [creators, setCreators] = useState<Creator[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+	const [isChatOpen, setIsChatOpen] = useState(false);
+	const [chatNiche, setChatNiche] = useState<string | null>(null);
 	const [joinForm, setJoinForm] = useState({
 		username: user?.whop_username || "",
 		niche: "",
@@ -221,19 +224,37 @@ export default function CollabPage() {
 				</Heading>
 				<div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
 					{NICHE_CATEGORIES.map((niche) => (
-						<Button
-							key={niche.id}
-							variant={selectedNiche === niche.id ? "soft" : "ghost"}
-							color={selectedNiche === niche.id ? niche.color : "gray"}
-							size="3"
-							onClick={() => setSelectedNiche(selectedNiche === niche.id ? null : niche.id)}
-							className="flex flex-col items-center gap-2 h-auto py-4"
-						>
-							<Text size="5">{niche.icon}</Text>
-							<Text size="2" weight="medium">
-								{niche.label}
-							</Text>
-						</Button>
+						<div key={niche.id} className="flex flex-col items-center gap-2">
+							<Button
+								variant={selectedNiche === niche.id ? "soft" : "ghost"}
+								color={selectedNiche === niche.id ? niche.color : "gray"}
+								size="3"
+								onClick={() => setSelectedNiche(selectedNiche === niche.id ? null : niche.id)}
+								className="flex flex-col items-center gap-2 h-auto py-4 w-full"
+							>
+								<Text size="5">{niche.icon}</Text>
+								<Text size="2" weight="medium">
+									{niche.label}
+								</Text>
+							</Button>
+							<Button
+								variant="ghost"
+								color="purple"
+								size="1"
+								onClick={() => {
+									if (!user) {
+										router.push("/login?redirect=/collab");
+										return;
+									}
+									setChatNiche(niche.id);
+									setIsChatOpen(true);
+								}}
+								className="text-xs"
+							>
+								<ChatBubbleIcon className="w-3 h-3 mr-1" />
+								Chat
+							</Button>
+						</div>
 					))}
 				</div>
 			</Card>
@@ -652,6 +673,19 @@ export default function CollabPage() {
 					</>
 				)}
 			</AnimatePresence>
+
+			{/* Niche Chat */}
+			{chatNiche && (
+				<NicheChat
+					niche={chatNiche}
+					nicheLabel={NICHE_CATEGORIES.find((n) => n.id === chatNiche)?.label || chatNiche}
+					isOpen={isChatOpen}
+					onClose={() => {
+						setIsChatOpen(false);
+						setChatNiche(null);
+					}}
+				/>
+			)}
 		</div>
 	);
 }
