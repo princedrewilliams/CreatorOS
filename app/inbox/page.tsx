@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { Heading, Text, Card, Button, Badge } from "@whop/react/components";
 import {
 	ChatBubbleIcon,
@@ -43,7 +43,7 @@ interface FriendRequest {
 	profilePicture: string;
 }
 
-export default function InboxPage() {
+function InboxContent() {
 	const { user } = useAppStore();
 	const router = useRouter();
 	const searchParams = useSearchParams();
@@ -519,6 +519,25 @@ export default function InboxPage() {
 				</Card>
 			</div>
 		</div>
+	);
+}
+
+export default function InboxPage() {
+	return (
+		<Suspense fallback={
+			<div className="space-y-6 sm:space-y-8">
+				<div className="flex items-center gap-3 mb-4">
+					<BackButton href="/dashboard" />
+				</div>
+				<Card size="3" variant="surface" className="p-6">
+					<Text size="3" color="gray" className="text-center text-gray-11 dark:text-gray-11">
+						Loading inbox...
+					</Text>
+				</Card>
+			</div>
+		}>
+			<InboxContent />
+		</Suspense>
 	);
 }
 
