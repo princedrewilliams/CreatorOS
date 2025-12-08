@@ -284,13 +284,39 @@ export default function VideoDownloaderPage() {
 											variant="soft"
 											color="purple"
 											size="2"
-											asChild
+											onClick={async () => {
+												try {
+													const response = await fetch(clip.downloadUrl, {
+														method: "GET",
+													});
+													if (response.ok) {
+														const data = await response.json();
+														if (data.videoUrl) {
+															// Create a download link for the video
+															const a = document.createElement("a");
+															a.href = data.videoUrl;
+															a.download = `clip-${clip.id}.mp4`;
+															a.target = "_blank";
+															document.body.appendChild(a);
+															a.click();
+															document.body.removeChild(a);
+														} else {
+															// Fallback: open the URL directly
+															window.open(clip.downloadUrl, "_blank");
+														}
+													} else {
+														// Fallback: try opening as direct download
+														window.open(clip.downloadUrl, "_blank");
+													}
+												} catch (error) {
+													// Fallback: open URL directly
+													window.open(clip.downloadUrl, "_blank");
+												}
+											}}
 											className="w-full"
 										>
-											<a href={clip.downloadUrl} target="_blank" rel="noreferrer">
-												<DownloadIcon className="mr-2" />
-												Download Clip
-											</a>
+											<DownloadIcon className="mr-2" />
+											Download Clip
 										</Button>
 									)}
 								</Card>
