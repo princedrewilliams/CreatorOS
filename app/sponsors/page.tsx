@@ -2,7 +2,7 @@
 
 import { FormEvent, ReactNode, useMemo, useState, useEffect } from "react";
 import { Heading, Text, Card, Button, Badge } from "@whop/react/components";
-import { PlusIcon, FileTextIcon, SymbolIcon, TrashIcon, DownloadIcon, EnvelopeClosedIcon } from "@radix-ui/react-icons";
+import { PlusIcon, FileTextIcon, TrashIcon, DownloadIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAppStore, type SponsorDeal, type SponsorStatus } from "@/lib/store";
@@ -54,41 +54,6 @@ export default function SponsorsPage() {
 	const [generatingInvoice, setGeneratingInvoice] = useState<string | null>(null);
 	const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
 	const [selectedDeal, setSelectedDeal] = useState<SponsorDeal | null>(null);
-	const [stripeConnected, setStripeConnected] = useState(false);
-	const { user } = useAppStore();
-
-	// Check Stripe connection status and handle OAuth redirects
-	useEffect(() => {
-		const checkStripeConnection = async () => {
-			if (!user) return;
-			try {
-				const response = await fetch("/api/user/sync", {
-					credentials: "include",
-				});
-				const data = await response.json();
-				if (response.ok && data.success) {
-					setStripeConnected(data.stripeConnection?.connected || false);
-				}
-			} catch (err) {
-				console.error("Failed to check Stripe connection:", err);
-			}
-		};
-		checkStripeConnection();
-
-		// Handle OAuth redirect messages
-		const params = new URLSearchParams(window.location.search);
-		if (params.get("stripe_connected") === "true") {
-			setStripeConnected(true);
-			alert("Stripe account connected successfully!");
-			// Clean up URL
-			window.history.replaceState({}, "", "/sponsors");
-		} else if (params.get("error")) {
-			const error = params.get("error");
-			alert(`Stripe connection error: ${error}`);
-			// Clean up URL
-			window.history.replaceState({}, "", "/sponsors");
-		}
-	}, [user]);
 
 	const stats = useMemo(() => {
 		const totalRevenue = sponsors.reduce((sum, deal) => sum + deal.amount, 0);
@@ -350,77 +315,6 @@ export default function SponsorsPage() {
 				</Card>
 			)}
 
-			{/* Stripe Connection */}
-			<Card size="3" variant="surface" className="p-6 border-blue-a6 bg-blue-a2">
-				<div className="flex items-center justify-between mb-4">
-					<div className="flex items-center gap-2">
-						<SymbolIcon className="w-5 h-5 text-blue-11" />
-						<Heading size="5" as="h3" className="text-gray-12 dark:text-gray-12">
-							Stripe Account
-						</Heading>
-					</div>
-					{stripeConnected ? (
-						<Badge color="green" size="2" variant="soft">
-							Connected
-						</Badge>
-					) : (
-						<Badge color="gray" size="2" variant="soft">
-							Not Connected
-						</Badge>
-					)}
-				</div>
-				<Text size="2" color="gray" className="mb-4 text-gray-11 dark:text-gray-11">
-					Connect your Stripe account to create payment links for invoices. Payments will go directly to your Stripe account.
-				</Text>
-				{stripeConnected ? (
-					<div className="flex gap-3">
-						<Button
-							variant="soft"
-							color="green"
-							size="2"
-							disabled
-							className="flex-1"
-						>
-							Stripe Connected
-						</Button>
-						<Button
-							variant="ghost"
-							color="red"
-							size="2"
-							onClick={async () => {
-								try {
-									const response = await fetch("/api/auth/stripe/disconnect", {
-										method: "POST",
-										credentials: "include",
-									});
-									if (response.ok) {
-										setStripeConnected(false);
-										alert("Stripe account disconnected");
-									}
-								} catch (err) {
-									console.error("Failed to disconnect Stripe:", err);
-								}
-							}}
-						>
-							Disconnect
-						</Button>
-					</div>
-				) : (
-					<Button
-						variant="solid"
-						color="blue"
-						size="3"
-						onClick={() => {
-							window.location.href = "/api/auth/stripe";
-						}}
-						className="w-full"
-					>
-						<SymbolIcon className="mr-2" />
-						Connect Stripe Account
-					</Button>
-				)}
-			</Card>
-
 			{/* Generate Invoice */}
 			<Card size="3" variant="surface" className="p-6">
 				<div className="flex items-center justify-between">
@@ -455,7 +349,7 @@ export default function SponsorsPage() {
 				<Card size="3" variant="surface" className="p-6">
 					<div className="flex items-center gap-3">
 						<div className="w-12 h-12 rounded-lg bg-green-a2 dark:bg-green-a3 flex items-center justify-center">
-							<SymbolIcon className="w-6 h-6 text-green-11 dark:text-green-10" />
+							<FileTextIcon className="w-6 h-6 text-green-11 dark:text-green-10" />
 						</div>
 						<div>
 							<Text size="2" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
@@ -485,7 +379,7 @@ export default function SponsorsPage() {
 				<Card size="3" variant="surface" className="p-6">
 					<div className="flex items-center gap-3">
 						<div className="w-12 h-12 rounded-lg bg-amber-a2 dark:bg-amber-a3 flex items-center justify-center">
-							<SymbolIcon className="w-6 h-6 text-amber-11 dark:text-amber-10" />
+							<FileTextIcon className="w-6 h-6 text-amber-11 dark:text-amber-10" />
 						</div>
 						<div>
 							<Text size="2" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">

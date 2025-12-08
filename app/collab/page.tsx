@@ -20,6 +20,25 @@ const NICHE_CATEGORIES = [
 	{ id: "lifestyle", label: "Lifestyle", icon: "🌟", color: "amber" as const },
 ];
 
+// Validation functions for social media links
+function isValidYouTubeUrl(url: string): boolean {
+	if (!url) return true; // Empty is valid
+	const urlLower = url.toLowerCase();
+	return urlLower.includes("youtube.com") || urlLower.includes("youtu.be");
+}
+
+function isValidInstagramUrl(url: string): boolean {
+	if (!url) return true; // Empty is valid
+	const urlLower = url.toLowerCase();
+	return urlLower.includes("instagram.com") || urlLower.includes("instagr.am");
+}
+
+function isValidTikTokUrl(url: string): boolean {
+	if (!url) return true; // Empty is valid
+	const urlLower = url.toLowerCase();
+	return urlLower.includes("tiktok.com");
+}
+
 interface Creator {
 	id: string;
 	username: string;
@@ -35,36 +54,8 @@ interface Creator {
 	};
 }
 
-// Mock creators data - in production, this would come from a database
-const mockCreators: Creator[] = [
-	{
-		id: "1",
-		username: "FitnessGuru",
-		niche: "fitness",
-		followers: 125000,
-		highestViews: 2500000,
-		platforms: ["youtube", "instagram"],
-		socialLinks: {
-			youtube: "https://youtube.com/@fitnessguru",
-			instagram: "https://instagram.com/fitnessguru",
-		},
-	},
-	{
-		id: "2",
-		username: "ChefMaster",
-		niche: "cooking",
-		followers: 89000,
-		highestViews: 1800000,
-		platforms: ["youtube", "tiktok"],
-		socialLinks: {
-			youtube: "https://youtube.com/@chefmaster",
-			tiktok: "https://tiktok.com/@chefmaster",
-		},
-	},
-];
-
 export default function CollabPage() {
-	const { user, socialConnections } = useAppStore();
+	const { user, socialConnections, setUser } = useAppStore();
 	const router = useRouter();
 	const [selectedNiche, setSelectedNiche] = useState<string | null>(null);
 	const [selectedCreator, setSelectedCreator] = useState<Creator | null>(null);
@@ -74,6 +65,12 @@ export default function CollabPage() {
 	const [isChatOpen, setIsChatOpen] = useState(false);
 	const [chatNiche, setChatNiche] = useState<string | null>(null);
 	const [friendStatus, setFriendStatus] = useState<"friends" | "pending_outgoing" | "pending_incoming" | "not_friends" | "loading" | "self">("loading");
+	const [socialLinkErrors, setSocialLinkErrors] = useState({
+		youtube: "",
+		instagram: "",
+		tiktok: "",
+	});
+	const [userNiche, setUserNiche] = useState<string | null>(null);
 	const [joinForm, setJoinForm] = useState({
 		username: user?.whop_username || "",
 		niche: "",
@@ -84,7 +81,28 @@ export default function CollabPage() {
 		},
 	});
 
-	// Load creators from API
+	// Sync user data on mount to ensure it's loaded
+	useEffect(() => {
+		const syncUser = async () => {
+			try {
+				const response = await fetch("/api/auth/me", {
+					credentials: "include",
+				});
+				const data = await response.json();
+				if (data.success && data.user) {
+					setUser(data.user);
+				} else {
+					setUser(null);
+				}
+			} catch (err) {
+				console.error("Failed to sync user:", err);
+				// Don't clear user on error, keep existing state
+			}
+		};
+		syncUser();
+	}, [setUser]);
+
+	// Load creators from API and user's niche
 	useEffect(() => {
 		const loadCreators = async () => {
 			setLoading(true);
@@ -97,6 +115,16 @@ export default function CollabPage() {
 					const data = await response.json();
 					if (data.success) {
 						setCreators(data.creators || []);
+						// Check if user has a niche
+						if (user && data.currentUserProfile) {
+							setUserNiche(data.currentUserProfile.niche);
+						} else if (user) {
+							// Also check creators list for user's profile
+							const userProfile = data.creators?.find((c: Creator) => c.id === user.whop_user_id);
+							setUserNiche(userProfile?.niche || null);
+						} else {
+							setUserNiche(null);
+						}
 					}
 				}
 			} catch (err) {
@@ -107,7 +135,7 @@ export default function CollabPage() {
 		};
 
 		loadCreators();
-	}, [selectedNiche]);
+	}, [selectedNiche, user]);
 
 	// Update form when user changes
 	useEffect(() => {
@@ -159,6 +187,20 @@ export default function CollabPage() {
 			return;
 		}
 
+		// Validate social links before submitting
+		if (joinForm.socialLinks.youtube && !isValidYouTubeUrl(joinForm.socialLinks.youtube)) {
+			alert("Please enter a valid YouTube URL");
+			return;
+		}
+		if (joinForm.socialLinks.instagram && !isValidInstagramUrl(joinForm.socialLinks.instagram)) {
+			alert("Please enter a valid Instagram URL");
+			return;
+		}
+		if (joinForm.socialLinks.tiktok && !isValidTikTokUrl(joinForm.socialLinks.tiktok)) {
+			alert("Please enter a valid TikTok URL");
+			return;
+		}
+
 		try {
 			// Get stats from social connections
 			const connectedPlatforms = socialConnections
@@ -201,6 +243,9 @@ export default function CollabPage() {
 						const reloadData = await reloadResponse.json();
 						if (reloadData.success) {
 							setCreators(reloadData.creators || []);
+							if (reloadData.currentUserProfile) {
+								setUserNiche(reloadData.currentUserProfile.niche);
+							}
 						}
 					}
 				}
@@ -211,6 +256,42 @@ export default function CollabPage() {
 		} catch (err) {
 			console.error("Failed to join niche:", err);
 			alert("Failed to join niche");
+		}
+	};
+
+	const handleLeaveNiche = async () => {
+		if (!user) return;
+
+		if (!confirm("Are you sure you want to leave this niche? You will no longer be able to chat in it.")) {
+			return;
+		}
+
+		try {
+			const response = await fetch("/api/collab/creators", {
+				method: "DELETE",
+				credentials: "include",
+			});
+
+			if (response.ok) {
+				alert("Successfully left niche");
+				setUserNiche(null);
+				// Reload creators
+				const reloadResponse = await fetch(`/api/collab/creators${selectedNiche ? `?niche=${selectedNiche}` : ""}`, {
+					credentials: "include",
+				});
+				if (reloadResponse.ok) {
+					const reloadData = await reloadResponse.json();
+					if (reloadData.success) {
+						setCreators(reloadData.creators || []);
+					}
+				}
+			} else {
+				const error = await response.json();
+				alert(error.error || "Failed to leave niche");
+			}
+		} catch (err) {
+			console.error("Failed to leave niche:", err);
+			alert("Failed to leave niche");
 		}
 	};
 
@@ -230,15 +311,28 @@ export default function CollabPage() {
 					</Text>
 				</div>
 				{user ? (
-					<Button
-						variant="solid"
-						color="purple"
-						size="3"
-						onClick={() => setIsJoinModalOpen(true)}
-					>
-						<PlusIcon className="mr-2" />
-						Join Niche
-					</Button>
+					<div className="flex gap-2">
+						{userNiche ? (
+							<Button
+								variant="solid"
+								color="red"
+								size="3"
+								onClick={handleLeaveNiche}
+							>
+								Leave Niche
+							</Button>
+						) : (
+							<Button
+								variant="solid"
+								color="purple"
+								size="3"
+								onClick={() => setIsJoinModalOpen(true)}
+							>
+								<PlusIcon className="mr-2" />
+								Join Niche
+							</Button>
+						)}
+					</div>
 				) : (
 					<Button
 						variant="solid"
@@ -275,14 +369,20 @@ export default function CollabPage() {
 								variant="ghost"
 								color="purple"
 								size="1"
-								onClick={() => {
-									if (!user) {
-										router.push("/login?redirect=/collab");
-										return;
-									}
-									setChatNiche(niche.id);
-									setIsChatOpen(true);
-								}}
+							onClick={() => {
+								if (!user) {
+									router.push("/login?redirect=/collab");
+									return;
+								}
+								// Check if user has joined this niche
+								if (userNiche !== niche.id) {
+									alert("You must join this niche to chat in it");
+									return;
+								}
+								setChatNiche(niche.id);
+								setIsChatOpen(true);
+							}}
+							disabled={user ? userNiche !== niche.id : false}
 								className="text-xs"
 							>
 								<ChatBubbleIcon className="w-3 h-3 mr-1" />
@@ -646,7 +746,7 @@ export default function CollabPage() {
 											disabled={friendStatus === "loading"}
 										>
 											<PlusIcon className="mr-2" />
-											Send Friend Request
+											Add Friend
 										</Button>
 									)}
 									<Button
@@ -740,15 +840,28 @@ export default function CollabPage() {
 													<input
 														type="url"
 														value={joinForm.socialLinks.youtube}
-														onChange={(e) =>
+														onChange={(e) => {
+															const value = e.target.value;
+															if (value && !isValidYouTubeUrl(value)) {
+																setSocialLinkErrors(prev => ({ ...prev, youtube: "Please enter a valid YouTube URL" }));
+															} else {
+																setSocialLinkErrors(prev => ({ ...prev, youtube: "" }));
+															}
 															setJoinForm({
 																...joinForm,
-																socialLinks: { ...joinForm.socialLinks, youtube: e.target.value },
-															})
-														}
+																socialLinks: { ...joinForm.socialLinks, youtube: value },
+															});
+														}}
 														placeholder="https://youtube.com/@yourchannel"
-														className="w-full px-3 py-2 border border-gray-a6 dark:border-gray-a7 rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12"
+														className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12 ${
+															socialLinkErrors.youtube ? "border-red-9 dark:border-red-9" : "border-gray-a6 dark:border-gray-a7"
+														}`}
 													/>
+													{socialLinkErrors.youtube && (
+														<Text size="1" className="text-red-11 mt-1">
+															{socialLinkErrors.youtube}
+														</Text>
+													)}
 												</div>
 												<div>
 													<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
@@ -757,15 +870,28 @@ export default function CollabPage() {
 													<input
 														type="url"
 														value={joinForm.socialLinks.instagram}
-														onChange={(e) =>
+														onChange={(e) => {
+															const value = e.target.value;
+															if (value && !isValidInstagramUrl(value)) {
+																setSocialLinkErrors(prev => ({ ...prev, instagram: "Please enter a valid Instagram URL" }));
+															} else {
+																setSocialLinkErrors(prev => ({ ...prev, instagram: "" }));
+															}
 															setJoinForm({
 																...joinForm,
-																socialLinks: { ...joinForm.socialLinks, instagram: e.target.value },
-															})
-														}
+																socialLinks: { ...joinForm.socialLinks, instagram: value },
+															});
+														}}
 														placeholder="https://instagram.com/yourhandle"
-														className="w-full px-3 py-2 border border-gray-a6 dark:border-gray-a7 rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12"
+														className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12 ${
+															socialLinkErrors.instagram ? "border-red-9 dark:border-red-9" : "border-gray-a6 dark:border-gray-a7"
+														}`}
 													/>
+													{socialLinkErrors.instagram && (
+														<Text size="1" className="text-red-11 mt-1">
+															{socialLinkErrors.instagram}
+														</Text>
+													)}
 												</div>
 												<div>
 													<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
@@ -774,15 +900,28 @@ export default function CollabPage() {
 													<input
 														type="url"
 														value={joinForm.socialLinks.tiktok}
-														onChange={(e) =>
+														onChange={(e) => {
+															const value = e.target.value;
+															if (value && !isValidTikTokUrl(value)) {
+																setSocialLinkErrors(prev => ({ ...prev, tiktok: "Please enter a valid TikTok URL" }));
+															} else {
+																setSocialLinkErrors(prev => ({ ...prev, tiktok: "" }));
+															}
 															setJoinForm({
 																...joinForm,
-																socialLinks: { ...joinForm.socialLinks, tiktok: e.target.value },
-															})
-														}
+																socialLinks: { ...joinForm.socialLinks, tiktok: value },
+															});
+														}}
 														placeholder="https://tiktok.com/@yourhandle"
-														className="w-full px-3 py-2 border border-gray-a6 dark:border-gray-a7 rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12"
+														className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12 ${
+															socialLinkErrors.tiktok ? "border-red-9 dark:border-red-9" : "border-gray-a6 dark:border-gray-a7"
+														}`}
 													/>
+													{socialLinkErrors.tiktok && (
+														<Text size="1" className="text-red-11 mt-1">
+															{socialLinkErrors.tiktok}
+														</Text>
+													)}
 												</div>
 											</div>
 										</div>

@@ -62,6 +62,7 @@ interface AppState {
 	addTask: (task: Omit<Task, "id" | "createdAt" | "updatedAt">) => void;
 	updateTask: (id: string, updates: Partial<Task>) => void;
 	deleteTask: (id: string) => void;
+	clearAllTasks: () => void;
 	getTasksByDate: (date: string) => Task[];
 	socialConnections: SocialConnection[];
 	setSocialConnection: (connection: SocialConnection) => void;
@@ -86,7 +87,7 @@ export const useAppStore = create<AppState>()(
 				set((state) => {
 					const newTask: Task = {
 						...task,
-						id: Date.now().toString(),
+						id: generateId(),
 						createdAt: new Date().toISOString(),
 						updatedAt: new Date().toISOString(),
 					};
@@ -104,6 +105,8 @@ export const useAppStore = create<AppState>()(
 				set((state) => ({
 					tasks: state.tasks.filter((task) => task.id !== id),
 				})),
+			clearAllTasks: () =>
+				set({ tasks: [] }),
             getTasksByDate: (date) => get().tasks.filter((task) => task.date === date),
 			socialConnections: [
 				{ platform: "youtube", connected: false },

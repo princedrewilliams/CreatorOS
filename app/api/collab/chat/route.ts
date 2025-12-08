@@ -71,6 +71,20 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
+		// Check if user has joined this niche
+		const { userProfiles } = await import("@/app/api/user/profile/route");
+		const { creatorProfiles } = await import("@/app/api/collab/creators/route");
+		const userProfile = userProfiles.get(user.whop_user_id);
+		const creatorProfile = creatorProfiles.get(user.whop_user_id);
+		const userNiche = creatorProfile?.niche || userProfile?.niche;
+
+		if (!userNiche || userNiche !== niche) {
+			return NextResponse.json(
+				{ error: "You must join this niche to chat" },
+				{ status: 403 }
+			);
+		}
+
 		// Get existing messages for this niche
 		const messages = nicheChats.get(niche) || [];
 

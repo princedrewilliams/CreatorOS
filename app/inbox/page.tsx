@@ -44,7 +44,7 @@ interface FriendRequest {
 }
 
 function InboxContent() {
-	const { user } = useAppStore();
+	const { user, setUser } = useAppStore();
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const [activeTab, setActiveTab] = useState<"conversations" | "requests">("conversations");
@@ -58,6 +58,27 @@ function InboxContent() {
 	const [sending, setSending] = useState(false);
 	const [loading, setLoading] = useState(true);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
+
+	// Sync user data on mount to ensure it's loaded
+	useEffect(() => {
+		const syncUser = async () => {
+			try {
+				const response = await fetch("/api/auth/me", {
+					credentials: "include",
+				});
+				const data = await response.json();
+				if (data.success && data.user) {
+					setUser(data.user);
+				} else {
+					setUser(null);
+				}
+			} catch (err) {
+				console.error("Failed to sync user:", err);
+				// Don't clear user on error, keep existing state
+			}
+		};
+		syncUser();
+	}, [setUser]);
 
 	// Load conversations and friend requests
 	useEffect(() => {

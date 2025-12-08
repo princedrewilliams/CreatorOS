@@ -5,12 +5,8 @@ import { Heading, Text, Card, Button, Badge, Separator } from "@whop/react/compo
 import {
 	DownloadIcon,
 	Link2Icon,
-	LightningBoltIcon,
 	CheckIcon,
-	EnvelopeClosedIcon,
 	VideoIcon,
-	FileTextIcon,
-	BarChartIcon,
 } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { BackButton } from "@/components/BackButton";
@@ -72,11 +68,10 @@ const initialResults: Record<PlatformId, DownloadResult> = {
 export default function VideoDownloaderPage() {
 	const [links, setLinks] = useState(initialFormValues);
 	const [results, setResults] = useState(initialResults);
-	const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
-	const [autoRepurposeEnabled, setAutoRepurposeEnabled] = useState(false);
-	const [autoInsightsEnabled, setAutoInsightsEnabled] = useState(true);
-	const [insights, setInsights] = useState<any>(null);
-	const [processing, setProcessing] = useState(false);
+	const [repurposeUrl, setRepurposeUrl] = useState("");
+	const [clipCount, setClipCount] = useState(5);
+	const [repurposing, setRepurposing] = useState(false);
+	const [repurposeClips, setRepurposeClips] = useState<any[]>([]);
 
 	const handleChange = (platform: PlatformId, value: string) => {
 		setLinks((prev) => ({ ...prev, [platform]: value }));
@@ -130,106 +125,6 @@ export default function VideoDownloaderPage() {
 					formatInfo: data.formatInfo,
 				},
 			}));
-
-			// Auto-save to content library
-			if (autoSaveEnabled && data.downloadUrl) {
-				setProcessing(true);
-				try {
-					// Get video insights for metadata
-					let title = `Video from ${platform}`;
-					let description = "";
-					let hashtags: string[] = [];
-					let ideas: string[] = [];
-
-					// Try to get insights if enabled
-					if (autoInsightsEnabled) {
-						try {
-							const insightsResponse = await fetch("/api/automation/video-insights", {
-								method: "POST",
-								headers: { "Content-Type": "application/json" },
-								body: JSON.stringify({ videoUrl: data.downloadUrl }),
-							});
-							const insightsData = await insightsResponse.json();
-							if (insightsResponse.ok && insightsData.insights) {
-								title = insightsData.insights.keywords?.[0] 
-									? `${insightsData.insights.keywords[0]} Video` 
-									: title;
-								hashtags = insightsData.insights.keywords || [];
-								ideas = insightsData.insights.similarIdeas || [];
-							}
-						} catch (insightsError) {
-							console.error("Failed to get insights for library:", insightsError);
-						}
-					}
-
-					// Save to library
-					const saveResponse = await fetch("/api/library/save", {
-						method: "POST",
-						headers: { "Content-Type": "application/json" },
-						body: JSON.stringify({
-							videoUrl: data.downloadUrl,
-							platform: platform,
-							title,
-							description,
-							hashtags,
-							ideas,
-							metadata: {
-								format: data.formatInfo?.mime || "video/mp4",
-							},
-						}),
-					});
-
-					if (saveResponse.ok) {
-						console.log("Video saved to content library");
-					} else {
-						console.error("Failed to save to library");
-					}
-				} catch (error) {
-					console.error("Failed to save to library:", error);
-				} finally {
-					setProcessing(false);
-				}
-			}
-
-			// Auto-repurpose if enabled
-			if (autoRepurposeEnabled && data.downloadUrl) {
-				setProcessing(true);
-				try {
-					const repurposeResponse = await fetch("/api/automation/auto-repurpose", {
-						method: "POST",
-						body: JSON.stringify({ videoUrl: data.downloadUrl, clipCount: 5 }),
-						headers: { "Content-Type": "application/json" },
-					});
-					const repurposeData = await repurposeResponse.json();
-					if (repurposeResponse.ok) {
-						console.log("Video repurposed:", repurposeData);
-					}
-				} catch (error) {
-					console.error("Failed to repurpose:", error);
-				} finally {
-					setProcessing(false);
-				}
-			}
-
-			// Auto-insights if enabled
-			if (autoInsightsEnabled && data.downloadUrl) {
-				setProcessing(true);
-				try {
-					const insightsResponse = await fetch("/api/automation/video-insights", {
-						method: "POST",
-						body: JSON.stringify({ videoUrl: data.downloadUrl }),
-						headers: { "Content-Type": "application/json" },
-					});
-					const insightsData = await insightsResponse.json();
-					if (insightsResponse.ok) {
-						setInsights(insightsData.insights);
-					}
-				} catch (error) {
-					console.error("Failed to get insights:", error);
-				} finally {
-					setProcessing(false);
-				}
-			}
 		} catch (error) {
 			setResults((prev) => ({
 				...prev,
@@ -241,6 +136,58 @@ export default function VideoDownloaderPage() {
 							: "Something went wrong while preparing the download.",
 				},
 			}));
+		}
+	};
+
+	const handleRepurpose = async () => {
+		if (!repurposeUrl.trim()) {
+			alert("Please paste a social media link");
+			return;
+		}
+
+		setRepurposing(true);
+		setRepurposeClips([]);
+
+		try {
+			// First, download the video to get the URL
+			const downloadResponse = await fetch("/api/video-downloader", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ 
+					url: repurposeUrl.trim(),
+					platform: repurposeUrl.includes("tiktok") ? "tiktok" : 
+						repurposeUrl.includes("instagram") ? "instagram" : 
+						repurposeUrl.includes("youtube") ? "youtube" : "tiktok"
+				}),
+			});
+
+			const downloadData = await downloadResponse.json();
+			if (!downloadResponse.ok || !downloadData.downloadUrl) {
+				throw new Error(downloadData.error || "Failed to download video");
+			}
+
+			// Now repurpose it
+			const repurposeResponse = await fetch("/api/automation/auto-repurpose", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ 
+					videoUrl: downloadData.downloadUrl, 
+					clipCount: clipCount 
+				}),
+			});
+
+			const repurposeData = await repurposeResponse.json();
+			if (!repurposeResponse.ok) {
+				throw new Error(repurposeData.error || "Failed to repurpose video");
+			}
+
+			setRepurposeClips(repurposeData.clips || []);
+			alert(`Successfully created ${repurposeData.clips?.length || 0} clips!`);
+		} catch (error) {
+			console.error("Failed to repurpose:", error);
+			alert(error instanceof Error ? error.message : "Failed to repurpose video");
+		} finally {
+			setRepurposing(false);
 		}
 	};
 
@@ -260,143 +207,98 @@ export default function VideoDownloaderPage() {
 				</div>
 			</div>
 
-			{/* Automation Features */}
+			{/* Repurpose Video */}
 			<Card size="3" variant="surface" className="p-6">
 				<div className="flex items-center gap-2 mb-4">
-					<LightningBoltIcon className="w-5 h-5 text-purple-9" />
+					<VideoIcon className="w-5 h-5 text-purple-9" />
 					<Heading size="5" as="h2" className="text-gray-12 dark:text-gray-12">
-						Automation Features
+						Repurpose Video
 					</Heading>
 				</div>
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-					<Card size="2" variant="surface" className="p-4">
-						<div className="flex items-start justify-between mb-3">
-							<div className="flex-1">
-								<div className="flex items-center gap-2 mb-2">
-									<FileTextIcon className="w-4 h-4 text-purple-9" />
-									<Text size="3" weight="medium" className="text-gray-12 dark:text-gray-12">
-										Auto-Save to Library
-									</Text>
-								</div>
-								<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
-									Automatically save downloaded videos to your content library with extracted metadata
-								</Text>
-							</div>
-						</div>
-						<Button
-							variant={autoSaveEnabled ? "soft" : "ghost"}
-							color={autoSaveEnabled ? "green" : "gray"}
-							size="2"
-							onClick={() => setAutoSaveEnabled(!autoSaveEnabled)}
-							className="w-full"
-						>
-							{autoSaveEnabled ? "Enabled" : "Enable"}
-						</Button>
-					</Card>
-					<Card size="2" variant="surface" className="p-4">
-						<div className="flex items-start justify-between mb-3">
-							<div className="flex-1">
-								<div className="flex items-center gap-2 mb-2">
-									<VideoIcon className="w-4 h-4 text-purple-9" />
-									<Text size="3" weight="medium" className="text-gray-12 dark:text-gray-12">
-										Auto-Repurpose
-									</Text>
-								</div>
-								<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
-									Auto-crop, auto-caption, and create 2-5 short clips automatically
-								</Text>
-							</div>
-						</div>
-						<Button
-							variant={autoRepurposeEnabled ? "soft" : "ghost"}
-							color={autoRepurposeEnabled ? "green" : "gray"}
-							size="2"
-							onClick={() => setAutoRepurposeEnabled(!autoRepurposeEnabled)}
-							className="w-full"
-						>
-							{autoRepurposeEnabled ? "Enabled" : "Enable"}
-						</Button>
-					</Card>
-					<Card size="2" variant="surface" className="p-4">
-						<div className="flex items-start justify-between mb-3">
-							<div className="flex-1">
-								<div className="flex items-center gap-2 mb-2">
-									<BarChartIcon className="w-4 h-4 text-purple-9" />
-									<Text size="3" weight="medium" className="text-gray-12 dark:text-gray-12">
-										Auto-Insights
-									</Text>
-								</div>
-								<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
-									Analyze hook strength, keywords, virality score, and generate similar ideas
-								</Text>
-							</div>
-						</div>
-						<Button
-							variant={autoInsightsEnabled ? "soft" : "ghost"}
-							color={autoInsightsEnabled ? "green" : "gray"}
-							size="2"
-							onClick={() => setAutoInsightsEnabled(!autoInsightsEnabled)}
-							className="w-full"
-						>
-							{autoInsightsEnabled ? "Enabled" : "Enable"}
-						</Button>
-					</Card>
-				</div>
-			</Card>
-
-			{/* Video Insights */}
-			{insights && (
-				<Card size="3" variant="surface" className="p-6">
-					<Heading size="5" as="h3" className="mb-4 text-gray-12 dark:text-gray-12">
-						Video Insights
-					</Heading>
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-						<Card size="2" variant="surface" className="p-4">
-							<Text size="2" weight="medium" className="mb-2 text-gray-11 dark:text-gray-11">
-								Hook Strength
-							</Text>
-							<Text size="4" weight="bold" className="text-gray-12 dark:text-gray-12">
-								{insights.hookStrength}/10
-							</Text>
-							<Text size="2" color="gray" className="mt-1 text-gray-11 dark:text-gray-11">
-								{insights.hookAnalysis}
-							</Text>
-						</Card>
-						<Card size="2" variant="surface" className="p-4">
-							<Text size="2" weight="medium" className="mb-2 text-gray-11 dark:text-gray-11">
-								Virality Score
-							</Text>
-							<Text size="4" weight="bold" className="text-gray-12 dark:text-gray-12">
-								{insights.viralityScore}/10
-							</Text>
-						</Card>
-						<Card size="2" variant="surface" className="p-4">
-							<Text size="2" weight="medium" className="mb-2 text-gray-11 dark:text-gray-11">
-								Keywords
-							</Text>
-							<div className="flex flex-wrap gap-1">
-								{insights.keywords?.map((kw: string) => (
-									<Badge key={kw} color="blue" size="1" variant="soft">
-										{kw}
-									</Badge>
-								))}
-							</div>
-						</Card>
-						<Card size="2" variant="surface" className="p-4">
-							<Text size="2" weight="medium" className="mb-2 text-gray-11 dark:text-gray-11">
-								Similar Ideas
-							</Text>
-							<ul className="space-y-1">
-								{insights.similarIdeas?.map((idea: string) => (
-									<li key={idea} className="text-sm text-gray-11 dark:text-gray-11">
-										• {idea}
-									</li>
-								))}
-							</ul>
-						</Card>
+				<div className="space-y-4">
+					<div>
+						<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
+							Social Media Link
+						</Text>
+						<input
+							type="url"
+							value={repurposeUrl}
+							onChange={(e) => setRepurposeUrl(e.target.value)}
+							placeholder="https://www.tiktok.com/@creator/video/123456789 or https://www.instagram.com/reel/ABC1234/ or https://www.youtube.com/shorts/xyz9876"
+							className="w-full rounded-lg border border-gray-a5 dark:border-gray-a6 bg-white dark:bg-gray-a3 px-3 py-2 text-sm text-gray-12 dark:text-gray-12 focus:outline-none focus:ring-2 focus:ring-purple-9"
+						/>
 					</div>
-				</Card>
-			)}
+					<div>
+						<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
+							Number of Clips (3-7)
+						</Text>
+						<input
+							type="number"
+							min="3"
+							max="7"
+							value={clipCount}
+							onChange={(e) => setClipCount(Math.min(7, Math.max(3, parseInt(e.target.value) || 5)))}
+							className="w-full rounded-lg border border-gray-a5 dark:border-gray-a6 bg-white dark:bg-gray-a3 px-3 py-2 text-sm text-gray-12 dark:text-gray-12 focus:outline-none focus:ring-2 focus:ring-purple-9"
+						/>
+					</div>
+					<Button
+						color="purple"
+						size="3"
+						variant="solid"
+						disabled={repurposing}
+						onClick={handleRepurpose}
+						className="w-full"
+					>
+						{repurposing ? (
+							<>
+								<span className="w-4 h-4 border-2 border-purple-11 border-t-transparent rounded-full animate-spin mr-2" />
+								Repurposing video...
+							</>
+						) : (
+							<>
+								<VideoIcon className="mr-2" />
+								Repurpose into {clipCount} clips
+							</>
+						)}
+					</Button>
+				</div>
+				{repurposeClips.length > 0 && (
+					<div className="mt-6 space-y-4">
+						<Heading size="5" as="h3" className="text-gray-12 dark:text-gray-12">
+							Generated Clips ({repurposeClips.length})
+						</Heading>
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+							{repurposeClips.map((clip: any) => (
+								<Card key={clip.id} size="2" variant="surface" className="p-4">
+									<Text size="3" weight="medium" className="mb-2 text-gray-12 dark:text-gray-12">
+										{clip.title}
+									</Text>
+									<Text size="2" color="gray" className="mb-3 text-gray-11 dark:text-gray-11 line-clamp-2">
+										{clip.caption}
+									</Text>
+									<div className="flex items-center justify-between text-xs text-gray-11 dark:text-gray-11 mb-3">
+										<span>{clip.startTime.toFixed(1)}s - {clip.endTime.toFixed(1)}s</span>
+									</div>
+									{clip.downloadUrl && (
+										<Button
+											variant="soft"
+											color="purple"
+											size="2"
+											asChild
+											className="w-full"
+										>
+											<a href={clip.downloadUrl} target="_blank" rel="noreferrer">
+												<DownloadIcon className="mr-2" />
+												Download Clip
+											</a>
+										</Button>
+									)}
+								</Card>
+							))}
+						</div>
+					</div>
+				)}
+			</Card>
 
 			<Card size="3" variant="surface" className="p-6 border border-blue-a4/40 dark:border-blue-a5/40 bg-blue-a2/20 dark:bg-blue-a3/20">
 				<div className="flex flex-wrap gap-4 items-start">
@@ -506,21 +408,6 @@ export default function VideoDownloaderPage() {
 				})}
 			</div>
 
-			<Card size="2" variant="surface" className="p-6 flex flex-col gap-3">
-				<div className="flex items-center gap-3">
-					<EnvelopeClosedIcon className="w-6 h-6 text-gray-11 dark:text-gray-10" />
-					<Heading size="4" className="text-gray-12 dark:text-gray-12">
-						Need higher volume downloads?
-					</Heading>
-				</div>
-				<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11">
-					We can enable automated ingestion and clip generation for premium plans. Reach out and we’ll schedule a quick
-					call to scope your workflow.
-				</Text>
-				<Button color="blue" size="2" variant="soft" asChild>
-					<a href="mailto:support@creatoros.com?subject=Video%20Downloader%20Upgrade">Contact support</a>
-				</Button>
-			</Card>
 		</div>
 	);
 }

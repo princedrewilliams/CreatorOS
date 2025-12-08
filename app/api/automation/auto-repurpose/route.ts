@@ -12,14 +12,13 @@ interface Clip {
 
 export async function POST(request: NextRequest) {
 	try {
-		const formData = await request.formData();
-		const video = formData.get("video") as File;
-		const videoUrl = formData.get("videoUrl") as string;
-		const clipCount = parseInt(formData.get("clipCount") as string) || 5;
+		const body = await request.json();
+		const videoUrl = body.videoUrl as string;
+		const clipCount = Math.min(7, Math.max(3, parseInt(body.clipCount as string) || 5));
 
-		if (!video && !videoUrl) {
+		if (!videoUrl) {
 			return NextResponse.json(
-				{ error: "Video file or URL is required" },
+				{ error: "Video URL is required" },
 				{ status: 400 }
 			);
 		}
@@ -43,7 +42,15 @@ export async function POST(request: NextRequest) {
 		// 7. Return clip metadata
 
 		// Simulate clip generation
-		const videoDuration = video ? 600 : 300; // Estimate duration
+		// In production, this would:
+		// 1. Download video from videoUrl
+		// 2. Use AI to detect key moments (high engagement, hooks, transitions)
+		// 3. Use FFmpeg to extract clips at those moments
+		// 4. Auto-add captions using speech-to-text
+		// 5. Generate title text overlays
+		// 6. Return clip metadata with download URLs
+		
+		const videoDuration = 300; // Estimate duration (in production, get actual duration)
 		const clipDuration = 15; // 15 seconds per clip
 		const clips: Clip[] = [];
 
@@ -57,7 +64,7 @@ export async function POST(request: NextRequest) {
 				endTime,
 				title: `Key Moment ${i + 1}`,
 				caption: `Check out this amazing moment from the full video! 🔥\n\nWatch the full video for more!\n\n#shorts #viral #trending`,
-				downloadUrl: videoUrl || `/api/download-clip?clipId=clip-${i + 1}&start=${startTime}&end=${endTime}`,
+				downloadUrl: `/api/download-clip?clipId=clip-${i + 1}&start=${startTime}&end=${endTime}&source=${encodeURIComponent(videoUrl)}`,
 			});
 		}
 
@@ -66,12 +73,7 @@ export async function POST(request: NextRequest) {
 
 		return NextResponse.json({
 			success: true,
-			originalVideo: {
-				name: video?.name || "Video from URL",
-				size: video?.size || 0,
-			},
 			clips,
-			scheduled: true, // Auto-scheduled to content calendar
 		});
 	} catch (error) {
 		console.error("[Auto Repurpose] Error:", error);

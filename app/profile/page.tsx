@@ -19,10 +19,34 @@ const NICHE_CATEGORIES = [
 	{ id: "lifestyle", label: "Lifestyle", icon: "🌟", color: "amber" as const },
 ];
 
+// Validation functions for social media links
+function isValidYouTubeUrl(url: string): boolean {
+	if (!url) return true; // Empty is valid
+	const urlLower = url.toLowerCase();
+	return urlLower.includes("youtube.com") || urlLower.includes("youtu.be");
+}
+
+function isValidInstagramUrl(url: string): boolean {
+	if (!url) return true; // Empty is valid
+	const urlLower = url.toLowerCase();
+	return urlLower.includes("instagram.com") || urlLower.includes("instagr.am");
+}
+
+function isValidTikTokUrl(url: string): boolean {
+	if (!url) return true; // Empty is valid
+	const urlLower = url.toLowerCase();
+	return urlLower.includes("tiktok.com");
+}
+
 export default function ProfilePage() {
 	const { user, socialConnections } = useAppStore();
 	const router = useRouter();
 	const [isEditing, setIsEditing] = useState(false);
+	const [socialLinkErrors, setSocialLinkErrors] = useState({
+		youtube: "",
+		instagram: "",
+		tiktok: "",
+	});
 	const [profile, setProfile] = useState({
 		username: user?.whop_username || "",
 		niche: "",
@@ -71,6 +95,20 @@ export default function ProfilePage() {
 	}, [user, router]);
 
 	const handleSave = async () => {
+		// Validate social links before saving
+		if (profile.socialLinks.youtube && !isValidYouTubeUrl(profile.socialLinks.youtube)) {
+			alert("Please enter a valid YouTube URL");
+			return;
+		}
+		if (profile.socialLinks.instagram && !isValidInstagramUrl(profile.socialLinks.instagram)) {
+			alert("Please enter a valid Instagram URL");
+			return;
+		}
+		if (profile.socialLinks.tiktok && !isValidTikTokUrl(profile.socialLinks.tiktok)) {
+			alert("Please enter a valid TikTok URL");
+			return;
+		}
+
 		try {
 			const response = await fetch("/api/user/profile", {
 				method: "POST",
@@ -90,6 +128,7 @@ export default function ProfilePage() {
 					});
 				}
 				setIsEditing(false);
+				setSocialLinkErrors({ youtube: "", instagram: "", tiktok: "" });
 				alert("Profile updated successfully!");
 			} else {
 				alert("Failed to update profile");
@@ -318,15 +357,28 @@ export default function ProfilePage() {
 									<input
 										type="url"
 										value={profile.socialLinks.youtube}
-										onChange={(e) =>
+										onChange={(e) => {
+											const value = e.target.value;
+											if (value && !isValidYouTubeUrl(value)) {
+												setSocialLinkErrors(prev => ({ ...prev, youtube: "Please enter a valid YouTube URL" }));
+											} else {
+												setSocialLinkErrors(prev => ({ ...prev, youtube: "" }));
+											}
 											setProfile({
 												...profile,
-												socialLinks: { ...profile.socialLinks, youtube: e.target.value },
-											})
-										}
+												socialLinks: { ...profile.socialLinks, youtube: value },
+											});
+										}}
 										placeholder="https://youtube.com/@yourchannel"
-										className="w-full px-3 py-2 border border-gray-a6 dark:border-gray-a7 rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12"
+										className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12 ${
+											socialLinkErrors.youtube ? "border-red-9 dark:border-red-9" : "border-gray-a6 dark:border-gray-a7"
+										}`}
 									/>
+									{socialLinkErrors.youtube && (
+										<Text size="1" className="text-red-11 mt-1">
+											{socialLinkErrors.youtube}
+										</Text>
+									)}
 								</div>
 								<div>
 									<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
@@ -335,15 +387,28 @@ export default function ProfilePage() {
 									<input
 										type="url"
 										value={profile.socialLinks.instagram}
-										onChange={(e) =>
+										onChange={(e) => {
+											const value = e.target.value;
+											if (value && !isValidInstagramUrl(value)) {
+												setSocialLinkErrors(prev => ({ ...prev, instagram: "Please enter a valid Instagram URL" }));
+											} else {
+												setSocialLinkErrors(prev => ({ ...prev, instagram: "" }));
+											}
 											setProfile({
 												...profile,
-												socialLinks: { ...profile.socialLinks, instagram: e.target.value },
-											})
-										}
+												socialLinks: { ...profile.socialLinks, instagram: value },
+											});
+										}}
 										placeholder="https://instagram.com/yourhandle"
-										className="w-full px-3 py-2 border border-gray-a6 dark:border-gray-a7 rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12"
+										className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12 ${
+											socialLinkErrors.instagram ? "border-red-9 dark:border-red-9" : "border-gray-a6 dark:border-gray-a7"
+										}`}
 									/>
+									{socialLinkErrors.instagram && (
+										<Text size="1" className="text-red-11 mt-1">
+											{socialLinkErrors.instagram}
+										</Text>
+									)}
 								</div>
 								<div>
 									<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
@@ -352,15 +417,28 @@ export default function ProfilePage() {
 									<input
 										type="url"
 										value={profile.socialLinks.tiktok}
-										onChange={(e) =>
+										onChange={(e) => {
+											const value = e.target.value;
+											if (value && !isValidTikTokUrl(value)) {
+												setSocialLinkErrors(prev => ({ ...prev, tiktok: "Please enter a valid TikTok URL" }));
+											} else {
+												setSocialLinkErrors(prev => ({ ...prev, tiktok: "" }));
+											}
 											setProfile({
 												...profile,
-												socialLinks: { ...profile.socialLinks, tiktok: e.target.value },
-											})
-										}
+												socialLinks: { ...profile.socialLinks, tiktok: value },
+											});
+										}}
 										placeholder="https://tiktok.com/@yourhandle"
-										className="w-full px-3 py-2 border border-gray-a6 dark:border-gray-a7 rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12"
+										className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12 ${
+											socialLinkErrors.tiktok ? "border-red-9 dark:border-red-9" : "border-gray-a6 dark:border-gray-a7"
+										}`}
 									/>
+									{socialLinkErrors.tiktok && (
+										<Text size="1" className="text-red-11 mt-1">
+											{socialLinkErrors.tiktok}
+										</Text>
+									)}
 								</div>
 							</>
 						) : (

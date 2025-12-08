@@ -26,6 +26,8 @@ export interface InvoiceFormData {
 	deliverables: string[];
 	description?: string;
 	template?: InvoiceTemplate;
+	paymentLink?: string;
+	logoUrl?: string;
 }
 
 export function InvoiceModal({ isOpen, onClose, onGenerate, initialData }: InvoiceModalProps) {
@@ -36,10 +38,14 @@ export function InvoiceModal({ isOpen, onClose, onGenerate, initialData }: Invoi
 		deliverables: initialData?.deliverables || [],
 		description: "",
 		template: "modern",
+		paymentLink: "",
+		logoUrl: "",
 	});
 	const [deliverableInput, setDeliverableInput] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [logoFile, setLogoFile] = useState<File | null>(null);
+	const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
 	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault();
@@ -81,6 +87,28 @@ export function InvoiceModal({ isOpen, onClose, onGenerate, initialData }: Invoi
 			...prev,
 			deliverables: prev.deliverables.filter((_, i) => i !== index),
 		}));
+	};
+
+	const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if (file) {
+			if (file.size > 5 * 1024 * 1024) {
+				setError("Logo file must be less than 5MB");
+				return;
+			}
+			if (!file.type.startsWith("image/")) {
+				setError("Logo must be an image file");
+				return;
+			}
+			setLogoFile(file);
+			const reader = new FileReader();
+			reader.onloadend = () => {
+				const base64 = reader.result as string;
+				setLogoPreview(base64);
+				setFormData((prev) => ({ ...prev, logoUrl: base64 }));
+			};
+			reader.readAsDataURL(file);
+		}
 	};
 
 	if (!isOpen) return null;
@@ -163,7 +191,7 @@ export function InvoiceModal({ isOpen, onClose, onGenerate, initialData }: Invoi
 
 								<div>
 									<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
-										Invoice Template
+										Invoice Template <span className="text-red-11">*</span>
 									</Text>
 									<div className="grid grid-cols-2 gap-3">
 										{(["modern", "classic", "minimal", "professional"] as InvoiceTemplate[]).map((template) => (
@@ -189,6 +217,67 @@ export function InvoiceModal({ isOpen, onClose, onGenerate, initialData }: Invoi
 											</button>
 										))}
 									</div>
+								</div>
+
+								<div>
+									<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
+										Company Logo (Optional)
+									</Text>
+									<div className="flex items-center gap-4">
+										{logoPreview ? (
+											<div className="relative">
+												<img
+													src={logoPreview}
+													alt="Logo preview"
+													className="w-24 h-24 object-contain border border-gray-a6 dark:border-gray-a7 rounded-md"
+												/>
+												<button
+													type="button"
+													onClick={() => {
+														setLogoFile(null);
+														setLogoPreview(null);
+														setFormData((prev) => ({ ...prev, logoUrl: "" }));
+													}}
+													className="absolute -top-2 -right-2 w-6 h-6 bg-red-9 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-10"
+												>
+													×
+												</button>
+											</div>
+										) : (
+											<label className="cursor-pointer">
+												<input
+													type="file"
+													accept="image/*"
+													onChange={handleLogoChange}
+													className="hidden"
+												/>
+												<div className="w-24 h-24 border-2 border-dashed border-gray-a6 dark:border-gray-a7 rounded-md flex items-center justify-center hover:border-blue-9 transition-colors">
+													<Text size="1" color="gray" className="text-center p-2">
+														Upload Logo
+													</Text>
+												</div>
+											</label>
+										)}
+										<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
+											Upload your company logo to appear on the invoice (max 5MB)
+										</Text>
+									</div>
+								</div>
+
+								<div>
+									<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
+										Payment Link (Optional)
+									</Text>
+									<input
+										type="url"
+										value={formData.paymentLink || ""}
+										onChange={(e) => setFormData((prev) => ({ ...prev, paymentLink: e.target.value }))}
+										placeholder="https://buy.stripe.com/... or https://paypal.me/... or any payment link"
+										className="w-full px-3 py-2 border border-gray-a6 dark:border-gray-a7 rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12 focus:outline-none focus:ring-2 focus:ring-blue-9"
+									/>
+									<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
+										Paste your payment link from Stripe, PayPal, or any other payment provider
+									</Text>
 								</div>
 
 								<div>

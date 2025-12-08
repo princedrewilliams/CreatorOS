@@ -11,12 +11,11 @@ import { Calendar } from "@/components/Calendar";
 import { TaskModal } from "@/components/TaskModal";
 import { SocialConnections } from "@/components/SocialConnections";
 import { PostVideoModal } from "@/components/PostVideoModal";
-import { AutoFormatModal } from "@/components/AutoFormatModal";
 import { BackButton } from "@/components/BackButton";
 import { useSearchParams } from "next/navigation";
 
 function PlannerContent() {
-	const { tasks, addTask, updateTask, deleteTask, socialConnections, setSocialConnection, user } = useAppStore();
+	const { tasks, addTask, updateTask, deleteTask, clearAllTasks, socialConnections, setSocialConnection, user } = useAppStore();
 	const searchParams = useSearchParams();
 	const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 	const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -25,7 +24,6 @@ function PlannerContent() {
 	const [filterStatus, setFilterStatus] = useState<"all" | "planned" | "scheduled" | "posted" | "cancelled">("all");
 	const [isPostVideoModalOpen, setIsPostVideoModalOpen] = useState(false);
 	const [isAutoGenerateModalOpen, setIsAutoGenerateModalOpen] = useState(false);
-	const [isAutoFormatModalOpen, setIsAutoFormatModalOpen] = useState(false);
 	const [autoScheduleEnabled, setAutoScheduleEnabled] = useState(false);
 	const [generatingCalendar, setGeneratingCalendar] = useState(false);
 	const [niche, setNiche] = useState("");
@@ -47,6 +45,93 @@ function PlannerContent() {
 			}
 		});
 	}, [tasks, updateTask]);
+
+	// Auto-scheduling: Auto-assign optimal times based on analytics
+	useEffect(() => {
+		if (!autoScheduleEnabled || !user) return;
+
+		// Calculate optimal posting times based on platform analytics
+		// Optimal times (in 24-hour format): TikTok: 19-21, Instagram: 11-13, YouTube: 14-16
+		const optimalTimes: Record<string, { start: number; end: number }> = {
+			tiktok: { start: 19, end: 21 },
+			instagram: { start: 11, end: 13 },
+			youtube: { start: 14, end: 16 },
+		};
+
+		const getOptimalTime = (platform: string): string => {
+			const times = optimalTimes[platform.toLowerCase()] || optimalTimes.tiktok;
+			// Pick a random time within the optimal window
+			const hour = times.start + Math.floor(Math.random() * (times.end - times.start));
+			const minute = Math.floor(Math.random() * 60);
+			return `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+		};
+
+		// Auto-schedule tasks that are "planned" and don't have a time set
+		const plannedTasks = tasks.filter((task) => 
+			task.status === "planned" && 
+			!task.time &&
+			task.date &&
+			new Date(task.date) >= new Date(new Date().toISOString().split("T")[0])
+		);
+
+		if (plannedTasks.length > 0) {
+			plannedTasks.forEach((task) => {
+				// Get optimal time based on the first platform
+				const platform = task.platforms[0] || "tiktok";
+				const optimalTime = getOptimalTime(platform);
+				
+				// Update task with optimal time and change status to scheduled
+				updateTask(task.id, { 
+					time: optimalTime,
+					status: "scheduled"
+				});
+			});
+		}
+	}, [autoScheduleEnabled, tasks, user, updateTask]);
+
+	// Auto-post scheduled tasks when their time arrives
+	useEffect(() => {
+		if (!autoScheduleEnabled || !user) return;
+
+		const checkScheduledTasks = () => {
+			const now = new Date();
+			
+			tasks.forEach((task) => {
+				if (task.status === "scheduled" && task.date && task.time) {
+					const scheduledDateTime = new Date(`${task.date}T${task.time}`);
+					
+					// If scheduled time has passed (within last 5 minutes to avoid multiple posts)
+					if (scheduledDateTime <= now && 
+						scheduledDateTime >= new Date(now.getTime() - 5 * 60 * 1000)) {
+						
+						// Auto-post the task
+						const connectedPlatforms = socialConnections.filter(
+							(conn: SocialConnection) => conn.connected
+						);
+						const taskPlatforms = task.platforms.filter((platform) =>
+							connectedPlatforms.some((conn: SocialConnection) => conn.platform === platform)
+						);
+
+						if (taskPlatforms.length > 0) {
+							// Update status to posted
+							updateTask(task.id, { status: "posted" });
+							
+							// In production, this would actually post to the platforms
+							console.log(`Auto-posted task "${task.title}" to ${taskPlatforms.join(", ")}`);
+						}
+					}
+				}
+			});
+		};
+
+		// Check every minute
+		const interval = setInterval(checkScheduledTasks, 60000);
+		
+		// Check immediately
+		checkScheduledTasks();
+
+		return () => clearInterval(interval);
+	}, [autoScheduleEnabled, tasks, user, socialConnections, updateTask]);
 
 	// Sync user data on mount (social connections)
 	useEffect(() => {
@@ -141,9 +226,21 @@ function PlannerContent() {
 		setIsTaskModalOpen(true);
 	};
 
-	const handleDeleteTask = (task: Task) => {
+	const handleDeleteTask = (task: Task, e?: React.MouseEvent) => {
+		if (e) {
+			e.stopPropagation();
+		}
 		if (confirm(`Are you sure you want to delete "${task.title}"?`)) {
 			deleteTask(task.id);
+		}
+	};
+
+	const handleClearAllTasks = () => {
+		if (tasks.length === 0) {
+			return;
+		}
+		if (confirm(`Are you sure you want to delete all ${tasks.length} task(s)? This action cannot be undone.`)) {
+			clearAllTasks();
 		}
 	};
 
@@ -271,29 +368,7 @@ function PlannerContent() {
 						Automation Features
 					</Heading>
 				</div>
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<Card size="2" variant="surface" className="p-4">
-						<div className="flex items-start justify-between mb-3">
-							<div>
-								<Text size="3" weight="medium" className="text-gray-12 dark:text-gray-12 mb-1">
-									Auto-Format Video
-								</Text>
-								<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
-									Upload 1 video → Get TikTok, IG Reel, and YouTube Shorts versions automatically
-								</Text>
-							</div>
-						</div>
-						<Button
-							variant="ghost"
-							color="purple"
-							size="2"
-							onClick={() => setIsAutoFormatModalOpen(true)}
-							className="w-full"
-						>
-							<VideoIcon className="mr-2" />
-							Format Video
-						</Button>
-					</Card>
+				<div className="grid grid-cols-1 md:grid-cols-1 gap-4">
 					<Card size="2" variant="surface" className="p-4">
 						<div className="flex items-start justify-between mb-3">
 							<div>
@@ -301,7 +376,7 @@ function PlannerContent() {
 									Auto-Scheduling
 								</Text>
 								<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
-									Auto-post at optimal times based on your analytics
+									Auto-post at optimal times based on your analytics. Tasks without times will be automatically scheduled.
 								</Text>
 							</div>
 						</div>
@@ -315,6 +390,11 @@ function PlannerContent() {
 							<CalendarIcon className="mr-2" />
 							{autoScheduleEnabled ? "Enabled" : "Enable"}
 						</Button>
+						{autoScheduleEnabled && (
+							<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-2">
+								✓ Auto-scheduling is active. Planned tasks will be assigned optimal posting times and auto-posted when scheduled.
+							</Text>
+						)}
 					</Card>
 				</div>
 			</Card>
@@ -372,6 +452,17 @@ function PlannerContent() {
 					<Heading size="6" as="h2" className="text-gray-12 dark:text-gray-12">
 						Tasks ({sortedTasks.length})
 					</Heading>
+					{tasks.length > 0 && (
+						<Button
+							variant="soft"
+							color="red"
+							size="2"
+							onClick={handleClearAllTasks}
+						>
+							<TrashIcon className="mr-2" />
+							Clear All Tasks
+						</Button>
+					)}
 				</div>
 				<AnimatePresence>
 					{sortedTasks.length > 0 ? (
@@ -451,7 +542,7 @@ function PlannerContent() {
 													variant="ghost"
 													color="red"
 													size="2"
-													onClick={() => handleDeleteTask(task)}
+													onClick={(e) => handleDeleteTask(task, e)}
 													title="Delete task"
 												>
 													<TrashIcon />
@@ -487,12 +578,6 @@ function PlannerContent() {
 			<PostVideoModal
 				isOpen={isPostVideoModalOpen}
 				onClose={() => setIsPostVideoModalOpen(false)}
-			/>
-
-			{/* Auto Format Modal */}
-			<AutoFormatModal
-				isOpen={isAutoFormatModalOpen}
-				onClose={() => setIsAutoFormatModalOpen(false)}
 			/>
 
 

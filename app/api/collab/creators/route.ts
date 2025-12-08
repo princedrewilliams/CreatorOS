@@ -7,39 +7,6 @@ import { userProfilePictures } from "@/app/api/collab/chat/route";
 // This stores public creator profiles that are visible in the collab section
 export const creatorProfiles = new Map<string, any>();
 
-// Mock some initial creators
-const initialCreators = [
-	{
-		userId: "mock-1",
-		username: "FitnessGuru",
-		niche: "fitness",
-		followers: 125000,
-		highestViews: 2500000,
-		platforms: ["youtube", "instagram"],
-		socialLinks: {
-			youtube: "https://youtube.com/@fitnessguru",
-			instagram: "https://instagram.com/fitnessguru",
-		},
-	},
-	{
-		userId: "mock-2",
-		username: "ChefMaster",
-		niche: "cooking",
-		followers: 89000,
-		highestViews: 1800000,
-		platforms: ["youtube", "tiktok"],
-		socialLinks: {
-			youtube: "https://youtube.com/@chefmaster",
-			tiktok: "https://tiktok.com/@chefmaster",
-		},
-	},
-];
-
-// Initialize with mock data
-initialCreators.forEach((creator) => {
-	creatorProfiles.set(creator.userId, creator);
-});
-
 export async function GET(request: NextRequest) {
 	try {
 		const user = await getCurrentUser();
@@ -194,6 +161,40 @@ export async function POST(request: NextRequest) {
 		console.error("[Join Niche] Error:", error);
 		return NextResponse.json(
 			{ error: "Failed to join niche" },
+			{ status: 500 }
+		);
+	}
+}
+
+export async function DELETE(request: NextRequest) {
+	try {
+		const user = await getCurrentUser();
+		
+		if (!user) {
+			return NextResponse.json(
+				{ error: "Authentication required" },
+				{ status: 401 }
+			);
+		}
+
+		// Remove user from creator profiles
+		creatorProfiles.delete(user.whop_user_id);
+
+		// Also remove niche from user profile
+		const userProfile = userProfiles.get(user.whop_user_id);
+		if (userProfile) {
+			userProfile.niche = "";
+			userProfiles.set(user.whop_user_id, userProfile);
+		}
+
+		return NextResponse.json({
+			success: true,
+			message: "Successfully left niche",
+		});
+	} catch (error) {
+		console.error("[Leave Niche] Error:", error);
+		return NextResponse.json(
+			{ error: "Failed to leave niche" },
 			{ status: 500 }
 		);
 	}

@@ -190,7 +190,7 @@ export default function LibraryPage() {
 						Your library is empty
 					</Heading>
 					<Text size="3" color="gray" className="mb-4 text-gray-11 dark:text-gray-11">
-						Videos you download with "Auto-Save to Library" enabled will appear here
+						Your saved videos will appear here
 					</Text>
 					<Button variant="solid" color="blue" size="3" asChild>
 						<a href="/video-downloader">Go to Video Downloader</a>

@@ -25,6 +25,8 @@ export async function POST(request: NextRequest) {
 			deliverables = [],
 			description,
 			template = "modern",
+			paymentLink: customPaymentLink,
+			logoUrl,
 		} = body;
 
 		if (!companyName || !amount || !dueDate) {
@@ -43,12 +45,16 @@ export async function POST(request: NextRequest) {
 
 		// Get current user and their Stripe connection
 		const user = await getCurrentUser();
-		let paymentLink: string | null = null;
+		let paymentLink: string | null = customPaymentLink || null;
 		let stripePaymentLinkId: string | null = null;
 
-		// Try to use user's connected Stripe account first
-		let stripe: Stripe | null = null;
-		if (user) {
+		// If user provided a custom payment link, use it and skip Stripe creation
+		if (customPaymentLink) {
+			paymentLink = customPaymentLink;
+		} else {
+			// Try to use user's connected Stripe account first
+			let stripe: Stripe | null = null;
+			if (user) {
 			const stripeConnection = getUserStripeConnection(user.whop_user_id);
 			if (stripeConnection?.connected && stripeConnection.accessToken) {
 				// Use user's Stripe access token to create payment links on their account
@@ -113,12 +119,12 @@ export async function POST(request: NextRequest) {
 			}
 		}
 
-		// Fallback to app's Stripe key if user doesn't have connected account
-		if (!stripe) {
-			stripe = getStripe();
-		}
+			// Fallback to app's Stripe key if user doesn't have connected account
+			if (!stripe) {
+				stripe = getStripe();
+			}
 
-		if (stripe) {
+			if (stripe) {
 			try {
 				const connectedAccountId = (stripe as any).connectedAccountId;
 				
@@ -175,7 +181,8 @@ export async function POST(request: NextRequest) {
 				}
 			}
 		} else {
-			console.warn("[Stripe] No Stripe connection available. Payment links will not be generated.");
+				console.warn("[Stripe] No Stripe connection available. Payment links will not be generated.");
+			}
 		}
 
 		// Generate PDF Invoice with selected template
@@ -193,28 +200,59 @@ export async function POST(request: NextRequest) {
 
 		const doc = new jsPDF();
 		
+		// Add logo if provided
+		let logoHeight = 0;
+		if (logoUrl) {
+			try {
+				// For base64 images, jsPDF can handle them directly
+				// Calculate dimensions (max width 50mm)
+				const maxWidth = 50;
+				// Default aspect ratio, will be adjusted when image loads
+				let logoWidth = maxWidth;
+				logoHeight = maxWidth * 0.6; // Default aspect ratio
+				
+				// Try to extract image format from base64
+				let imgFormat = "PNG";
+				if (logoUrl.startsWith("data:image/")) {
+					const match = logoUrl.match(/data:image\/(\w+);base64/);
+					if (match) {
+						imgFormat = match[1].toUpperCase();
+					}
+				}
+				
+				// Add image to PDF (jsPDF will handle dimensions)
+				doc.addImage(logoUrl, imgFormat, 20, 10, logoWidth, logoHeight);
+			} catch (error) {
+				console.error("[Invoice] Error loading logo:", error);
+				// Continue without logo if it fails to load
+				logoHeight = 0;
+			}
+		}
+		
 		// Apply template-specific styling
+		const logoOffset = logoHeight > 0 ? logoHeight + 15 : 0;
+		
 		switch (template) {
 			case "modern":
 				// Modern template: Clean, contemporary design with colored header
 				doc.setFillColor(59, 130, 246); // Blue
-				doc.rect(0, 0, 210, 40, "F");
+				doc.rect(0, logoOffset, 210, 40, "F");
 				doc.setTextColor(255, 255, 255);
 				doc.setFontSize(28);
-				doc.text("INVOICE", 20, 25);
+				doc.text("INVOICE", 20, logoOffset + 25);
 				doc.setTextColor(0, 0, 0);
 				doc.setFontSize(10);
-				doc.text(`Invoice #: ${invoiceId}`, 150, 20);
-				doc.text(`Date: ${invoiceDate}`, 150, 27);
-				doc.text(`Due Date: ${formattedDueDate}`, 150, 34);
+				doc.text(`Invoice #: ${invoiceId}`, 150, logoOffset + 20);
+				doc.text(`Date: ${invoiceDate}`, 150, logoOffset + 27);
+				doc.text(`Due Date: ${formattedDueDate}`, 150, logoOffset + 34);
 				
 				// Company Information
 				doc.setFontSize(14);
-				doc.text("Bill To:", 20, 55);
+				doc.text("Bill To:", 20, logoOffset + 55);
 				doc.setFontSize(12);
-				doc.text(companyName, 20, 62);
+				doc.text(companyName, 20, logoOffset + 62);
 				
-				let yPos = 80;
+				let yPos = logoOffset + 80;
 				if (description) {
 					doc.setFontSize(12);
 					doc.text("Description:", 20, yPos);
@@ -261,21 +299,21 @@ export async function POST(request: NextRequest) {
 			case "classic":
 				// Classic template: Traditional business style
 				doc.setFontSize(24);
-				doc.text("INVOICE", 20, 30);
+				doc.text("INVOICE", 20, logoOffset + 30);
 				doc.setDrawColor(0, 0, 0);
-				doc.line(20, 35, 190, 35);
+				doc.line(20, logoOffset + 35, 190, logoOffset + 35);
 				
 				doc.setFontSize(10);
-				doc.text(`Invoice #: ${invoiceId}`, 20, 45);
-				doc.text(`Date: ${invoiceDate}`, 20, 52);
-				doc.text(`Due Date: ${formattedDueDate}`, 20, 59);
+				doc.text(`Invoice #: ${invoiceId}`, 20, logoOffset + 45);
+				doc.text(`Date: ${invoiceDate}`, 20, logoOffset + 52);
+				doc.text(`Due Date: ${formattedDueDate}`, 20, logoOffset + 59);
 				
 				doc.setFontSize(14);
-				doc.text("Bill To:", 20, 75);
+				doc.text("Bill To:", 20, logoOffset + 75);
 				doc.setFontSize(12);
-				doc.text(companyName, 20, 82);
+				doc.text(companyName, 20, logoOffset + 82);
 				
-				let yPosClassic = 100;
+				let yPosClassic = logoOffset + 100;
 				if (description) {
 					doc.setFontSize(12);
 					doc.text("Description:", 20, yPosClassic);
@@ -317,20 +355,20 @@ export async function POST(request: NextRequest) {
 			case "minimal":
 				// Minimal template: Simple and elegant
 				doc.setFontSize(20);
-				doc.text("INVOICE", 20, 30);
+				doc.text("INVOICE", 20, logoOffset + 30);
 				
 				doc.setFontSize(9);
 				doc.setTextColor(128, 128, 128);
-				doc.text(`#${invoiceId}`, 20, 40);
-				doc.text(invoiceDate, 20, 47);
+				doc.text(`#${invoiceId}`, 20, logoOffset + 40);
+				doc.text(invoiceDate, 20, logoOffset + 47);
 				doc.setTextColor(0, 0, 0);
 				
 				doc.setFontSize(12);
-				doc.text("Bill To:", 20, 65);
+				doc.text("Bill To:", 20, logoOffset + 65);
 				doc.setFontSize(11);
-				doc.text(companyName, 20, 72);
+				doc.text(companyName, 20, logoOffset + 72);
 				
-				let yPosMinimal = 90;
+				let yPosMinimal = logoOffset + 90;
 				if (description) {
 					doc.setFontSize(10);
 					doc.text(description, 20, yPosMinimal);
@@ -369,23 +407,23 @@ export async function POST(request: NextRequest) {
 			default:
 				// Professional template: Corporate standard format
 				doc.setFontSize(22);
-				doc.text("INVOICE", 20, 30);
+				doc.text("INVOICE", 20, logoOffset + 30);
 				
 				// Table-like layout
 				doc.setFontSize(10);
-				doc.text(`Invoice Number: ${invoiceId}`, 120, 30);
-				doc.text(`Invoice Date: ${invoiceDate}`, 120, 37);
-				doc.text(`Due Date: ${formattedDueDate}`, 120, 44);
+				doc.text(`Invoice Number: ${invoiceId}`, 120, logoOffset + 30);
+				doc.text(`Invoice Date: ${invoiceDate}`, 120, logoOffset + 37);
+				doc.text(`Due Date: ${formattedDueDate}`, 120, logoOffset + 44);
 				
 				doc.setDrawColor(200, 200, 200);
-				doc.line(20, 50, 190, 50);
+				doc.line(20, logoOffset + 50, 190, logoOffset + 50);
 				
 				doc.setFontSize(12);
-				doc.text("Bill To:", 20, 65);
+				doc.text("Bill To:", 20, logoOffset + 65);
 				doc.setFontSize(11);
-				doc.text(companyName, 20, 72);
+				doc.text(companyName, 20, logoOffset + 72);
 				
-				let yPosPro = 90;
+				let yPosPro = logoOffset + 90;
 				if (description) {
 					doc.setFontSize(11);
 					doc.text("Description:", 20, yPosPro);
