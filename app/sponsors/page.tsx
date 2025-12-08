@@ -137,8 +137,10 @@ export default function SponsorsPage() {
 
 			// Show success message with payment link
 			if (data.invoice?.paymentLink) {
+				const isStripeLink = data.invoice.paymentLink.includes("stripe.com") || data.invoice.paymentLink.includes("buy.stripe.com");
+				const linkType = isStripeLink ? "Stripe payment link" : "payment link";
 				const openLink = window.confirm(
-					`Invoice generated successfully!\n\nWould you like to open the Stripe payment link?`
+					`Invoice generated successfully!\n\nWould you like to open the ${linkType}?`
 				);
 				if (openLink) {
 					window.open(data.invoice.paymentLink, "_blank");

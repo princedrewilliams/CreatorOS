@@ -234,145 +234,203 @@ export async function POST(request: NextRequest) {
 		
 		switch (template) {
 			case "modern":
-				// Modern template: Clean, contemporary design with colored header
-				doc.setFillColor(59, 130, 246); // Blue
-				doc.rect(0, logoOffset, 210, 40, "F");
+				// Modern template: Clean, contemporary design with gradient-like colored header
+				doc.setFillColor(99, 102, 241); // Indigo/Purple
+				doc.rect(0, logoOffset, 210, 50, "F");
 				doc.setTextColor(255, 255, 255);
-				doc.setFontSize(28);
-				doc.text("INVOICE", 20, logoOffset + 25);
+				doc.setFontSize(32);
+				doc.setFont("helvetica", "bold");
+				doc.text("INVOICE", 20, logoOffset + 30);
+				doc.setFont("helvetica", "normal");
+				doc.setTextColor(255, 255, 255);
+				doc.setFontSize(9);
+				doc.text(`#${invoiceId}`, 150, logoOffset + 20);
+				doc.text(`Date: ${invoiceDate}`, 150, logoOffset + 28);
+				doc.text(`Due: ${formattedDueDate}`, 150, logoOffset + 36);
 				doc.setTextColor(0, 0, 0);
-				doc.setFontSize(10);
-				doc.text(`Invoice #: ${invoiceId}`, 150, logoOffset + 20);
-				doc.text(`Date: ${invoiceDate}`, 150, logoOffset + 27);
-				doc.text(`Due Date: ${formattedDueDate}`, 150, logoOffset + 34);
 				
-				// Company Information
+				// Company Information with modern styling
+				doc.setFillColor(245, 247, 250);
+				doc.roundedRect(20, logoOffset + 60, 170, 25, 2, 2, "F");
+				doc.setFontSize(11);
+				doc.setTextColor(100, 100, 100);
+				doc.text("BILL TO", 25, logoOffset + 70);
 				doc.setFontSize(14);
-				doc.text("Bill To:", 20, logoOffset + 55);
-				doc.setFontSize(12);
-				doc.text(companyName, 20, logoOffset + 62);
+				doc.setTextColor(0, 0, 0);
+				doc.setFont("helvetica", "bold");
+				doc.text(companyName, 25, logoOffset + 80);
+				doc.setFont("helvetica", "normal");
 				
-				let yPos = logoOffset + 80;
+				let yPos = logoOffset + 100;
 				if (description) {
-					doc.setFontSize(12);
-					doc.text("Description:", 20, yPos);
-					yPos += 7;
+					doc.setFontSize(11);
+					doc.setTextColor(60, 60, 60);
+					doc.text("Description", 20, yPos);
+					yPos += 8;
+					doc.setFontSize(10);
 					const splitDescription = doc.splitTextToSize(description, 170);
 					doc.text(splitDescription, 20, yPos);
-					yPos += splitDescription.length * 7 + 5;
+					yPos += splitDescription.length * 6 + 8;
 				}
 				
 				if (deliverables.length > 0) {
-					doc.setFontSize(14);
-					doc.text("Deliverables Checklist:", 20, yPos);
-					yPos += 10;
-					doc.setFontSize(12);
+					doc.setFontSize(11);
+					doc.setTextColor(60, 60, 60);
+					doc.text("Deliverables", 20, yPos);
+					yPos += 8;
+					doc.setFontSize(10);
 					deliverables.forEach((item: string) => {
 						if (yPos > 250) {
 							doc.addPage();
 							yPos = 20;
 						}
-						doc.text(`☐ ${item}`, 25, yPos);
+						doc.setTextColor(99, 102, 241);
+						doc.text("▸", 20, yPos);
+						doc.setTextColor(0, 0, 0);
+						doc.text(item, 25, yPos);
 						yPos += 7;
 					});
-					yPos += 5;
+					yPos += 8;
 				}
 				
-				// Amount Section with box
-				doc.setFillColor(240, 240, 240);
-				doc.roundedRect(20, yPos, 170, 30, 3, 3, "F");
-				doc.setFontSize(14);
-				doc.text("Amount Due:", 30, yPos + 10);
-				doc.setFontSize(20);
-				doc.text(`$${amount.toFixed(2)}`, 30, yPos + 25);
+				// Amount Section with modern rounded box
+				doc.setFillColor(99, 102, 241);
+				doc.roundedRect(20, yPos, 170, 35, 4, 4, "F");
+				doc.setFontSize(11);
+				doc.setTextColor(255, 255, 255);
+				doc.text("TOTAL AMOUNT DUE", 30, yPos + 10);
+				doc.setFontSize(24);
+				doc.setFont("helvetica", "bold");
+				doc.text(`$${amount.toFixed(2)}`, 30, yPos + 28);
+				doc.setFont("helvetica", "normal");
 				
 				if (paymentLink) {
-					doc.setFontSize(10);
-					doc.setTextColor(59, 130, 246);
-					doc.text("Pay online:", 20, yPos + 45);
+					doc.setFontSize(9);
+					doc.setTextColor(99, 102, 241);
+					doc.text("Payment Link:", 20, yPos + 50);
 					const splitPayment = doc.splitTextToSize(paymentLink, 170);
-					doc.text(splitPayment, 20, yPos + 52);
+					doc.text(splitPayment, 20, yPos + 57);
 					doc.setTextColor(0, 0, 0);
 				}
 				break;
 				
 			case "classic":
-				// Classic template: Traditional business style
-				doc.setFontSize(24);
-				doc.text("INVOICE", 20, logoOffset + 30);
+				// Classic template: Traditional business style with serif-like feel
 				doc.setDrawColor(0, 0, 0);
-				doc.line(20, logoOffset + 35, 190, logoOffset + 35);
+				doc.setLineWidth(0.5);
+				// Double line header
+				doc.line(20, logoOffset + 25, 190, logoOffset + 25);
+				doc.line(20, logoOffset + 27, 190, logoOffset + 27);
 				
-				doc.setFontSize(10);
-				doc.text(`Invoice #: ${invoiceId}`, 20, logoOffset + 45);
-				doc.text(`Date: ${invoiceDate}`, 20, logoOffset + 52);
-				doc.text(`Due Date: ${formattedDueDate}`, 20, logoOffset + 59);
+				doc.setFontSize(26);
+				doc.setFont("times", "bold");
+				doc.text("INVOICE", 20, logoOffset + 20);
+				doc.setFont("times", "normal");
 				
-				doc.setFontSize(14);
-				doc.text("Bill To:", 20, logoOffset + 75);
+				// Classic table-style layout
+				doc.setFontSize(9);
+				doc.text(`Invoice Number:`, 20, logoOffset + 40);
+				doc.setFont("times", "bold");
+				doc.text(invoiceId, 70, logoOffset + 40);
+				doc.setFont("times", "normal");
+				
+				doc.text(`Invoice Date:`, 20, logoOffset + 48);
+				doc.setFont("times", "bold");
+				doc.text(invoiceDate, 70, logoOffset + 48);
+				doc.setFont("times", "normal");
+				
+				doc.text(`Due Date:`, 20, logoOffset + 56);
+				doc.setFont("times", "bold");
+				doc.text(formattedDueDate, 70, logoOffset + 56);
+				doc.setFont("times", "normal");
+				
+				// Separator line
+				doc.line(20, logoOffset + 65, 190, logoOffset + 65);
+				
 				doc.setFontSize(12);
-				doc.text(companyName, 20, logoOffset + 82);
+				doc.setFont("times", "bold");
+				doc.text("Bill To:", 20, logoOffset + 78);
+				doc.setFont("times", "normal");
+				doc.setFontSize(11);
+				doc.text(companyName, 20, logoOffset + 86);
 				
-				let yPosClassic = logoOffset + 100;
+				let yPosClassic = logoOffset + 105;
 				if (description) {
-					doc.setFontSize(12);
-					doc.text("Description:", 20, yPosClassic);
-					yPosClassic += 7;
-					const splitDescription = doc.splitTextToSize(description, 170);
-					doc.text(splitDescription, 20, yPosClassic);
-					yPosClassic += splitDescription.length * 7 + 5;
+					doc.setFontSize(10);
+					doc.setFont("times", "italic");
+					doc.text(description, 20, yPosClassic);
+					yPosClassic += doc.getTextWidth(description) > 170 ? 12 : 8;
+					doc.setFont("times", "normal");
+					yPosClassic += 5;
 				}
 				
 				if (deliverables.length > 0) {
-					doc.setFontSize(14);
-					doc.text("Deliverables Checklist:", 20, yPosClassic);
+					doc.setFontSize(11);
+					doc.setFont("times", "bold");
+					doc.text("Deliverables:", 20, yPosClassic);
 					yPosClassic += 10;
-					doc.setFontSize(12);
+					doc.setFont("times", "normal");
+					doc.setFontSize(10);
 					deliverables.forEach((item: string) => {
 						if (yPosClassic > 250) {
 							doc.addPage();
 							yPosClassic = 20;
 						}
-						doc.text(`☐ ${item}`, 25, yPosClassic);
+						doc.text(`• ${item}`, 25, yPosClassic);
 						yPosClassic += 7;
 					});
-					yPosClassic += 5;
+					yPosClassic += 8;
 				}
 				
-				doc.setFontSize(14);
-				doc.text("Amount Due:", 20, yPosClassic);
-				doc.setFontSize(18);
-				doc.text(`$${amount.toFixed(2)}`, 20, yPosClassic + 10);
+				// Classic amount section with underline
+				doc.line(20, yPosClassic, 190, yPosClassic);
+				yPosClassic += 10;
+				doc.setFontSize(12);
+				doc.setFont("times", "bold");
+				doc.text("Total Amount Due:", 20, yPosClassic);
+				doc.setFontSize(20);
+				doc.text(`$${amount.toFixed(2)}`, 120, yPosClassic);
+				doc.setFont("times", "normal");
+				doc.line(120, yPosClassic + 2, 190, yPosClassic + 2);
 				
 				if (paymentLink) {
-					doc.setFontSize(10);
-					doc.text("Pay online using the link below:", 20, yPosClassic + 25);
+					doc.setFontSize(9);
+					doc.setFont("times", "italic");
+					doc.text("Payment Instructions:", 20, yPosClassic + 20);
+					doc.setFont("times", "normal");
 					const splitPayment = doc.splitTextToSize(paymentLink, 170);
-					doc.text(splitPayment, 20, yPosClassic + 32);
+					doc.text(splitPayment, 20, yPosClassic + 28);
 				}
 				break;
 				
 			case "minimal":
-				// Minimal template: Simple and elegant
-				doc.setFontSize(20);
-				doc.text("INVOICE", 20, logoOffset + 30);
+				// Minimal template: Ultra-clean, lots of white space
+				doc.setFontSize(18);
+				doc.setFont("helvetica", "light");
+				doc.text("INVOICE", 20, logoOffset + 25);
+				doc.setFont("helvetica", "normal");
 				
-				doc.setFontSize(9);
-				doc.setTextColor(128, 128, 128);
-				doc.text(`#${invoiceId}`, 20, logoOffset + 40);
-				doc.text(invoiceDate, 20, logoOffset + 47);
+				// Very subtle, small text
+				doc.setFontSize(8);
+				doc.setTextColor(150, 150, 150);
+				doc.text(invoiceId, 20, logoOffset + 35);
+				doc.text(invoiceDate, 20, logoOffset + 42);
 				doc.setTextColor(0, 0, 0);
 				
-				doc.setFontSize(12);
-				doc.text("Bill To:", 20, logoOffset + 65);
-				doc.setFontSize(11);
-				doc.text(companyName, 20, logoOffset + 72);
+				// Minimal spacing
+				doc.setFontSize(10);
+				doc.setTextColor(80, 80, 80);
+				doc.text(companyName, 20, logoOffset + 60);
+				doc.setTextColor(0, 0, 0);
 				
-				let yPosMinimal = logoOffset + 90;
+				let yPosMinimal = logoOffset + 80;
 				if (description) {
-					doc.setFontSize(10);
+					doc.setFontSize(9);
+					doc.setTextColor(100, 100, 100);
 					doc.text(description, 20, yPosMinimal);
-					yPosMinimal += doc.getTextWidth(description) > 170 ? 15 : 10;
+					yPosMinimal += doc.getTextWidth(description) > 170 ? 18 : 12;
+					doc.setTextColor(0, 0, 0);
+					yPosMinimal += 10;
 				}
 				
 				if (deliverables.length > 0) {
@@ -381,89 +439,129 @@ export async function POST(request: NextRequest) {
 							doc.addPage();
 							yPosMinimal = 20;
 						}
-						doc.setFontSize(10);
-						doc.text(`• ${item}`, 20, yPosMinimal);
-						yPosMinimal += 7;
+						doc.setFontSize(9);
+						doc.setTextColor(120, 120, 120);
+						doc.text(item, 20, yPosMinimal);
+						yPosMinimal += 8;
 					});
-					yPosMinimal += 5;
+					yPosMinimal += 15;
 				}
 				
-				doc.setFontSize(16);
+				// Minimal amount - just the number, large
+				doc.setFontSize(28);
+				doc.setFont("helvetica", "light");
 				doc.text(`$${amount.toFixed(2)}`, 20, yPosMinimal);
-				doc.setFontSize(9);
-				doc.setTextColor(128, 128, 128);
-				doc.text(`Due: ${formattedDueDate}`, 20, yPosMinimal + 7);
+				doc.setFont("helvetica", "normal");
+				doc.setFontSize(8);
+				doc.setTextColor(150, 150, 150);
+				doc.text(`Due ${formattedDueDate}`, 20, yPosMinimal + 10);
 				doc.setTextColor(0, 0, 0);
 				
 				if (paymentLink) {
-					doc.setFontSize(9);
-					doc.setTextColor(100, 100, 200);
-					doc.text(paymentLink, 20, yPosMinimal + 20);
+					doc.setFontSize(8);
+					doc.setTextColor(120, 120, 120);
+					doc.text(paymentLink, 20, yPosMinimal + 25);
 					doc.setTextColor(0, 0, 0);
 				}
 				break;
 				
 			case "professional":
 			default:
-				// Professional template: Corporate standard format
-				doc.setFontSize(22);
-				doc.text("INVOICE", 20, logoOffset + 30);
+				// Professional template: Corporate standard with table layout
+				// Header with company info style
+				doc.setFillColor(240, 240, 240);
+				doc.rect(20, logoOffset + 20, 170, 15, "F");
+				doc.setFontSize(20);
+				doc.setFont("helvetica", "bold");
+				doc.text("INVOICE", 20, logoOffset + 32);
+				doc.setFont("helvetica", "normal");
 				
-				// Table-like layout
-				doc.setFontSize(10);
-				doc.text(`Invoice Number: ${invoiceId}`, 120, logoOffset + 30);
-				doc.text(`Invoice Date: ${invoiceDate}`, 120, logoOffset + 37);
-				doc.text(`Due Date: ${formattedDueDate}`, 120, logoOffset + 44);
+				// Professional table-style metadata
+				doc.setFontSize(9);
+				doc.setTextColor(100, 100, 100);
+				doc.text("INVOICE #", 120, logoOffset + 28);
+				doc.text("DATE", 120, logoOffset + 35);
+				doc.text("DUE DATE", 120, logoOffset + 42);
+				doc.setTextColor(0, 0, 0);
+				doc.setFont("helvetica", "bold");
+				doc.text(invoiceId, 160, logoOffset + 28);
+				doc.text(invoiceDate, 160, logoOffset + 35);
+				doc.text(formattedDueDate, 160, logoOffset + 42);
+				doc.setFont("helvetica", "normal");
 				
-				doc.setDrawColor(200, 200, 200);
-				doc.line(20, logoOffset + 50, 190, logoOffset + 50);
+				// Separator
+				doc.setDrawColor(220, 220, 220);
+				doc.setLineWidth(0.5);
+				doc.line(20, logoOffset + 48, 190, logoOffset + 48);
 				
-				doc.setFontSize(12);
-				doc.text("Bill To:", 20, logoOffset + 65);
+				// Bill To section with box
+				doc.setFillColor(250, 250, 250);
+				doc.rect(20, logoOffset + 55, 80, 20, "F");
+				doc.setFontSize(9);
+				doc.setTextColor(100, 100, 100);
+				doc.text("BILL TO", 25, logoOffset + 63);
 				doc.setFontSize(11);
-				doc.text(companyName, 20, logoOffset + 72);
+				doc.setTextColor(0, 0, 0);
+				doc.setFont("helvetica", "bold");
+				doc.text(companyName, 25, logoOffset + 72);
+				doc.setFont("helvetica", "normal");
 				
 				let yPosPro = logoOffset + 90;
 				if (description) {
-					doc.setFontSize(11);
+					doc.setFontSize(10);
+					doc.setTextColor(60, 60, 60);
 					doc.text("Description:", 20, yPosPro);
 					yPosPro += 7;
+					doc.setFontSize(9);
 					const splitDescription = doc.splitTextToSize(description, 170);
 					doc.text(splitDescription, 20, yPosPro);
-					yPosPro += splitDescription.length * 7 + 5;
+					yPosPro += splitDescription.length * 6 + 8;
 				}
 				
 				if (deliverables.length > 0) {
-					doc.setFontSize(12);
-					doc.text("Deliverables:", 20, yPosPro);
-					yPosPro += 10;
-					doc.setFontSize(11);
+					// Table header
+					doc.setFillColor(245, 245, 245);
+					doc.rect(20, yPosPro, 170, 8, "F");
+					doc.setFontSize(9);
+					doc.setFont("helvetica", "bold");
+					doc.text("Item", 25, yPosPro + 6);
+					yPosPro += 12;
+					doc.setFont("helvetica", "normal");
+					doc.setFontSize(9);
 					deliverables.forEach((item: string) => {
 						if (yPosPro > 250) {
 							doc.addPage();
 							yPosPro = 20;
 						}
-						doc.text(`✓ ${item}`, 25, yPosPro);
+						doc.text(`• ${item}`, 25, yPosPro);
 						yPosPro += 7;
 					});
 					yPosPro += 5;
 				}
 				
+				// Professional total section
 				doc.setDrawColor(200, 200, 200);
 				doc.line(20, yPosPro, 190, yPosPro);
-				yPosPro += 10;
-				
-				doc.setFontSize(12);
-				doc.text("Total Amount Due:", 120, yPosPro);
+				yPosPro += 12;
+				doc.setFontSize(10);
+				doc.setTextColor(100, 100, 100);
+				doc.text("Subtotal:", 120, yPosPro);
+				doc.text(`$${amount.toFixed(2)}`, 160, yPosPro);
+				yPosPro += 8;
+				doc.setFontSize(11);
+				doc.setFont("helvetica", "bold");
+				doc.setTextColor(0, 0, 0);
+				doc.text("TOTAL:", 120, yPosPro);
 				doc.setFontSize(16);
-				doc.text(`$${amount.toFixed(2)}`, 120, yPosPro + 10);
+				doc.text(`$${amount.toFixed(2)}`, 160, yPosPro);
+				doc.setFont("helvetica", "normal");
 				
 				if (paymentLink) {
-					doc.setFontSize(10);
-					doc.setTextColor(0, 100, 200);
-					doc.text("Payment Link:", 20, yPosPro + 25);
+					doc.setFontSize(9);
+					doc.setTextColor(0, 120, 200);
+					doc.text("Payment Link:", 20, yPosPro + 20);
 					const splitPayment = doc.splitTextToSize(paymentLink, 170);
-					doc.text(splitPayment, 20, yPosPro + 32);
+					doc.text(splitPayment, 20, yPosPro + 27);
 					doc.setTextColor(0, 0, 0);
 				}
 				break;
