@@ -5,7 +5,7 @@ import { Heading, Text, Card, Button, Badge } from "@whop/react/components";
 import {
 	ChatBubbleIcon,
 	PaperPlaneIcon,
-	PersonAddIcon,
+	PlusIcon,
 	PersonIcon,
 	CheckIcon,
 	Cross2Icon,
@@ -261,7 +261,7 @@ export default function InboxPage() {
 							className="flex-1 rounded-none border-b-0"
 							onClick={() => setActiveTab("requests")}
 						>
-							<PersonAddIcon className="mr-2" />
+							<PlusIcon className="mr-2" />
 							Requests
 							{friendRequests.length > 0 && (
 								<Badge color="red" size="1" className="ml-2">

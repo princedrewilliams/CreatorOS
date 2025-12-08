@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { friends, friendRequests } from "./friends/route";
+import { friends, friendRequests } from "../friends/route";
 
 export async function GET(request: NextRequest) {
 	try {

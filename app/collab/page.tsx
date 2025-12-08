@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Heading, Text, Card, Button, Badge } from "@whop/react/components";
-import { ChatBubbleIcon, PersonIcon, VideoIcon, EnvelopeClosedIcon, PlusIcon, Cross2Icon, PersonAddIcon } from "@radix-ui/react-icons";
+import { ChatBubbleIcon, PersonIcon, VideoIcon, EnvelopeClosedIcon, PlusIcon, Cross2Icon } from "@radix-ui/react-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
@@ -570,7 +570,7 @@ export default function CollabPage() {
 											disabled
 											className="flex-1"
 										>
-											<PersonAddIcon className="mr-2" />
+											<PlusIcon className="mr-2" />
 											Friend Request Sent
 										</Button>
 									) : friendStatus === "pending_incoming" ? (
@@ -645,7 +645,7 @@ export default function CollabPage() {
 											className="flex-1"
 											disabled={friendStatus === "loading"}
 										>
-											<PersonAddIcon className="mr-2" />
+											<PlusIcon className="mr-2" />
 											Send Friend Request
 										</Button>
 									)}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { userProfilePictures } from "@/app/api/collab/chat/route";
-import { friends } from "./friends/route";
+import { friends } from "../friends/route";
 
 // In-memory store for messages (replace with database in production)
 // Messages: Map<conversationId, Array<message>>
