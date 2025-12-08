@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Heading, Text, Card, Button, Badge } from "@whop/react/components";
-import { ChatBubbleIcon, PersonIcon, VideoIcon, EnvelopeClosedIcon, PlusIcon, Cross2Icon } from "@radix-ui/react-icons";
+import { ChatBubbleIcon, PersonIcon, VideoIcon, EnvelopeClosedIcon, PlusIcon, Cross2Icon, PersonAddIcon } from "@radix-ui/react-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
@@ -73,6 +73,7 @@ export default function CollabPage() {
 	const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
 	const [isChatOpen, setIsChatOpen] = useState(false);
 	const [chatNiche, setChatNiche] = useState<string | null>(null);
+	const [friendStatus, setFriendStatus] = useState<"friends" | "pending_outgoing" | "pending_incoming" | "not_friends" | "loading" | "self">("loading");
 	const [joinForm, setJoinForm] = useState({
 		username: user?.whop_username || "",
 		niche: "",
@@ -118,6 +119,25 @@ export default function CollabPage() {
 		}
 	}, [user]);
 
+	// Load friend status when creator is selected
+	useEffect(() => {
+		if (selectedCreator && user && selectedCreator.id !== user.whop_user_id) {
+			setFriendStatus("loading");
+			fetch(`/api/inbox/friend-status?userId=${selectedCreator.id}`, {
+				credentials: "include",
+			})
+				.then((res) => res.json())
+				.then((data) => {
+					if (data.success) {
+						setFriendStatus(data.status);
+					}
+				})
+				.catch(() => setFriendStatus("not_friends"));
+		} else if (selectedCreator && user && selectedCreator.id === user.whop_user_id) {
+			setFriendStatus("self");
+		}
+	}, [selectedCreator, user]);
+
 	const handleJoinNiche = async () => {
 		if (!user) {
 			router.push("/login?redirect=/collab");
@@ -126,6 +146,16 @@ export default function CollabPage() {
 
 		if (!joinForm.username || !joinForm.niche) {
 			alert("Please enter a username and select a niche");
+			return;
+		}
+
+		// Check if at least one social media link is provided
+		const hasSocialLink = joinForm.socialLinks.youtube || 
+			joinForm.socialLinks.instagram || 
+			joinForm.socialLinks.tiktok;
+		
+		if (!hasSocialLink) {
+			alert("Please provide at least one social media link to join a niche");
 			return;
 		}
 
@@ -353,22 +383,27 @@ export default function CollabPage() {
 										<PersonIcon className="mr-2" />
 										View Profile
 									</Button>
-									<Button
-										variant="ghost"
-										color="blue"
-										size="2"
-										asChild
-										className="text-xs"
-									>
-										<a href="/profile">My Profile</a>
-									</Button>
+									{user && creator.id === user.whop_user_id && (
+										<Button
+											variant="ghost"
+											color="blue"
+											size="2"
+											asChild
+											className="text-xs"
+										>
+											<a href="/profile">My Profile</a>
+										</Button>
+									)}
 									<Button
 										variant="ghost"
 										color="purple"
 										size="2"
 										onClick={() => {
-											// Open DM modal or navigate to chat
-											alert(`Opening chat with ${creator.username}`);
+											if (user && creator.id === user.whop_user_id) {
+												alert("You cannot message yourself");
+												return;
+											}
+											router.push(`/inbox?userId=${creator.id}`);
 										}}
 									>
 										<ChatBubbleIcon />
@@ -499,18 +534,121 @@ export default function CollabPage() {
 								</div>
 
 								<div className="flex gap-3">
-									<Button
-										variant="solid"
-										color="purple"
-										size="3"
-										onClick={() => {
-											alert(`Opening chat with ${selectedCreator.username}`);
-										}}
-										className="flex-1"
-									>
-										<ChatBubbleIcon className="mr-2" />
-										Send Message
-									</Button>
+									{user && selectedCreator.id === user.whop_user_id ? (
+										<Button
+											variant="solid"
+											color="blue"
+											size="3"
+											onClick={() => {
+												setSelectedCreator(null);
+												router.push("/profile");
+											}}
+											className="flex-1"
+										>
+											<PersonIcon className="mr-2" />
+											My Profile
+										</Button>
+									) : friendStatus === "friends" ? (
+										<Button
+											variant="solid"
+											color="purple"
+											size="3"
+											onClick={() => {
+												setSelectedCreator(null);
+												router.push(`/inbox?userId=${selectedCreator.id}`);
+											}}
+											className="flex-1"
+										>
+											<ChatBubbleIcon className="mr-2" />
+											Send Message
+										</Button>
+									) : friendStatus === "pending_outgoing" ? (
+										<Button
+											variant="soft"
+											color="gray"
+											size="3"
+											disabled
+											className="flex-1"
+										>
+											<PersonAddIcon className="mr-2" />
+											Friend Request Sent
+										</Button>
+									) : friendStatus === "pending_incoming" ? (
+										<>
+											<Button
+												variant="solid"
+												color="green"
+												size="3"
+												onClick={async () => {
+													try {
+														const response = await fetch("/api/inbox/friends", {
+															method: "POST",
+															headers: { "Content-Type": "application/json" },
+															credentials: "include",
+															body: JSON.stringify({
+																action: "accept",
+																userId: selectedCreator.id,
+															}),
+														});
+														if (response.ok) {
+															setFriendStatus("friends");
+														}
+													} catch (err) {
+														console.error("Failed to accept friend request:", err);
+													}
+												}}
+												className="flex-1"
+											>
+												Accept Request
+											</Button>
+											<Button
+												variant="solid"
+												color="purple"
+												size="3"
+												onClick={() => {
+													setSelectedCreator(null);
+													router.push(`/inbox?userId=${selectedCreator.id}`);
+												}}
+												className="flex-1"
+											>
+												<ChatBubbleIcon className="mr-2" />
+												Send Message
+											</Button>
+										</>
+									) : (
+										<Button
+											variant="solid"
+											color="purple"
+											size="3"
+											onClick={async () => {
+												try {
+													const response = await fetch("/api/inbox/friends", {
+														method: "POST",
+														headers: { "Content-Type": "application/json" },
+														credentials: "include",
+														body: JSON.stringify({
+															action: "send",
+															userId: selectedCreator.id,
+														}),
+													});
+													if (response.ok) {
+														setFriendStatus("pending_outgoing");
+													} else {
+														const error = await response.json();
+														alert(error.error || "Failed to send friend request");
+													}
+												} catch (err) {
+													console.error("Failed to send friend request:", err);
+													alert("Failed to send friend request");
+												}
+											}}
+											className="flex-1"
+											disabled={friendStatus === "loading"}
+										>
+											<PersonAddIcon className="mr-2" />
+											Send Friend Request
+										</Button>
+									)}
 									<Button
 										variant="ghost"
 										color="gray"

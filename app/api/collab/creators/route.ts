@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { userProfiles } from "@/app/api/user/profile/route";
+import { userProfilePictures } from "@/app/api/collab/chat/route";
 
 // In-memory store for creator profiles (replace with database in production)
 // This stores public creator profiles that are visible in the collab section
@@ -55,6 +56,7 @@ export async function GET(request: NextRequest) {
 				// Check if already in creatorProfiles
 				if (!creatorProfiles.has(user.whop_user_id)) {
 					// Add to creator profiles
+					const profilePicture = userProfilePictures.get(user.whop_user_id) || userProfile.profilePicture || "";
 					const creatorProfile = {
 						userId: user.whop_user_id,
 						id: user.whop_user_id,
@@ -63,7 +65,7 @@ export async function GET(request: NextRequest) {
 						followers: 0, // Will be calculated from social connections
 						highestViews: 0,
 						platforms: [],
-						profilePicture: userProfile.profilePicture || "",
+						profilePicture,
 						socialLinks: userProfile.socialLinks || {},
 						createdAt: new Date().toISOString(),
 						updatedAt: userProfile.updatedAt || new Date().toISOString(),
@@ -77,6 +79,7 @@ export async function GET(request: NextRequest) {
 		// Also sync all user profiles that have niches
 		userProfiles.forEach((userProfile, userId) => {
 			if (userProfile.niche && !creatorProfiles.has(userId)) {
+				const profilePicture = userProfilePictures.get(userId) || userProfile.profilePicture || "";
 				const creatorProfile = {
 					userId: userId,
 					id: userId,
@@ -85,7 +88,7 @@ export async function GET(request: NextRequest) {
 					followers: 0,
 					highestViews: 0,
 					platforms: [],
-					profilePicture: userProfile.profilePicture || "",
+					profilePicture,
 					socialLinks: userProfile.socialLinks || {},
 					createdAt: new Date().toISOString(),
 					updatedAt: userProfile.updatedAt || new Date().toISOString(),
@@ -97,10 +100,19 @@ export async function GET(request: NextRequest) {
 		// Refresh creators list after syncing
 		creators = Array.from(creatorProfiles.values());
 
+		// Add profile pictures from userProfilePictures map
+		const creatorsWithPictures = creators.map((creator) => {
+			const profilePicture = userProfilePictures.get(creator.userId) || creator.profilePicture || "";
+			return {
+				...creator,
+				profilePicture,
+			};
+		});
+
 		// Filter by niche if specified
 		const filteredCreators = niche
-			? creators.filter((creator) => creator.niche === niche)
-			: creators;
+			? creatorsWithPictures.filter((creator) => creator.niche === niche)
+			: creatorsWithPictures;
 
 		// Include current user's profile if they have one
 		let currentUserProfile = null;
@@ -147,14 +159,20 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
+		// Get profile picture from userProfilePictures map or user profile
+		const profilePicture = userProfilePictures.get(user.whop_user_id) || 
+			(userProfiles.get(user.whop_user_id)?.profilePicture) || "";
+
 		// Create or update creator profile
 		const creatorProfile = {
 			userId: user.whop_user_id,
+			id: user.whop_user_id,
 			username,
 			niche,
 			followers: followers || 0,
 			highestViews: highestViews || 0,
 			platforms: platforms || [],
+			profilePicture,
 			socialLinks: {
 				youtube: socialLinks?.youtube || "",
 				instagram: socialLinks?.instagram || "",

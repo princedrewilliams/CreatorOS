@@ -10,6 +10,7 @@ import {
 	DownloadIcon,
 	VideoIcon,
 	ChatBubbleIcon,
+	EnvelopeClosedIcon,
 } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -24,6 +25,7 @@ const navItems = [
 	{ href: "/video-downloader", label: "Video Downloader", icon: DownloadIcon },
 	{ href: "/analytics", label: "Analytics", icon: BarChartIcon },
 	{ href: "/collab", label: "Collab", icon: ChatBubbleIcon },
+	{ href: "/inbox", label: "Inbox", icon: EnvelopeClosedIcon },
 ];
 
 export function Sidebar() {

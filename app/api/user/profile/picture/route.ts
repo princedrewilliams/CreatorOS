@@ -26,10 +26,26 @@ export async function POST(request: NextRequest) {
 		// Store profile picture URL
 		userProfilePictures.set(user.whop_user_id, profilePictureUrl);
 
-		// Also update in chat API
-		const { userProfilePictures: chatPictures } = await import("@/app/api/collab/chat/route");
-		// We'll need to export this or use a shared store
-		// For now, we'll update it in the chat route directly
+		// Also update user profile if it exists
+		const { userProfiles } = await import("@/app/api/user/profile/route");
+		const userProfile = userProfiles.get(user.whop_user_id);
+		if (userProfile) {
+			userProfile.profilePicture = profilePictureUrl;
+			userProfiles.set(user.whop_user_id, userProfile);
+		}
+
+		// Update creator profile if user has one
+		try {
+			const { creatorProfiles } = await import("@/app/api/collab/creators/route");
+			if (creatorProfiles.has(user.whop_user_id)) {
+				const creatorProfile = creatorProfiles.get(user.whop_user_id);
+				creatorProfile.profilePicture = profilePictureUrl;
+				creatorProfiles.set(user.whop_user_id, creatorProfile);
+			}
+		} catch (err) {
+			console.error("[Update Creator Profile Picture] Error:", err);
+			// Non-critical, continue
+		}
 
 		return NextResponse.json({
 			success: true,

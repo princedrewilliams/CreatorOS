@@ -11,6 +11,7 @@ import {
 	LockClosedIcon,
 	EyeOpenIcon,
 	VideoIcon,
+	ChatBubbleIcon,
 } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -55,6 +56,13 @@ const features = [
 		icon: BarChartIcon,
 		href: "/analytics",
 		color: "cyan" as const,
+	},
+	{
+		title: "Creator Collab",
+		description: "Connect and collaborate with creators in your niche",
+		icon: ChatBubbleIcon,
+		href: "/collab",
+		color: "purple" as const,
 	},
 ];
 
