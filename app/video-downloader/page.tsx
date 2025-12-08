@@ -303,7 +303,7 @@ export default function VideoDownloaderPage() {
 			<Card size="3" variant="surface" className="p-6 border border-blue-a4/40 dark:border-blue-a5/40 bg-blue-a2/20 dark:bg-blue-a3/20">
 				<div className="flex flex-wrap gap-4 items-start">
 					<div className="w-12 h-12 rounded-full bg-blue-a3 dark:bg-blue-a4 flex items-center justify-center">
-						<LightningBoltIcon className="w-6 h-6 text-blue-11 dark:text-blue-10" />
+						<VideoIcon className="w-6 h-6 text-blue-11 dark:text-blue-10" />
 					</div>
 					<div className="flex-1 space-y-2">
 						<Heading size="5" as="h2" className="text-gray-12 dark:text-gray-12">
