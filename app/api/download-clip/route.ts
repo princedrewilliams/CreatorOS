@@ -15,26 +15,18 @@ export async function GET(request: NextRequest) {
 			);
 		}
 
+		// Decode the source URL
+		const videoUrl = decodeURIComponent(source);
+
 		// In production, this would:
 		// 1. Download the video from the source URL
 		// 2. Use FFmpeg or a video processing service to extract the clip from start to end time
 		// 3. Return the processed clip URL or stream it directly
 		// 4. Optionally add captions, resize, or apply other transformations
 
-		// For now, return the original video URL with instructions
-		// In a production environment, you would process the video here
-		const clipUrl = source;
-
-		// Return a JSON response with the clip information
-		// The frontend can use this URL to download the video
-		return NextResponse.json({
-			success: true,
-			clipId: clipId || "unknown",
-			startTime: start ? parseFloat(start) : 0,
-			endTime: end ? parseFloat(end) : 0,
-			videoUrl: clipUrl,
-			message: "Clip generation requires server-side video processing. Using original video URL.",
-		});
+		// For now, redirect to the original video URL
+		// In a production environment, you would process the video here and return the clip
+		return NextResponse.redirect(videoUrl);
 	} catch (error) {
 		console.error("[Download Clip] Error:", error);
 		return NextResponse.json(
