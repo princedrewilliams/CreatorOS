@@ -30,15 +30,16 @@ export async function POST(request: NextRequest) {
 		let moments: Array<{ startTime: number; endTime: number; title: string; description: string; reason: string }> = [];
 		
 		try {
-			// Import the detect-key-moments function directly instead of making HTTP call
-			const { detectKeyMoments } = await import("../detect-key-moments/route");
-			const keyMomentsRequest = new NextRequest("http://localhost/api/automation/detect-key-moments", {
+			// Call the detect-key-moments API internally
+			const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
+				(process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+			
+			const keyMomentsResponse = await fetch(`${baseUrl}/api/automation/detect-key-moments`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ videoUrl, videoDuration, clipCount }),
 			});
-			const keyMomentsResponse = await detectKeyMoments(keyMomentsRequest);
-			
+
 			if (keyMomentsResponse.ok) {
 				const keyMomentsData = await keyMomentsResponse.json();
 				moments = keyMomentsData.moments || [];
