@@ -597,10 +597,10 @@ function PlannerContent() {
 							exit={{ scale: 0.95, opacity: 0 }}
 							onClick={(e) => e.stopPropagation()}
 						>
-							<Card size="3" variant="surface" className="p-6 max-w-md w-full">
+							<Card size="3" variant="surface" className="p-6 max-w-lg w-full">
 								<div className="flex items-center justify-between mb-4">
 									<Heading size="5" as="h3" className="text-gray-12 dark:text-gray-12">
-										Auto-Generate Content Calendar
+										AI Calendar Generator
 									</Heading>
 									<Button
 										variant="ghost"
@@ -612,27 +612,54 @@ function PlannerContent() {
 								</div>
 								<div className="space-y-4">
 									<div>
-										<Text size="2" weight="medium" className="mb-2 text-gray-11 dark:text-gray-11">
-											Enter your niche
+										<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
+											Describe your content calendar
 										</Text>
-										<input
-											type="text"
-											placeholder="e.g., fitness, gaming, beauty"
+										<textarea
+											placeholder="e.g., I want a fitness content creation calendar schedule for 1 day a week for the month"
 											value={niche}
 											onChange={(e) => setNiche(e.target.value)}
-											className="w-full px-3 py-2 border border-gray-a6 rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12"
+											rows={4}
+											className="w-full px-3 py-2 border border-gray-a6 rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12 resize-none"
 										/>
+										<Text size="1" color="gray" className="text-gray-10 dark:text-gray-10 mt-1">
+											Be specific about your niche, posting frequency, and time period
+										</Text>
+									</div>
+									<div className="grid grid-cols-2 gap-4">
+										<div>
+											<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
+												Start Date
+											</Text>
+											<input
+												type="date"
+												id="startDate"
+												min={new Date().toISOString().split("T")[0]}
+												className="w-full px-3 py-2 border border-gray-a6 rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12"
+											/>
+										</div>
+										<div>
+											<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
+												End Date
+											</Text>
+											<input
+												type="date"
+												id="endDate"
+												min={new Date().toISOString().split("T")[0]}
+												className="w-full px-3 py-2 border border-gray-a6 rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12"
+											/>
+										</div>
 									</div>
 									<div>
-										<Text size="2" weight="medium" className="mb-2 text-gray-11 dark:text-gray-11">
-											Number of content ideas (1-30)
+										<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
+											Posts Per Week
 										</Text>
 										<input
 											type="number"
 											min="1"
-											max="30"
+											max="7"
 											value={calendarCount}
-											onChange={(e) => setCalendarCount(Math.min(30, Math.max(1, parseInt(e.target.value) || 1)))}
+											onChange={(e) => setCalendarCount(Math.min(7, Math.max(1, parseInt(e.target.value) || 1)))}
 											className="w-full px-3 py-2 border border-gray-a6 rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12"
 										/>
 									</div>
@@ -641,68 +668,68 @@ function PlannerContent() {
 										color="purple"
 										size="3"
 										onClick={async () => {
-											if (!niche) {
-												alert("Please enter a niche");
+											if (!niche.trim()) {
+												alert("Please describe your content calendar");
 												return;
 											}
 											setGeneratingCalendar(true);
 											try {
-												const response = await fetch("/api/automation/generate-content-calendar", {
+												const startDateInput = document.getElementById("startDate") as HTMLInputElement;
+												const endDateInput = document.getElementById("endDate") as HTMLInputElement;
+												const startDate = startDateInput?.value || new Date().toISOString().split("T")[0];
+												const endDate = endDateInput?.value || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+
+												const response = await fetch("/api/automation/generate-calendar", {
 													method: "POST",
 													headers: { "Content-Type": "application/json" },
-													body: JSON.stringify({ niche, count: calendarCount }),
+													body: JSON.stringify({ 
+														prompt: niche.trim(),
+														startDate,
+														endDate,
+														postsPerWeek: calendarCount,
+													}),
 												});
 												const data = await response.json();
-												if (response.ok && data.calendar) {
+												if (response.ok && data.tasks && Array.isArray(data.tasks)) {
 													// Add tasks to calendar
-													let tasksAdded = 0;
-													data.calendar.forEach((item: any) => {
-														const scheduledDate = new Date(item.scheduledDate);
-														const dateStr = scheduledDate.toISOString().split("T")[0];
-														
-														// Add main task for the content idea
+													data.tasks.forEach((task: any) => {
 														addTask({
-															title: item.title,
-															description: `${item.hook}\n\n${item.caption}`,
-															date: dateStr,
-															time: item.bestPostTime || "12:00",
-															platforms: [item.platform],
-															status: "planned",
+															title: task.title,
+															description: task.description || "",
+															date: task.date,
+															time: task.time,
+															platforms: task.platforms,
+															status: task.status || "planned",
 														});
-														tasksAdded++;
-
-														// Add subtasks if they exist
-														if (item.tasks && Array.isArray(item.tasks)) {
-															item.tasks.forEach((subtask: any) => {
-																const taskDate = new Date(subtask.dueDate);
-																const taskDateStr = taskDate.toISOString().split("T")[0];
-																addTask({
-																	title: subtask.title,
-																	description: `Part of: ${item.title}`,
-																	date: taskDateStr,
-																	platforms: [item.platform],
-																	status: subtask.status || "planned",
-																});
-																tasksAdded++;
-															});
-														}
 													});
-													alert(`Generated ${data.count} content ideas and added ${tasksAdded} tasks to your calendar!`);
+													alert(`Successfully generated ${data.tasks.length} content tasks!`);
 													setIsAutoGenerateModalOpen(false);
 													setNiche("");
+													setCalendarCount(1);
 												} else {
 													alert(data.error || "Failed to generate calendar");
 												}
 											} catch (error) {
-												alert("Failed to generate calendar");
+												console.error("Failed to generate calendar:", error);
+												alert("Failed to generate calendar. Please try again.");
 											} finally {
 												setGeneratingCalendar(false);
 											}
 										}}
-										disabled={generatingCalendar || !niche}
+										disabled={generatingCalendar || !niche.trim()}
 										className="w-full"
 									>
-										{generatingCalendar ? "Generating..." : "Generate Calendar"}
+										{generatingCalendar ? (
+											<>
+												<span className="w-4 h-4 border-2 border-purple-11 border-t-transparent rounded-full animate-spin mr-2" />
+												Generating...
+											</>
+										) : (
+											<>
+												<LightningBoltIcon className="mr-2" />
+												Generate Calendar
+											</>
+										)}
 									</Button>
 								</div>
 							</Card>

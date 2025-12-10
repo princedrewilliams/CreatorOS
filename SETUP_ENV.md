@@ -13,6 +13,11 @@ WHOP_WEBHOOK_SECRET=your_webhook_secret
 # Replicate API Token (for AI thumbnail generation)
 REPLICATE_API_TOKEN=your_replicate_api_token_here
 
+# AIML API Key (for AI calendar generation and key moment detection)
+# Get your API key from https://aimlapi.com/
+# Used for: Content calendar generation, video key moment detection
+AIML_API_KEY=your_aiml_api_key_here
+
 # AssemblyAI (Optional - Better free tier for transcription, recommended over Replicate)
 # Get your API key from https://www.assemblyai.com/
 # Free tier: 5 hours/month

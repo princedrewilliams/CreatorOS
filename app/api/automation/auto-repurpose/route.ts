@@ -23,53 +23,55 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		// In production, this would:
-		// 1. Upload video to storage
-		// 2. Use AI to detect key moments (high engagement, hooks, transitions)
-		// 3. Generate 3-5 clips from key moments
-		// 4. Auto-add captions using speech-to-text
-		// 5. Generate title text overlays
-		// 6. Schedule each clip to content calendar
-		// 7. Return clip metadata
+		// Estimate video duration (in production, get actual duration from video metadata)
+		const videoDuration = 300; // Default to 5 minutes
 
-		// In production, this would:
-		// 1. Download video from URL if provided, or use uploaded file
-		// 2. Use AI to detect key moments (high engagement, hooks, transitions)
-		// 3. Use FFmpeg to extract clips
-		// 4. Auto-add captions using speech-to-text
-		// 5. Generate title text overlays
-		// 6. Schedule each clip to content calendar
-		// 7. Return clip metadata
-
-		// Simulate clip generation
-		// In production, this would:
-		// 1. Download video from videoUrl
-		// 2. Use AI to detect key moments (high engagement, hooks, transitions)
-		// 3. Use FFmpeg to extract clips at those moments
-		// 4. Auto-add captions using speech-to-text
-		// 5. Generate title text overlays
-		// 6. Return clip metadata with download URLs
+		// Use AI to detect key moments
+		let moments: Array<{ startTime: number; endTime: number; title: string; description: string; reason: string }> = [];
 		
-		const videoDuration = 300; // Estimate duration (in production, get actual duration)
-		const clipDuration = 15; // 15 seconds per clip
-		const clips: Clip[] = [];
-
-		for (let i = 0; i < clipCount; i++) {
-			const startTime = (videoDuration / clipCount) * i;
-			const endTime = Math.min(startTime + clipDuration, videoDuration);
-
-			clips.push({
-				id: `clip-${Date.now()}-${i + 1}`,
-				startTime,
-				endTime,
-				title: `Key Moment ${i + 1}`,
-				caption: `Check out this amazing moment from the full video! 🔥\n\nWatch the full video for more!\n\n#shorts #viral #trending`,
-				downloadUrl: `/api/download-clip?clipId=clip-${i + 1}&start=${startTime}&end=${endTime}&source=${encodeURIComponent(videoUrl)}`,
+		try {
+			// Import the detect-key-moments function directly instead of making HTTP call
+			const { detectKeyMoments } = await import("../detect-key-moments/route");
+			const keyMomentsRequest = new NextRequest("http://localhost/api/automation/detect-key-moments", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ videoUrl, videoDuration, clipCount }),
 			});
+			const keyMomentsResponse = await detectKeyMoments(keyMomentsRequest);
+			
+			if (keyMomentsResponse.ok) {
+				const keyMomentsData = await keyMomentsResponse.json();
+				moments = keyMomentsData.moments || [];
+			}
+		} catch (error) {
+			console.warn("[Auto Repurpose] Failed to detect key moments with AI, using fallback:", error);
 		}
 
-		// Simulate processing delay
-		await new Promise((resolve) => setTimeout(resolve, 2000));
+		// If AI detection failed, use fallback: evenly distribute clips
+		if (moments.length === 0) {
+			const clipDuration = 15; // 15 seconds per clip
+			for (let i = 0; i < clipCount; i++) {
+				const startTime = (videoDuration / clipCount) * i;
+				const endTime = Math.min(startTime + clipDuration, videoDuration);
+				moments.push({
+					startTime,
+					endTime,
+					title: `Key Moment ${i + 1}`,
+					description: `Engaging clip from the video`,
+					reason: "Evenly distributed key moment",
+				});
+			}
+		}
+
+		// Convert moments to clips
+		const clips: Clip[] = moments.map((moment, index) => ({
+			id: `clip-${Date.now()}-${index + 1}`,
+			startTime: moment.startTime,
+			endTime: moment.endTime,
+			title: moment.title,
+			caption: `${moment.description}\n\n${moment.reason}\n\n#shorts #viral #trending`,
+			downloadUrl: `/api/download-clip?clipId=clip-${index + 1}&start=${moment.startTime}&end=${moment.endTime}&source=${encodeURIComponent(videoUrl)}`,
+		}));
 
 		return NextResponse.json({
 			success: true,
