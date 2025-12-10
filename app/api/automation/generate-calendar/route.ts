@@ -144,10 +144,10 @@ Return a JSON array of tasks. Distribute dates evenly. Make each post unique and
 					date: task.date,
 					time: task.time,
 					platforms: platforms,
-					status: task.status === "scheduled" ? "scheduled" : "planned",
+					status: (task.status === "scheduled" ? "scheduled" : "planned") as "planned" | "scheduled",
 				};
 			})
-			.slice(0, totalPosts); // Limit to requested number
+			.slice(0, totalPosts) as GeneratedTask[]; // Limit to requested number
 
 		// If no valid tasks, generate some fallback tasks
 		if (validatedTasks.length === 0) {
