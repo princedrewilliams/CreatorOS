@@ -21,6 +21,7 @@ export interface SocialConnection {
 	expiresAt?: number;
 	username?: string;
 	userId?: string;
+	userPlatformId?: string; // Platform-specific user ID (e.g., TikTok open_id/union_id, YouTube channel ID)
 	profilePicture?: string;
 }
 

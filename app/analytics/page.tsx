@@ -127,11 +127,12 @@ export default function AnalyticsPage() {
 		setError(null);
 
 		try {
-			// Get TikTok sec_uid from connection if available
+			// Get TikTok user ID (open_id/union_id) from connection if available
+			// Note: This is used as a fallback if access token method fails
 			const tiktokConnection = socialConnections.find(
 				(conn) => conn.platform === "tiktok" && conn.connected
 			);
-			const tiktokSecUid = tiktokConnection?.userId; // Store sec_uid in userId field
+			const tiktokSecUid = tiktokConnection?.userPlatformId; // TikTok open_id/union_id stored in userPlatformId
 			
 			const queryParams = new URLSearchParams();
 			connectedPlatforms.forEach((platform) => {

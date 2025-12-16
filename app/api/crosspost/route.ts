@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		const results: Record<string, { success: boolean; error?: string }> = {};
+		const results: Record<string, { success: boolean; error?: string; publish_id?: string }> = {};
 
 		// Post to each platform
 		for (const platform of platforms) {
@@ -84,9 +84,9 @@ export async function POST(request: NextRequest) {
 						continue;
 					}
 
-					// TikTok API - Initialize video upload
-					// Note: Actual video upload requires file upload
-					// This is a placeholder for the MVP
+					// TikTok API v2 - Initialize video upload
+					// Note: Actual video upload requires file upload in a multi-step process
+					// Step 1: Initialize the upload session
 					const tiktokResponse = await fetch(
 						"https://open.tiktokapis.com/v2/post/publish/video/init/",
 						{
@@ -97,19 +97,41 @@ export async function POST(request: NextRequest) {
 							},
 							body: JSON.stringify({
 								post_info: {
-									title,
+									title: title || description || "Untitled",
 									description: description || "",
 									privacy_level: "PUBLIC_TO_EVERYONE",
+									disable_duet: false,
+									disable_comment: false,
+									disable_stitch: false,
+									video_cover_timestamp_ms: 1000,
+								},
+								source_info: {
+									source: "FILE_UPLOAD",
 								},
 							}),
 						}
 					);
 
 					if (tiktokResponse.ok) {
-						results.tiktok = { success: true };
+						const responseData = await tiktokResponse.json();
+						// Note: This is just initialization. Full upload requires:
+						// 1. Get upload URL from response
+						// 2. Upload video file to that URL
+						// 3. Call publish endpoint with publish_id
+						results.tiktok = { success: true, publish_id: responseData?.data?.publish_id };
 					} else {
-						const error = await tiktokResponse.json();
-						results.tiktok = { success: false, error: error.error?.message || "Unknown error" };
+						const errorText = await tiktokResponse.text();
+						let error;
+						try {
+							error = JSON.parse(errorText);
+						} catch {
+							error = { error: { message: errorText || "Unknown error" } };
+						}
+						console.error("[crosspost] TikTok publish init error:", error);
+						results.tiktok = { 
+							success: false, 
+							error: error?.error?.message || error?.error_description || error?.error_msg || "Unknown error" 
+						};
 					}
 				}
 			} catch (error) {
@@ -150,6 +172,11 @@ export async function POST(request: NextRequest) {
 		);
 	}
 }
+
+
+
+
+
 
 
 

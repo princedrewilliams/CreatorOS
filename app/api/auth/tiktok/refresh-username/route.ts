@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
 		}
 
 		// Fetch user info from TikTok API
-		const userResponse = await fetch("https://open.tiktokapis.com/v2/user/info/", {
+		const userResponse = await fetch("https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name,username,unique_id,follower_count,following_count,likes_count,video_count", {
 			method: "GET",
 			headers: {
 				Authorization: `Bearer ${tiktokToken}`,
@@ -28,6 +28,15 @@ export async function GET(request: NextRequest) {
 
 		const userInfo = await userResponse.json();
 		console.log("[TikTok] User info response:", JSON.stringify(userInfo, null, 2));
+
+		// Check for API errors
+		if (userInfo?.error) {
+			console.error("[TikTok] API error in user info:", userInfo.error);
+			return NextResponse.json(
+				{ error: userInfo.error?.message || "Failed to fetch TikTok user info" },
+				{ status: 500 }
+			);
+		}
 
 		// Try different possible response structures
 		const user = userInfo.data?.user || userInfo.user || userInfo.data;

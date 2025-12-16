@@ -21,37 +21,53 @@ interface Post {
 
 async function fetchTikTokPosts(accessToken: string): Promise<Post[]> {
 	try {
-		const videosResponse = await fetch("https://open.tiktokapis.com/v2/video/list/", {
+		const videosResponse = await fetch("https://open.tiktokapis.com/v2/video/list/?fields=id,title,create_time,cover_image_url,video_description,view_count,like_count,comment_count,share_count", {
 			method: "GET",
-			headers: { Authorization: `Bearer ${accessToken}` },
+			headers: { 
+				Authorization: `Bearer ${accessToken}`,
+				"Content-Type": "application/json",
+			},
 			cache: "no-store",
 		});
 
 		if (!videosResponse.ok) {
-			console.warn("[posts] TikTok video.list failed", videosResponse.status);
+			const errorText = await videosResponse.text();
+			let errorData;
+			try {
+				errorData = JSON.parse(errorText);
+			} catch {
+				errorData = { error: { message: errorText } };
+			}
+			console.warn("[posts] TikTok video.list failed", videosResponse.status, errorData);
 			return [];
 		}
 
 		const videosData = await videosResponse.json();
+		
+		// Check for API errors in response
+		if (videosData?.error) {
+			console.warn("[posts] TikTok API error in response:", videosData.error);
+			return [];
+		}
 		const items: any[] = videosData?.data?.videos || videosData?.videos || videosData?.items || [];
 
 		return items.map((item: any) => {
-			const stats = item?.statistics || item?.stats || {};
-			const playCount = Number(stats?.play_count ?? stats?.playCount ?? 0) || 0;
-			const likeCount = Number(stats?.digg_count ?? stats?.like_count ?? 0) || 0;
-			const commentCount = Number(stats?.comment_count ?? 0) || 0;
-			const shareCount = Number(stats?.share_count ?? 0) || 0;
+			// TikTok API v2 returns fields directly on the item
+			const playCount = Number(item?.view_count ?? item?.statistics?.play_count ?? item?.stats?.play_count ?? 0) || 0;
+			const likeCount = Number(item?.like_count ?? item?.statistics?.digg_count ?? item?.stats?.like_count ?? 0) || 0;
+			const commentCount = Number(item?.comment_count ?? item?.statistics?.comment_count ?? item?.stats?.comment_count ?? 0) || 0;
+			const shareCount = Number(item?.share_count ?? item?.statistics?.share_count ?? item?.stats?.share_count ?? 0) || 0;
 			const engagement = playCount > 0 ? ((likeCount + commentCount + shareCount) / playCount) * 100 : 0;
 
 			return {
-				id: item?.video_id || item?.id,
-				title: item?.title || item?.desc || "TikTok Video",
+				id: item?.id || item?.video_id,
+				title: item?.title || item?.video_description || item?.desc || "TikTok Video",
 				views: playCount,
 				engagement: Math.min(engagement, 100),
 				publishedAt: item?.create_time
 					? new Date(item.create_time * 1000).toISOString()
 					: new Date().toISOString(),
-				thumbnail: item?.cover || item?.dynamic_cover || item?.thumbnail,
+				thumbnail: item?.cover_image_url || item?.cover || item?.dynamic_cover || item?.thumbnail,
 				likes: likeCount,
 				comments: commentCount,
 				shares: shareCount,

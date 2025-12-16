@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth";
+import { getUserSocialConnections } from "@/lib/user-data";
 import { analyticsMocks, type AnalyticsPlatform, type PlatformAnalyticsSnapshot } from "@/lib/mockAnalytics";
 
 const RAPIDAPI_TIKTOK_ANALYTICS_KEY = process.env.RAPIDAPI_TIKTOK_ANALYTICS_KEY;
@@ -378,50 +380,83 @@ function isValidPlatform(platform: string): platform is AnalyticsPlatform {
 async function fetchTikTokAnalyticsWithAccessToken(accessToken: string): Promise<PlatformAnalyticsSnapshot | null> {
 	try {
 		// Fetch user profile (to get follower count, etc.)
-		const userResponse = await fetch("https://open.tiktokapis.com/v2/user/info/", {
+		const userResponse = await fetch("https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name,username,follower_count,following_count,likes_count,video_count", {
 			method: "GET",
-			headers: { Authorization: `Bearer ${accessToken}` },
+			headers: { 
+				Authorization: `Bearer ${accessToken}`,
+				"Content-Type": "application/json",
+			},
 			cache: "no-store",
 		});
 
 		if (!userResponse.ok) {
-			console.warn("[analytics] TikTok user.info failed", userResponse.status, userResponse.statusText);
+			const errorText = await userResponse.text();
+			let errorData;
+			try {
+				errorData = JSON.parse(errorText);
+			} catch {
+				errorData = { error: { message: errorText } };
+			}
+			console.warn("[analytics] TikTok user.info failed", userResponse.status, errorData);
 			return null;
 		}
 
 		const userData = (await userResponse.json()) as any;
+		
+		// Check for API errors in response
+		if (userData?.error) {
+			console.warn("[analytics] TikTok API error in user response:", userData.error);
+			return null;
+		}
 		const user = userData?.data?.user || userData?.user || {};
 		const followers = Number(user?.follower_count ?? user?.followers_count ?? 0) || 0;
 
 		// Try to list recent videos to compute total views and top content
 		let totalViews = 0;
-		let topContent: Array<{ title: string; views: number; engagement: number; publishedAt: string }> = [];
+		let topContent: Array<{ 
+			title: string; 
+			views: number; 
+			engagement: number; 
+			publishedAt: string;
+			likes?: number;
+			comments?: number;
+			shares?: number;
+			thumbnail?: string;
+		}> = [];
 
 		try {
-			const videosResponse = await fetch("https://open.tiktokapis.com/v2/video/list/", {
+			const videosResponse = await fetch("https://open.tiktokapis.com/v2/video/list/?fields=id,title,create_time,cover_image_url,video_description,view_count,like_count,comment_count,share_count", {
 				method: "GET",
-				headers: { Authorization: `Bearer ${accessToken}` },
+				headers: { 
+					Authorization: `Bearer ${accessToken}`,
+					"Content-Type": "application/json",
+				},
 				cache: "no-store",
 			});
 
 			if (videosResponse.ok) {
 				const videosData = (await videosResponse.json()) as any;
-				const items: any[] = videosData?.data?.videos || videosData?.videos || videosData?.items || [];
+				
+				// Check for API errors in response
+				if (videosData?.error) {
+					console.warn("[analytics] TikTok API error in videos response:", videosData.error);
+				} else {
+					const items: any[] = videosData?.data?.videos || videosData?.videos || videosData?.items || [];
 
-				topContent = items.slice(0, 10).map((item: any) => {
-					const stats = item?.statistics || item?.stats || {};
-					const playCount = Number(stats?.play_count ?? stats?.playCount ?? 0) || 0;
-					const likeCount = Number(stats?.digg_count ?? stats?.like_count ?? 0) || 0;
-					const commentCount = Number(stats?.comment_count ?? 0) || 0;
-					const shareCount = Number(stats?.share_count ?? 0) || 0;
+					topContent = items.slice(0, 10).map((item: any) => {
+					// TikTok API v2 returns fields directly on the item
+					const playCount = Number(item?.view_count ?? item?.statistics?.play_count ?? item?.stats?.play_count ?? 0) || 0;
+					const likeCount = Number(item?.like_count ?? item?.statistics?.digg_count ?? item?.stats?.like_count ?? 0) || 0;
+					const commentCount = Number(item?.comment_count ?? item?.statistics?.comment_count ?? item?.stats?.comment_count ?? 0) || 0;
+					const shareCount = Number(item?.share_count ?? item?.statistics?.share_count ?? item?.stats?.share_count ?? 0) || 0;
 					const engagement = playCount > 0 ? ((likeCount + commentCount + shareCount) / playCount) * 100 : 0;
 					totalViews += playCount;
 					
 					// Get thumbnail from TikTok video item
-					const thumbnail = item?.cover || item?.dynamic_cover || item?.thumbnail;
+					const thumbnail = item?.cover_image_url || item?.cover || item?.dynamic_cover || item?.thumbnail;
 					
 					return {
-						title: item?.title || item?.desc || "TikTok Video",
+						title: item?.title || item?.video_description || item?.desc || "TikTok Video",
 						views: playCount,
 						engagement: Math.min(engagement, 100),
 						publishedAt: item?.create_time
@@ -433,18 +468,36 @@ async function fetchTikTokAnalyticsWithAccessToken(accessToken: string): Promise
 						shares: shareCount,
 					};
 				}).slice(0, 3);
+				}
 			} else {
-				console.warn("[analytics] TikTok video.list failed", videosResponse.status, videosResponse.statusText);
+				const errorText = await videosResponse.text();
+				let errorData;
+				try {
+					errorData = JSON.parse(errorText);
+				} catch {
+					errorData = { error: { message: errorText } };
+				}
+				console.warn("[analytics] TikTok video.list failed", videosResponse.status, errorData);
 			}
 		} catch (error) {
 			console.warn("[analytics] TikTok video.list error", error);
+		}
+
+		// Calculate engagement rate from top content
+		let engagementRate = 0;
+		if (topContent.length > 0 && totalViews > 0) {
+			const totalEngagement = topContent.reduce(
+				(sum, item) => sum + (item.likes || 0) + (item.comments || 0) + (item.shares || 0),
+				0
+			);
+			engagementRate = (totalEngagement / totalViews) * 100;
 		}
 
 		const now = new Date();
 		return {
 			views: totalViews,
 			followers,
-			engagement: 0,
+			engagement: Math.min(engagementRate, 100),
 			revenue: 0,
 			updatedAt: now.toISOString(),
 			trend: { views: 0, followers: 0, engagement: 0, revenue: 0 },
@@ -467,7 +520,31 @@ export async function GET(request: NextRequest) {
 		const url = request.nextUrl;
 		const requestedPlatforms = url.searchParams.getAll("platform");
 		const tiktokSecUid = url.searchParams.get("tiktok_sec_uid"); // Optional sec_uid for TikTok
-		const tiktokAccessToken = request.cookies.get("tiktok_access_token")?.value;
+		
+		// Get TikTok access token from cookies first
+		let tiktokAccessToken = request.cookies.get("tiktok_access_token")?.value;
+		
+		// Also check user data store for access token (more reliable for cross-device sync)
+		try {
+			const user = await getCurrentUser();
+			if (user) {
+				const socialConnections = getUserSocialConnections(user.whop_user_id);
+				const tiktokConnection = socialConnections.find(
+					(conn) => conn.platform === "tiktok" && conn.connected && conn.accessToken
+				);
+				if (tiktokConnection?.accessToken) {
+					// Check if token is expired
+					const isExpired = tiktokConnection.expiresAt && tiktokConnection.expiresAt < Date.now();
+					if (!isExpired) {
+						tiktokAccessToken = tiktokConnection.accessToken;
+					} else {
+						console.warn("[analytics] TikTok access token expired, will try sec_uid fallback");
+					}
+				}
+			}
+		} catch (error) {
+			console.warn("[analytics] Error getting user data for TikTok token:", error);
+		}
 
 		// Validate and filter platforms
 		const validPlatforms = requestedPlatforms
@@ -490,19 +567,37 @@ export async function GET(request: NextRequest) {
 				try {
 					// TikTok: Prefer server-side access token if available; fallback to RapidAPI via sec_uid
 					if (platform === "tiktok") {
+						// Try access token method first
 						if (tiktokAccessToken) {
+							console.log("[analytics] Attempting TikTok analytics with access token");
 							const tokenData = await fetchTikTokAnalyticsWithAccessToken(tiktokAccessToken);
 							if (tokenData) {
+								console.log("[analytics] TikTok analytics fetched successfully with access token");
 								return { platform, data: tokenData };
 							}
+							console.warn("[analytics] TikTok access token method failed, trying sec_uid fallback");
 						}
+						
+						// Fallback to sec_uid method if access token method failed or not available
 						if (tiktokSecUid) {
+							console.log("[analytics] Attempting TikTok analytics with sec_uid");
 							const realData = await fetchTikTokAnalytics(tiktokSecUid);
-							return {
-								platform,
-								data: realData || analyticsMocks[platform],
-							};
+							if (realData) {
+								console.log("[analytics] TikTok analytics fetched successfully with sec_uid");
+								return {
+									platform,
+									data: realData,
+								};
+							}
+							console.warn("[analytics] TikTok sec_uid method also failed");
 						}
+						
+						// If both methods failed, return mock data with warning
+						console.warn("[analytics] Both TikTok methods failed, returning mock data");
+						return {
+							platform,
+							data: analyticsMocks[platform],
+						};
 					}
 					
 			// Fetch real Instagram data if access token is available

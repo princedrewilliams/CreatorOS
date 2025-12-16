@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
 		let userPlatformId: string | undefined;
 		if (tokens.data?.access_token) {
 			try {
-				const userResponse = await fetch("https://open.tiktokapis.com/v2/user/info/", {
+				const userResponse = await fetch("https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name,username,unique_id,follower_count,following_count,likes_count,video_count", {
 					method: "GET",
 					headers: {
 						Authorization: `Bearer ${tokens.data.access_token}`,
@@ -84,6 +84,11 @@ export async function GET(request: NextRequest) {
 				if (userResponse.ok) {
 					const userInfo = await userResponse.json();
 					console.log("[TikTok OAuth] User info response:", JSON.stringify(userInfo, null, 2));
+					
+					// Check for API errors
+					if (userInfo?.error) {
+						console.error("[TikTok OAuth] API error in user info:", userInfo.error);
+					}
 					
 					// Try different possible response structures
 					const user = userInfo.data?.user || userInfo.user || userInfo.data;
