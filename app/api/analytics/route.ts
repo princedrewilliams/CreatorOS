@@ -479,7 +479,17 @@ async function fetchTikTokAnalyticsWithAccessToken(accessToken: string): Promise
 				} catch {
 					errorData = { error: { message: errorText } };
 				}
-				console.warn("[analytics] TikTok video.list failed", videosResponse.status, errorData);
+				console.error("[analytics] TikTok video.list failed", {
+					status: videosResponse.status,
+					statusText: videosResponse.statusText,
+					error: errorData,
+					errorText: errorText.substring(0, 500), // First 500 chars
+				});
+				
+				// If it's a scope/permission error, log it clearly
+				if (videosResponse.status === 403 || videosResponse.status === 401) {
+					console.error("[analytics] TikTok video.list requires additional permissions. Check TikTok Developer Portal for required scopes.");
+				}
 			}
 		} catch (error) {
 			console.warn("[analytics] TikTok video.list error", error);
@@ -496,6 +506,14 @@ async function fetchTikTokAnalyticsWithAccessToken(accessToken: string): Promise
 		}
 
 		const now = new Date();
+		
+		// Only return data if we have real data - don't fall back to mocks
+		// If we have followers but no videos, that's still valid data
+		if (followers === 0 && totalViews === 0 && topContent.length === 0) {
+			console.warn("[analytics] TikTok: No real data available, returning null");
+			return null;
+		}
+		
 		return {
 			views: totalViews,
 			followers,
@@ -503,7 +521,7 @@ async function fetchTikTokAnalyticsWithAccessToken(accessToken: string): Promise
 			revenue: 0,
 			updatedAt: now.toISOString(),
 			trend: { views: 0, followers: 0, engagement: 0, revenue: 0 },
-			topContent: topContent.length > 0 ? topContent : analyticsMocks.tiktok.topContent,
+			topContent: topContent, // Return empty array if no videos, not mock data
 		};
 	} catch (error) {
 		console.error("[analytics] TikTok access-token analytics error:", error);
@@ -578,6 +596,8 @@ export async function GET(request: NextRequest) {
 								return { platform, data: tokenData };
 							}
 							console.warn("[analytics] TikTok access token method failed, trying sec_uid fallback");
+						} else {
+							console.warn("[analytics] TikTok access token not available");
 						}
 						
 						// Fallback to sec_uid method if access token method failed or not available
@@ -592,13 +612,15 @@ export async function GET(request: NextRequest) {
 								};
 							}
 							console.warn("[analytics] TikTok sec_uid method also failed");
+						} else {
+							console.warn("[analytics] TikTok sec_uid not available");
 						}
 						
-						// If both methods failed, return mock data with warning
-						console.warn("[analytics] Both TikTok methods failed, returning mock data");
+						// If both methods failed, return null - don't use mock data
+						console.error("[analytics] Both TikTok methods failed - no real data available. User needs to reconnect TikTok account.");
 						return {
 							platform,
-							data: analyticsMocks[platform],
+							data: null, // Return null instead of mock data
 						};
 					}
 					
@@ -607,9 +629,16 @@ export async function GET(request: NextRequest) {
 				// Use specific account ID if provided, otherwise use "me" or userId from OAuth
 				const accountId = INSTAGRAM_ACCOUNT_ID || undefined;
 				const realData = await fetchInstagramAnalytics(accountId);
+				if (realData) {
+					return {
+						platform,
+						data: realData,
+					};
+				}
+				// Return null if no real data - don't use mock
 				return {
 					platform,
-					data: realData || analyticsMocks[platform],
+					data: null,
 				};
 			}
 			
@@ -709,23 +738,33 @@ export async function GET(request: NextRequest) {
 				}
 			}
 					
-					// Use mock data for other platforms or if credentials not provided
+					// Return null for platforms without real data - don't use mock data
+					console.warn(`[analytics] No real data available for ${platform}`);
 					return {
 						platform,
-						data: analyticsMocks[platform],
+						data: null,
 					};
 				} catch (error) {
 					console.error(`[analytics] Error fetching data for ${platform}:`, error);
-					// Return mock data on error
+					// Return null on error - don't use mock data
 					return {
 						platform,
-						data: analyticsMocks[platform],
+						data: null,
 					};
 				}
 			})
 		);
 
-		return NextResponse.json({ platforms: payload, generatedAt: new Date().toISOString() });
+		// Filter out platforms with null data (no real data available)
+		const validPayload = payload.filter((item) => item.data !== null);
+		
+		// Log if any platforms failed
+		const failedPlatforms = payload.filter((item) => item.data === null);
+		if (failedPlatforms.length > 0) {
+			console.warn("[analytics] Platforms with no real data:", failedPlatforms.map((p) => p.platform));
+		}
+		
+		return NextResponse.json({ platforms: validPayload, generatedAt: new Date().toISOString() });
 	} catch (error) {
 		console.error("[analytics] Error in GET handler:", error);
 		return NextResponse.json(
