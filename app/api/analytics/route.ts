@@ -402,14 +402,16 @@ async function fetchTikTokAnalyticsWithAccessToken(accessToken: string): Promise
 		}
 
 		const userData = (await userResponse.json()) as any;
+		console.log("[analytics] TikTok user.info response:", JSON.stringify(userData, null, 2));
 		
 		// Check for API errors in response
 		if (userData?.error) {
-			console.warn("[analytics] TikTok API error in user response:", userData.error);
+			console.error("[analytics] TikTok API error in user response:", userData.error);
 			return null;
 		}
 		const user = userData?.data?.user || userData?.user || {};
 		const followers = Number(user?.follower_count ?? user?.followers_count ?? 0) || 0;
+		console.log("[analytics] TikTok user data extracted:", { followers, username: user?.username || user?.unique_id || user?.display_name });
 
 		// Try to list recent videos to compute total views and top content
 		let totalViews = 0;
@@ -438,12 +440,14 @@ async function fetchTikTokAnalyticsWithAccessToken(accessToken: string): Promise
 
 			if (videosResponse.ok) {
 				const videosData = (await videosResponse.json()) as any;
+				console.log("[analytics] TikTok video.list response:", JSON.stringify(videosData, null, 2));
 				
 				// Check for API errors in response
 				if (videosData?.error) {
-					console.warn("[analytics] TikTok API error in videos response:", videosData.error);
+					console.error("[analytics] TikTok API error in videos response:", videosData.error);
 				} else {
 					const items: any[] = videosData?.data?.videos || videosData?.videos || videosData?.items || [];
+					console.log("[analytics] TikTok videos found:", items.length);
 
 					topContent = items.slice(0, 10).map((item: any) => {
 					// TikTok API v2 returns fields directly on the item

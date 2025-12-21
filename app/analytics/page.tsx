@@ -149,12 +149,15 @@ export default function AnalyticsPage() {
 			}
 
 			const payload = (await response.json()) as {
-				platforms: Array<{ platform: AnalyticsPlatform; data: PlatformAnalyticsSnapshot }>;
+				platforms: Array<{ platform: AnalyticsPlatform; data: PlatformAnalyticsSnapshot | null }>;
 			};
 
 			const map: AnalyticsMap = {};
 			for (const entry of payload.platforms) {
-				map[entry.platform] = entry.data;
+				// Only add platforms with real data (not null)
+				if (entry.data !== null) {
+					map[entry.platform] = entry.data;
+				}
 			}
 
 			setAnalytics(map);
