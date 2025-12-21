@@ -45,11 +45,40 @@ export async function GET(request: NextRequest) {
 
 		if (user) {
 			// Prefer unique_id (handle/@username) over display_name
-			username = user.unique_id || user.username || user.display_name || user.nickname || username;
-			// Remove @ if present (we'll add it in the UI)
-			username = username.replace(/^@/, "");
+			// TikTok API returns unique_id as the @username handle
+			const rawUsername = user.unique_id || user.username || user.display_name || user.nickname;
+			if (rawUsername && rawUsername.trim() !== "") {
+				username = rawUsername.trim();
+				// Remove @ if present (we'll add it in the UI)
+				username = username.replace(/^@/, "");
+			}
 			// Get profile picture
 			profilePicture = user.avatar_url || user.avatar_larger || user.profile_picture_url;
+		}
+
+		// Log for debugging
+		console.log("[TikTok] Extracted username:", username);
+
+		// Also update the user data store if user is authenticated
+		try {
+			const { getCurrentUser } = await import("@/lib/auth");
+			const { setUserSocialConnection } = await import("@/lib/user-data");
+			const user = await getCurrentUser();
+			
+			if (user && tiktokToken) {
+				const socialConnections = (await import("@/lib/user-data")).getUserSocialConnections(user.whop_user_id);
+				const existingConnection = socialConnections.find((c) => c.platform === "tiktok");
+				
+				if (existingConnection) {
+					setUserSocialConnection(user.whop_user_id, {
+						...existingConnection,
+						username,
+						profilePicture,
+					});
+				}
+			}
+		} catch (error) {
+			console.warn("[TikTok] Failed to update user data store:", error);
 		}
 
 		return NextResponse.json({ username, profilePicture });

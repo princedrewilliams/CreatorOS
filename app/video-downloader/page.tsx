@@ -311,7 +311,7 @@ export default function VideoDownloaderPage() {
 						</Heading>
 						<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11">
 							Only download videos you created or have permission to reuse. We track download attempts and recommend
-							storing proof of ownership for collaborations.
+							storing proof of ownership.
 						</Text>
 					</div>
 				</div>

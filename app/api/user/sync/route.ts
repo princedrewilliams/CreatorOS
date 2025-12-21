@@ -18,9 +18,15 @@ export async function GET(request: NextRequest) {
 		const subscription = getUserSubscription(user.whop_user_id);
 		const stripeConnection = getUserStripeConnection(user.whop_user_id);
 
+		// Ensure all social connections have proper structure
+		const formattedConnections = socialConnections.map((conn) => ({
+			...conn,
+			userPlatformId: conn.userPlatformId || conn.userId, // Ensure userPlatformId is set
+		}));
+
 		return NextResponse.json({
 			success: true,
-			socialConnections,
+			socialConnections: formattedConnections,
 			subscription,
 			stripeConnection: stripeConnection?.connected ? {
 				connected: true,

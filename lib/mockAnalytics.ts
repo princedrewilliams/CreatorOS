@@ -63,7 +63,7 @@ export const analyticsMocks: Record<AnalyticsPlatform, PlatformAnalyticsSnapshot
 		topContent: [
 			{ title: "Carousel: Studio tour", views: 88000, engagement: 5.9, publishedAt: "2024-10-03" },
 			{ title: "Reel: New gear unboxing", views: 74500, engagement: 6.2, publishedAt: "2024-10-08" },
-			{ title: "Reel: Viral dance collab", views: 69200, engagement: 6.5, publishedAt: "2024-10-10" },
+			{ title: "Reel: Viral dance video", views: 69200, engagement: 6.5, publishedAt: "2024-10-10" },
 		],
 	},
 };

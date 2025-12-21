@@ -212,8 +212,7 @@ function PlannerContent() {
 
 	const handleDateSelect = (date: Date) => {
 		setSelectedDate(date);
-		setIsTaskModalOpen(true);
-		setEditingTask(undefined);
+		// Don't auto-open modal, just show tasks for that day
 	};
 
 	const handleCreateTask = () => {
@@ -404,6 +403,153 @@ function PlannerContent() {
 
 			{/* Calendar */}
 			<Calendar selectedDate={selectedDate} onDateSelect={handleDateSelect} />
+
+			{/* Tasks for Selected Day */}
+			{selectedDate && (() => {
+				const selectedDateStr = format(selectedDate, "yyyy-MM-dd");
+				const dayTasks = tasks.filter((task) => task.date === selectedDateStr);
+				return dayTasks.length > 0 ? (
+					<Card size="3" variant="surface" className="p-6">
+						<div className="flex items-center justify-between mb-4">
+							<Heading size="5" as="h2" className="text-gray-12 dark:text-gray-12">
+								Tasks for {format(selectedDate, "MMMM d, yyyy")}
+							</Heading>
+							<Button
+								variant="ghost"
+								size="1"
+								onClick={() => setSelectedDate(undefined)}
+							>
+								<Cross2Icon />
+							</Button>
+						</div>
+						<div className="space-y-3">
+							{dayTasks.map((task) => (
+								<Card
+									key={task.id}
+									size="2"
+									variant="surface"
+									className="p-4 hover:border-blue-6 dark:hover:border-blue-5 transition-colors cursor-pointer"
+									onClick={() => handleEditTask(task)}
+								>
+									<div className="flex items-center justify-between gap-4">
+										<div className="flex items-center gap-3 flex-1">
+											<div className="w-10 h-10 rounded-lg bg-blue-a2 dark:bg-blue-a3 flex items-center justify-center flex-shrink-0">
+												<CheckIcon className="w-5 h-5 text-blue-11 dark:text-blue-10" />
+											</div>
+											<div className="flex-1 min-w-0">
+												<Heading size="4" as="h3" className="mb-1 truncate text-gray-12 dark:text-gray-12">
+													{task.title}
+												</Heading>
+												{task.description && (
+													<Text size="2" color="gray" className="mb-2 line-clamp-1 text-gray-11 dark:text-gray-11">
+														{task.description}
+													</Text>
+												)}
+												<div className="flex items-center gap-2 flex-wrap">
+													{task.time && (
+														<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
+															{task.time}
+														</Text>
+													)}
+													{task.time && <Separator orientation="vertical" className="h-4" />}
+													{task.platforms.map((platform: "youtube" | "instagram" | "tiktok") => (
+														<Badge
+															key={platform}
+															color={getPlatformColor(platform)}
+															size="1"
+															variant="soft"
+															className="capitalize"
+														>
+															{platform}
+														</Badge>
+													))}
+													<Badge
+														color={getStatusColor(task.status)}
+														size="1"
+														variant="soft"
+														className="capitalize"
+													>
+														{task.status}
+													</Badge>
+												</div>
+											</div>
+										</div>
+										<div className="flex items-center gap-2 flex-shrink-0">
+											{task.status !== "posted" && (
+												<Button
+													variant="ghost"
+													color="green"
+													size="2"
+													onClick={(e) => {
+														e.stopPropagation();
+														handlePost(task);
+													}}
+													title="Post to social media"
+												>
+													<PaperPlaneIcon />
+												</Button>
+											)}
+											<Button
+												variant="ghost"
+												size="2"
+												onClick={(e) => {
+													e.stopPropagation();
+													handleEditTask(task);
+												}}
+												title="Edit task"
+											>
+												<Pencil1Icon />
+											</Button>
+											<Button
+												variant="ghost"
+												color="red"
+												size="2"
+												onClick={(e) => {
+													e.stopPropagation();
+													handleDeleteTask(task, e);
+												}}
+												title="Delete task"
+											>
+												<TrashIcon />
+											</Button>
+										</div>
+									</div>
+								</Card>
+							))}
+						</div>
+					</Card>
+				) : (
+					<Card size="3" variant="surface" className="p-6">
+						<div className="flex items-center justify-between mb-4">
+							<Heading size="5" as="h2" className="text-gray-12 dark:text-gray-12">
+								{format(selectedDate, "MMMM d, yyyy")}
+							</Heading>
+							<Button
+								variant="ghost"
+								size="1"
+								onClick={() => setSelectedDate(undefined)}
+							>
+								<Cross2Icon />
+							</Button>
+						</div>
+						<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11 mb-4">
+							No tasks scheduled for this day.
+						</Text>
+						<Button
+							color="blue"
+							size="2"
+							variant="solid"
+							onClick={() => {
+								setIsTaskModalOpen(true);
+								setEditingTask(undefined);
+							}}
+						>
+							<PlusIcon className="mr-2" />
+							Create Task for This Day
+						</Button>
+					</Card>
+				);
+			})()}
 
 			{/* Filters */}
 			<Card size="2" variant="surface" className="p-4">

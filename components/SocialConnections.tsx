@@ -13,34 +13,6 @@ function SocialConnectionsContent() {
 	const youtubeOAuthEnabled = process.env.NEXT_PUBLIC_YOUTUBE_OAUTH_ENABLED === "true";
 	const instagramOAuthEnabled = process.env.NEXT_PUBLIC_INSTAGRAM_OAUTH_ENABLED === "true";
 
-	// Refresh TikTok username if it's still showing "TikTok User"
-	useEffect(() => {
-		const tiktokConnection = socialConnections.find(
-			(conn) => conn.platform === "tiktok" && conn.connected && (!conn.username || conn.username === "TikTok User")
-		);
-
-		if (tiktokConnection) {
-			// Try to refresh the username from the API
-			fetch("/api/auth/tiktok/refresh-username", {
-				credentials: "include",
-			})
-				.then((res) => res.json())
-				.then((data) => {
-					if (data.username && data.username !== "TikTok User") {
-						setSocialConnection({
-							platform: "tiktok",
-							connected: true,
-							username: data.username,
-							profilePicture: data.profilePicture,
-						});
-					}
-				})
-				.catch((error) => {
-					console.error("Failed to refresh TikTok username:", error);
-				});
-		}
-	}, [socialConnections, setSocialConnection]);
-
 	// Check for OAuth callback success
 	useEffect(() => {
 		const connected = searchParams.get("connected");
@@ -89,10 +61,10 @@ function SocialConnectionsContent() {
 		}
 	}, [searchParams, setSocialConnection]);
 
-	// Refresh TikTok username if it's still showing "TikTok User"
+	// Refresh TikTok username if it's still showing "TikTok User" or missing
 	useEffect(() => {
 		const tiktokConnection = socialConnections.find(
-			(conn) => conn.platform === "tiktok" && conn.connected && (!conn.username || conn.username === "TikTok User")
+			(conn) => conn.platform === "tiktok" && conn.connected && (!conn.username || conn.username === "TikTok User" || conn.username.trim() === "")
 		);
 
 		if (tiktokConnection) {
@@ -100,14 +72,25 @@ function SocialConnectionsContent() {
 			fetch("/api/auth/tiktok/refresh-username", {
 				credentials: "include",
 			})
-				.then((res) => res.json())
+				.then((res) => {
+					if (!res.ok) {
+						throw new Error(`HTTP error! status: ${res.status}`);
+					}
+					return res.json();
+				})
 				.then((data) => {
-					if (data.username && data.username !== "TikTok User") {
+					if (data.username && data.username !== "TikTok User" && data.username.trim() !== "") {
+						// Preserve existing connection data
+						const existingConnection = socialConnections.find((c) => c.platform === "tiktok");
 						setSocialConnection({
 							platform: "tiktok",
 							connected: true,
 							username: data.username,
 							profilePicture: data.profilePicture,
+							accessToken: existingConnection?.accessToken,
+							refreshToken: existingConnection?.refreshToken,
+							expiresAt: existingConnection?.expiresAt,
+							userPlatformId: existingConnection?.userPlatformId,
 						});
 					}
 				})

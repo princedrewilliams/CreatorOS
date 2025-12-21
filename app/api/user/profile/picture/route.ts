@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { userProfilePictures } from "@/app/api/collab/chat/route";
+import { userProfilePictures } from "@/app/api/user/profile/route";
 
 export async function POST(request: NextRequest) {
 	try {
@@ -34,18 +34,7 @@ export async function POST(request: NextRequest) {
 			userProfiles.set(user.whop_user_id, userProfile);
 		}
 
-		// Update creator profile if user has one
-		try {
-			const { creatorProfiles } = await import("@/app/api/collab/creators/route");
-			if (creatorProfiles.has(user.whop_user_id)) {
-				const creatorProfile = creatorProfiles.get(user.whop_user_id);
-				creatorProfile.profilePicture = profilePictureUrl;
-				creatorProfiles.set(user.whop_user_id, creatorProfile);
-			}
-		} catch (err) {
-			console.error("[Update Creator Profile Picture] Error:", err);
-			// Non-critical, continue
-		}
+		// Note: Creator profiles feature removed
 
 		return NextResponse.json({
 			success: true,

@@ -232,15 +232,117 @@ export async function POST(request: NextRequest) {
 				});
 			} else {
 				try {
-					// TikTok Video Upload API
-					// Note: This requires TikTok Content Posting API setup
+					// TikTok Video Upload API v2 - Full implementation
 					const videoBuffer = await video.arrayBuffer();
+					const videoArray = new Uint8Array(videoBuffer);
 
-					// TODO: Implement actual TikTok Content Publishing API
-					// For now, return success (actual posting would require TikTok Content Publishing API setup)
-					// This is a placeholder - you'll need to implement the actual API call to TikTok
-					console.log("[post-video] TikTok post placeholder - video size:", video.size);
-					results.push({ platform: "tiktok", success: true });
+					// Step 1: Initialize video upload
+					const initResponse = await fetch(
+						"https://open.tiktokapis.com/v2/post/publish/video/init/",
+						{
+							method: "POST",
+							headers: {
+								Authorization: `Bearer ${tiktokToken}`,
+								"Content-Type": "application/json",
+							},
+							body: JSON.stringify({
+								post_info: {
+									title: caption || "Untitled",
+									privacy_level: "PUBLIC_TO_EVERYONE",
+									disable_duet: false,
+									disable_comment: false,
+									disable_stitch: false,
+									video_cover_timestamp_ms: 1000,
+								},
+								source_info: {
+									source: "FILE_UPLOAD",
+								},
+							}),
+						}
+					);
+
+					if (!initResponse.ok) {
+						const errorText = await initResponse.text();
+						let error;
+						try {
+							error = JSON.parse(errorText);
+						} catch {
+							error = { error: { message: errorText || "Unknown error" } };
+						}
+						throw new Error(error?.error?.message || error?.error_description || error?.error_msg || "Failed to initialize TikTok upload");
+					}
+
+					const initData = await initResponse.json();
+					const publishId = initData?.data?.publish_id;
+					const uploadUrl = initData?.data?.upload_url;
+
+					if (!publishId || !uploadUrl) {
+						throw new Error("Failed to get publish ID or upload URL from TikTok API");
+					}
+
+					console.log("[post-video] TikTok upload initialized, publish_id:", publishId);
+
+					// Step 2: Upload video file to TikTok
+					const uploadResponse = await fetch(uploadUrl, {
+						method: "PUT",
+						headers: {
+							"Content-Type": video.type || "video/mp4",
+							"Content-Length": video.size.toString(),
+						},
+						body: videoArray,
+					});
+
+					if (!uploadResponse.ok) {
+						const errorText = await uploadResponse.text();
+						throw new Error(`Failed to upload video to TikTok: ${uploadResponse.status} ${errorText}`);
+					}
+
+					console.log("[post-video] TikTok video uploaded successfully");
+
+					// Step 3: Check publish status (poll until complete)
+					let publishStatus = "PROCESSING";
+					let attempts = 0;
+					const maxAttempts = 30; // 30 seconds max wait
+
+					while (publishStatus === "PROCESSING" && attempts < maxAttempts) {
+						await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second
+
+						const statusResponse = await fetch(
+							`https://open.tiktokapis.com/v2/post/publish/status/fetch/?publish_id=${publishId}`,
+							{
+								method: "GET",
+								headers: {
+									Authorization: `Bearer ${tiktokToken}`,
+									"Content-Type": "application/json",
+								},
+							}
+						);
+
+						if (statusResponse.ok) {
+							const statusData = await statusResponse.json();
+							publishStatus = statusData?.data?.status || "PROCESSING";
+							
+							if (publishStatus === "PUBLISHED") {
+								console.log("[post-video] TikTok video published successfully");
+								break;
+							} else if (publishStatus === "FAILED") {
+								const errorMsg = statusData?.data?.fail_reason || "Publishing failed";
+								throw new Error(`TikTok publishing failed: ${errorMsg}`);
+							}
+						}
+
+						attempts++;
+					}
+
+					if (publishStatus !== "PUBLISHED") {
+						throw new Error(`TikTok video upload timed out or failed. Status: ${publishStatus}`);
+					}
+
+					results.push({ 
+						platform: "tiktok", 
+						success: true,
+						message: `Video "${caption || 'Untitled'}" posted successfully to TikTok`,
+					});
 				} catch (error) {
 					console.error("[post-video] TikTok post error:", error);
 					results.push({ 

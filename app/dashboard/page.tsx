@@ -57,13 +57,6 @@ const features = [
 		href: "/analytics",
 		color: "cyan" as const,
 	},
-	{
-		title: "Creator Collab",
-		description: "Connect and collaborate with creators in your niche",
-		icon: ChatBubbleIcon,
-		href: "/collab",
-		color: "purple" as const,
-	},
 ];
 
 export default function DashboardPage() {
@@ -91,7 +84,7 @@ export default function DashboardPage() {
 							refreshToken: conn.refreshToken,
 							expiresAt: conn.expiresAt,
 							username: conn.username,
-							userId: conn.userPlatformId,
+							userPlatformId: conn.userPlatformId,
 							profilePicture: conn.profilePicture,
 						});
 					});

@@ -98,14 +98,20 @@ export async function GET(request: NextRequest) {
 						userPlatformId = user.open_id || user.union_id || user.user_id || user.id;
 						
 						// Prefer unique_id (handle/@username) over display_name
-						username = user.unique_id || user.username || user.display_name || user.nickname || username;
-						
-						// Remove @ if present (we'll add it in the UI)
-						username = username.replace(/^@/, "");
+						// TikTok API returns unique_id as the @username handle
+						const rawUsername = user.unique_id || user.username || user.display_name || user.nickname;
+						if (rawUsername && rawUsername.trim() !== "") {
+							username = rawUsername.trim();
+							// Remove @ if present (we'll add it in the UI)
+							username = username.replace(/^@/, "");
+						}
 						
 						// Get profile picture
 						profilePicture = user.avatar_url || user.avatar_larger || user.profile_picture_url;
 					}
+					
+					// Log for debugging
+					console.log("[TikTok OAuth] Extracted username:", username);
 				} else {
 					const errorText = await userResponse.text();
 					console.error("[TikTok OAuth] Failed to fetch user info:", userResponse.status, errorText);
@@ -123,17 +129,19 @@ export async function GET(request: NextRequest) {
 		
 		// Store connection in user data (persists across devices)
 		if (user && tokens.data?.access_token) {
-			setUserSocialConnection(user.whop_user_id, {
+			const connection = {
 				userId: user.whop_user_id,
-				platform: "tiktok",
+				platform: "tiktok" as const,
 				connected: true,
 				accessToken: tokens.data.access_token,
 				refreshToken: tokens.data.refresh_token,
 				expiresAt: tokens.data.expires_in ? Date.now() + tokens.data.expires_in * 1000 : undefined,
-				username,
+				username: username || "TikTok User",
 				userPlatformId,
 				profilePicture,
-			});
+			};
+			console.log("[TikTok OAuth] Saving connection:", { username, userPlatformId, hasProfilePicture: !!profilePicture });
+			setUserSocialConnection(user.whop_user_id, connection);
 		}
 		
 		// Store tokens
