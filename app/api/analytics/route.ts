@@ -425,6 +425,8 @@ async function fetchTikTokAnalyticsWithAccessToken(accessToken: string): Promise
 		}> = [];
 
 		try {
+			// Try to fetch video list - this endpoint may require specific permissions
+			// If it fails due to scope, we'll fall back to user info only
 			const videosResponse = await fetch("https://open.tiktokapis.com/v2/video/list/?fields=id,title,create_time,cover_image_url,video_description,view_count,like_count,comment_count,share_count", {
 				method: "GET",
 				headers: { 
