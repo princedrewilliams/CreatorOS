@@ -122,13 +122,18 @@ export async function GET(request: NextRequest) {
 		}
 
 		// Log the username for debugging
-		console.log("[TikTok OAuth] Setting username:", username);
+		console.log("[TikTok OAuth] Extracted username:", username);
 		
 		// Get current user to save connection with user ID
 		const user = await getCurrentUser();
 		
 		// Store connection in user data (persists across devices)
 		if (user && tokens.data?.access_token) {
+			// Ensure username is not empty or default
+			const finalUsername = (username && username !== "TikTok User" && username.trim() !== "") 
+				? username 
+				: "TikTok User"; // Will be refreshed later
+			
 			const connection = {
 				userId: user.whop_user_id,
 				platform: "tiktok" as const,
@@ -136,12 +141,22 @@ export async function GET(request: NextRequest) {
 				accessToken: tokens.data.access_token,
 				refreshToken: tokens.data.refresh_token,
 				expiresAt: tokens.data.expires_in ? Date.now() + tokens.data.expires_in * 1000 : undefined,
-				username: username || "TikTok User",
+				username: finalUsername,
 				userPlatformId,
 				profilePicture,
 			};
-			console.log("[TikTok OAuth] Saving connection:", { username, userPlatformId, hasProfilePicture: !!profilePicture });
+			console.log("[TikTok OAuth] Saving connection:", { 
+				username: finalUsername, 
+				userPlatformId, 
+				hasProfilePicture: !!profilePicture,
+				hasAccessToken: !!tokens.data.access_token 
+			});
 			setUserSocialConnection(user.whop_user_id, connection);
+			
+			// If username is still default, try to refresh it immediately
+			if (finalUsername === "TikTok User") {
+				console.log("[TikTok OAuth] Username is default, will be refreshed by client");
+			}
 		}
 		
 		// Store tokens

@@ -88,6 +88,31 @@ export default function DashboardPage() {
 							profilePicture: conn.profilePicture,
 						});
 					});
+					
+					// If TikTok is connected but username is missing, trigger refresh
+					const tiktokConn = data.socialConnections.find((c: any) => c.platform === "tiktok" && c.connected);
+					if (tiktokConn && (!tiktokConn.username || tiktokConn.username === "TikTok User")) {
+						// Trigger username refresh in the background
+						fetch("/api/auth/tiktok/refresh-username", {
+							credentials: "include",
+						})
+							.then((res) => res.json())
+							.then((refreshData) => {
+								if (refreshData.username && refreshData.username !== "TikTok User") {
+									setSocialConnection({
+										platform: "tiktok",
+										connected: true,
+										username: refreshData.username,
+										profilePicture: refreshData.profilePicture,
+										accessToken: tiktokConn.accessToken,
+										refreshToken: tiktokConn.refreshToken,
+										expiresAt: tiktokConn.expiresAt,
+										userPlatformId: tiktokConn.userPlatformId,
+									});
+								}
+							})
+							.catch((err) => console.error("Failed to refresh TikTok username:", err));
+					}
 					// Update subscription
 					if (data.subscription) {
 						setIsPro(data.subscription.isPro);

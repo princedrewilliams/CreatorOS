@@ -233,6 +233,9 @@ export async function POST(request: NextRequest) {
 			} else {
 				try {
 					// TikTok Video Upload API v2 - Full implementation
+					// Ensure we have a valid access token with required scopes (video.upload, video.publish)
+					console.log("[post-video] Starting TikTok upload, video size:", video.size, "type:", video.type);
+					
 					const videoBuffer = await video.arrayBuffer();
 					const videoArray = new Uint8Array(videoBuffer);
 
@@ -269,43 +272,57 @@ export async function POST(request: NextRequest) {
 						} catch {
 							error = { error: { message: errorText || "Unknown error" } };
 						}
-						throw new Error(error?.error?.message || error?.error_description || error?.error_msg || "Failed to initialize TikTok upload");
+						console.error("[post-video] TikTok init error:", {
+							status: initResponse.status,
+							statusText: initResponse.statusText,
+							error: errorText,
+							parsedError: error,
+						});
+						throw new Error(error?.error?.message || error?.error_description || error?.error_msg || error?.error?.error_msg || "Failed to initialize TikTok upload");
 					}
 
 					const initData = await initResponse.json();
-					const publishId = initData?.data?.publish_id;
-					const uploadUrl = initData?.data?.upload_url;
+					console.log("[post-video] TikTok init response:", JSON.stringify(initData, null, 2));
+					
+					// Handle different response structures
+					const publishId = initData?.data?.publish_id || initData?.publish_id;
+					const uploadUrl = initData?.data?.upload_url || initData?.upload_url;
 
 					if (!publishId || !uploadUrl) {
-						throw new Error("Failed to get publish ID or upload URL from TikTok API");
+						console.error("[post-video] Missing publish_id or upload_url:", initData);
+						throw new Error("Failed to get publish ID or upload URL from TikTok API. Response: " + JSON.stringify(initData));
 					}
 
 					console.log("[post-video] TikTok upload initialized, publish_id:", publishId);
 
 					// Step 2: Upload video file to TikTok
+					// TikTok requires binary upload with proper content type
 					const uploadResponse = await fetch(uploadUrl, {
 						method: "PUT",
 						headers: {
 							"Content-Type": video.type || "video/mp4",
 							"Content-Length": video.size.toString(),
+							// TikTok may require additional headers for upload
 						},
 						body: videoArray,
 					});
 
 					if (!uploadResponse.ok) {
 						const errorText = await uploadResponse.text();
+						console.error("[post-video] TikTok upload error:", uploadResponse.status, errorText);
 						throw new Error(`Failed to upload video to TikTok: ${uploadResponse.status} ${errorText}`);
 					}
 
-					console.log("[post-video] TikTok video uploaded successfully");
+					console.log("[post-video] TikTok video uploaded successfully, checking status...");
 
-					// Step 3: Check publish status (poll until complete)
+					// Step 3: Poll publish status until complete
+					// TikTok processes the video asynchronously, so we need to check status
 					let publishStatus = "PROCESSING";
 					let attempts = 0;
-					const maxAttempts = 30; // 30 seconds max wait
+					const maxAttempts = 60; // 60 seconds max wait (videos can take time to process)
 
 					while (publishStatus === "PROCESSING" && attempts < maxAttempts) {
-						await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second
+						await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds between checks
 
 						const statusResponse = await fetch(
 							`https://open.tiktokapis.com/v2/post/publish/status/fetch/?publish_id=${publishId}`,
@@ -320,22 +337,38 @@ export async function POST(request: NextRequest) {
 
 						if (statusResponse.ok) {
 							const statusData = await statusResponse.json();
-							publishStatus = statusData?.data?.status || "PROCESSING";
+							console.log("[post-video] TikTok status check:", statusData);
 							
-							if (publishStatus === "PUBLISHED") {
+							// Handle different response structures
+							const status = statusData?.data?.status || statusData?.status || "PROCESSING";
+							publishStatus = status;
+							
+							if (publishStatus === "PUBLISHED" || publishStatus === "PUBLISHED_SUCCESS") {
 								console.log("[post-video] TikTok video published successfully");
 								break;
-							} else if (publishStatus === "FAILED") {
-								const errorMsg = statusData?.data?.fail_reason || "Publishing failed";
+							} else if (publishStatus === "FAILED" || publishStatus === "PUBLISH_FAILED") {
+								const errorMsg = statusData?.data?.fail_reason || statusData?.fail_reason || "Publishing failed";
 								throw new Error(`TikTok publishing failed: ${errorMsg}`);
+							}
+						} else {
+							const errorText = await statusResponse.text();
+							console.warn("[post-video] Status check failed:", statusResponse.status, errorText);
+							// Continue polling if it's a temporary error
+							if (statusResponse.status >= 500) {
+								// Server error, continue polling
+								attempts++;
+								continue;
+							} else {
+								// Client error, stop polling
+								throw new Error(`Failed to check publish status: ${statusResponse.status} ${errorText}`);
 							}
 						}
 
 						attempts++;
 					}
 
-					if (publishStatus !== "PUBLISHED") {
-						throw new Error(`TikTok video upload timed out or failed. Status: ${publishStatus}`);
+					if (publishStatus !== "PUBLISHED" && publishStatus !== "PUBLISHED_SUCCESS") {
+						throw new Error(`TikTok video upload timed out or failed. Final status: ${publishStatus}`);
 					}
 
 					results.push({ 

@@ -68,35 +68,46 @@ function SocialConnectionsContent() {
 		);
 
 		if (tiktokConnection) {
-			// Try to refresh the username from the API
-			fetch("/api/auth/tiktok/refresh-username", {
-				credentials: "include",
-			})
-				.then((res) => {
-					if (!res.ok) {
-						throw new Error(`HTTP error! status: ${res.status}`);
-					}
-					return res.json();
+			// Add a small delay to avoid race conditions with other data loading
+			const timeoutId = setTimeout(() => {
+				// Try to refresh the username from the API
+				fetch("/api/auth/tiktok/refresh-username", {
+					credentials: "include",
 				})
-				.then((data) => {
-					if (data.username && data.username !== "TikTok User" && data.username.trim() !== "") {
-						// Preserve existing connection data
-						const existingConnection = socialConnections.find((c) => c.platform === "tiktok");
-						setSocialConnection({
-							platform: "tiktok",
-							connected: true,
-							username: data.username,
-							profilePicture: data.profilePicture,
-							accessToken: existingConnection?.accessToken,
-							refreshToken: existingConnection?.refreshToken,
-							expiresAt: existingConnection?.expiresAt,
-							userPlatformId: existingConnection?.userPlatformId,
-						});
-					}
-				})
-				.catch((error) => {
-					console.error("Failed to refresh TikTok username:", error);
-				});
+					.then((res) => {
+						if (!res.ok) {
+							// If 401, token might be expired - don't spam errors
+							if (res.status === 401) {
+								console.warn("[TikTok] Token expired or invalid, user needs to reconnect");
+								return null;
+							}
+							throw new Error(`HTTP error! status: ${res.status}`);
+						}
+						return res.json();
+					})
+					.then((data) => {
+						if (data && data.username && data.username !== "TikTok User" && data.username.trim() !== "") {
+							// Preserve existing connection data
+							const existingConnection = socialConnections.find((c) => c.platform === "tiktok");
+							setSocialConnection({
+								platform: "tiktok",
+								connected: true,
+								username: data.username,
+								profilePicture: data.profilePicture,
+								accessToken: existingConnection?.accessToken,
+								refreshToken: existingConnection?.refreshToken,
+								expiresAt: existingConnection?.expiresAt,
+								userPlatformId: existingConnection?.userPlatformId,
+							});
+							console.log("[TikTok] Username refreshed successfully:", data.username);
+						}
+					})
+					.catch((error) => {
+						console.error("[TikTok] Failed to refresh username:", error);
+					});
+			}, 1000); // Wait 1 second after component mounts
+
+			return () => clearTimeout(timeoutId);
 		}
 	}, [socialConnections, setSocialConnection]);
 

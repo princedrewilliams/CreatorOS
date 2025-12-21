@@ -8,7 +8,12 @@ export async function GET(request: NextRequest) {
 		const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
 		const cleanBaseUrl = baseUrl.replace(/\/$/, "");
 		const redirectUri = `${cleanBaseUrl}/api/auth/tiktok/callback`;
-		const scope = "user.info.basic,video.upload";
+		// TikTok API requires these scopes:
+		// - user.info.basic: Get user information (username, profile, etc.)
+		// - video.upload: Upload videos
+		// - video.publish: Publish videos to TikTok
+		// - video.list: List user's videos for analytics
+		const scope = "user.info.basic,video.upload,video.publish,video.list";
 
 		if (!clientKey) {
 			return NextResponse.json(
