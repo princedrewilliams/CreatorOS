@@ -554,20 +554,79 @@ export async function GET(request: NextRequest) {
 			if (user) {
 				const socialConnections = getUserSocialConnections(user.whop_user_id);
 				const tiktokConnection = socialConnections.find(
-					(conn) => conn.platform === "tiktok" && conn.connected && conn.accessToken
+					(conn) => conn.platform === "tiktok" && conn.connected
 				);
-				if (tiktokConnection?.accessToken) {
+				
+				if (tiktokConnection) {
 					// Check if token is expired
 					const isExpired = tiktokConnection.expiresAt && tiktokConnection.expiresAt < Date.now();
-					if (!isExpired) {
+					
+					if (tiktokConnection.accessToken && !isExpired) {
 						tiktokAccessToken = tiktokConnection.accessToken;
+						console.log("[analytics] Using TikTok access token from user data store");
+					} else if (isExpired && tiktokConnection.refreshToken) {
+						// Try to refresh the token inline
+						console.log("[analytics] TikTok access token expired, attempting refresh...");
+						try {
+							const clientKey = process.env.TIKTOK_CLIENT_KEY;
+							const clientSecret = process.env.TIKTOK_CLIENT_SECRET;
+							
+							if (clientKey && clientSecret) {
+								const refreshResponse = await fetch("https://open.tiktokapis.com/v2/oauth/token/", {
+									method: "POST",
+									headers: {
+										"Content-Type": "application/x-www-form-urlencoded",
+									},
+									body: new URLSearchParams({
+										client_key: clientKey,
+										client_secret: clientSecret,
+										grant_type: "refresh_token",
+										refresh_token: tiktokConnection.refreshToken,
+									}),
+								});
+								
+								if (refreshResponse.ok) {
+									const refreshData = await refreshResponse.json();
+									if (refreshData.data?.access_token) {
+										tiktokAccessToken = refreshData.data.access_token;
+										
+										// Update the connection with new token
+										const updatedConnection = {
+											...tiktokConnection,
+											accessToken: refreshData.data.access_token,
+											refreshToken: refreshData.data.refresh_token || tiktokConnection.refreshToken,
+											expiresAt: refreshData.data.expires_in ? Date.now() + refreshData.data.expires_in * 1000 : undefined,
+										};
+										setUserSocialConnection(user.whop_user_id, updatedConnection);
+										
+										console.log("[analytics] TikTok token refreshed successfully");
+									}
+								} else {
+									const errorData = await refreshResponse.json().catch(() => ({}));
+									console.warn("[analytics] Failed to refresh TikTok token:", refreshResponse.status, errorData);
+								}
+							}
+						} catch (refreshError) {
+							console.error("[analytics] Error refreshing TikTok token:", refreshError);
+						}
+					} else if (!tiktokConnection.accessToken) {
+						console.warn("[analytics] No TikTok access token in user data store");
 					} else {
-						console.warn("[analytics] TikTok access token expired, will try sec_uid fallback");
+						console.warn("[analytics] TikTok access token expired and no refresh token available");
 					}
+				} else {
+					console.warn("[analytics] No TikTok connection found in user data store");
 				}
 			}
 		} catch (error) {
 			console.warn("[analytics] Error getting user data for TikTok token:", error);
+		}
+		
+		// Log token status for debugging
+		if (tiktokAccessToken) {
+			console.log("[analytics] TikTok access token available:", tiktokAccessToken.substring(0, 20) + "...");
+		} else {
+			console.warn("[analytics] No TikTok access token available");
 		}
 
 		// Validate and filter platforms
