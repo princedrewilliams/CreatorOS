@@ -194,7 +194,7 @@ export async function GET(request: NextRequest) {
 				rpm: estimatedRPM,
 				views: video.viewCount,
 			}))
-			.sort((a, b) => b.estimatedRevenue - a.estimatedRevenue)
+			.sort((a: { estimatedRevenue: number }, b: { estimatedRevenue: number }) => b.estimatedRevenue - a.estimatedRevenue)
 			.slice(0, 5);
 
 		const revenueData: RevenueData = {
