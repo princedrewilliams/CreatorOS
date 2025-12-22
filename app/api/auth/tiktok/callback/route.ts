@@ -85,13 +85,22 @@ export async function GET(request: NextRequest) {
 		const tokens = await tokenResponse.json();
 		console.log("[TikTok OAuth] Token response:", JSON.stringify(tokens, null, 2));
 
-		// According to TikTok docs, tokens are at root level, not in data wrapper
-		// Handle both possible response structures
-		const accessToken = tokens.access_token || tokens.data?.access_token;
-		const refreshToken = tokens.refresh_token || tokens.data?.refresh_token;
-		const expiresIn = tokens.expires_in || tokens.data?.expires_in;
-		const openId = tokens.open_id || tokens.data?.open_id;
-		const grantedScopes = (tokens.scope || tokens.data?.scope || "").split(",").map((s: string) => s.trim());
+		// According to TikTok v2 OAuth docs, token response structure is:
+		// {
+		//   "access_token": "...",
+		//   "expires_in": 86400,
+		//   "open_id": "...",
+		//   "refresh_expires_in": 31536000,
+		//   "refresh_token": "...",
+		//   "scope": "user.info.basic,video.upload,video.publish",
+		//   "token_type": "Bearer"
+		// }
+		// Tokens are at root level (not in data wrapper) for v2 OAuth
+		const accessToken = tokens.access_token;
+		const refreshToken = tokens.refresh_token;
+		const expiresIn = tokens.expires_in;
+		const openId = tokens.open_id;
+		const grantedScopes = (tokens.scope || "").split(",").map((s: string) => s.trim());
 
 		if (!accessToken) {
 			console.error("[TikTok OAuth] No access token in response:", tokens);
