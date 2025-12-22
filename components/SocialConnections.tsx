@@ -13,7 +13,7 @@ function SocialConnectionsContent() {
 	const youtubeOAuthEnabled = process.env.NEXT_PUBLIC_YOUTUBE_OAUTH_ENABLED === "true";
 	const instagramOAuthEnabled = process.env.NEXT_PUBLIC_INSTAGRAM_OAUTH_ENABLED === "true";
 
-	// Listen for OAuth success messages from popup windows
+	// Listen for OAuth success messages from popup windows (YouTube only now)
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
 			// Only accept messages from same origin
@@ -21,12 +21,15 @@ function SocialConnectionsContent() {
 			
 			if (event.data?.type === "oauth_success") {
 				const { platform, username, profilePicture } = event.data;
-				setSocialConnection({
-					platform: platform as "youtube" | "instagram" | "tiktok",
-					connected: true,
-					username: username || `${platform.charAt(0).toUpperCase() + platform.slice(1)} User`,
-					profilePicture: profilePicture,
-				});
+				// Only handle YouTube connections
+				if (platform === "youtube") {
+					setSocialConnection({
+						platform: "youtube",
+						connected: true,
+						username: username || "YouTube User",
+						profilePicture: profilePicture,
+					});
+				}
 			}
 		};
 		
@@ -40,16 +43,19 @@ function SocialConnectionsContent() {
 		const error = searchParams.get("error");
 
 		if (connected) {
-			// Update connection status based on OAuth callback
+			// Update connection status based on OAuth callback (only YouTube supported now)
 			const platform = connected as "youtube" | "instagram" | "tiktok";
-			const username = searchParams.get("username") || `${platform.charAt(0).toUpperCase() + platform.slice(1)} User`;
-			const profilePicture = searchParams.get("profilePicture") || undefined;
-			setSocialConnection({
-				platform,
-				connected: true,
-				username,
-				profilePicture,
-			});
+			// Only handle YouTube connections
+			if (platform === "youtube") {
+				const username = searchParams.get("username") || "YouTube User";
+				const profilePicture = searchParams.get("profilePicture") || undefined;
+				setSocialConnection({
+					platform,
+					connected: true,
+					username,
+					profilePicture,
+				});
+			}
 			// Clean up URL
 			window.history.replaceState({}, "", window.location.pathname);
 		}
@@ -57,34 +63,6 @@ function SocialConnectionsContent() {
 		if (error) {
 			if (error === "youtube_oauth_disabled") {
 				alert("YouTube OAuth is disabled in this environment.");
-			} else if (error === "instagram_oauth_disabled") {
-				// Instagram can work with access token, so silently mark as connected
-				setSocialConnection({
-					platform: "instagram",
-					connected: true,
-					username: "Instagram User",
-				});
-			} else if (error === "missing_scopes" || error === "scope_not_authorized") {
-				const missingScopes = searchParams.get("scopes");
-				alert(`TikTok connection issue: The app needs to be reviewed and approved by TikTok.\n\nEven though you granted permissions, TikTok requires app review for user.info.basic scope to actually work.\n\nTo fix this:\n1. Go to TikTok Developer Portal (developers.tiktok.com)\n2. Submit your app for review\n3. Wait for TikTok approval\n4. Then reconnect your account\n\nYour account is connected for video posting, but username/analytics won't work until app is approved.`);
-				// Still mark as connected since tokens were saved
-				if (searchParams.get("connected") === "tiktok") {
-					setSocialConnection({
-						platform: "tiktok",
-						connected: true,
-						username: "TikTok User",
-					});
-				}
-			} else if (error === "invalid_app_id") {
-				alert("Invalid Instagram App ID. Please check your environment variables and ensure you're using the Instagram App ID from Meta App Dashboard (not Facebook App ID).");
-			} else if (error === "invalid_redirect_uri") {
-				alert("Invalid redirect URI. Please check:\n1. NEXT_PUBLIC_APP_URL is set correctly in environment variables\n2. Redirect URI matches EXACTLY what's in Instagram App Dashboard\n3. No trailing slashes in the redirect URI\n\nCheck server logs for the exact redirect URI being used.");
-			} else if (error === "oauth_init_failed") {
-				alert("Failed to initiate Instagram OAuth. Please check:\n1. Instagram product is added to your app\n2. Business Login is configured\n3. Redirect URI is whitelisted in Instagram App settings");
-			} else if (error === "invalid_platform_app" || error.includes("platform app")) {
-				alert("Invalid platform app error. This usually means:\n1. Instagram product is not added to your Meta App\n2. Business Login is not configured\n3. Wrong Instagram App ID\n\nPlease check your Meta App Dashboard configuration.");
-			} else if (error.includes("redirect_uri") || error.includes("Invalid redirect")) {
-				alert("Redirect URI mismatch! The redirect URI must match EXACTLY what's configured in Instagram App Dashboard.\n\nCheck:\n1. Server logs for the redirect URI being used\n2. Instagram App Dashboard → Business login settings → OAuth redirect URIs\n3. Make sure NEXT_PUBLIC_APP_URL is set correctly");
 			} else {
 				alert(`OAuth error: ${error}`);
 			}
@@ -166,47 +144,8 @@ function SocialConnectionsContent() {
 	}, [socialConnections, setSocialConnection]);
 
 	const handleConnect = async (platform: "youtube" | "instagram" | "tiktok") => {
-		// For Instagram and TikTok, use popup window so users can choose their account
-		// Instagram blocks OAuth in iframes, so we need special handling
-		if (platform === "instagram" || platform === "tiktok") {
-			try {
-				// Check if we're in an iframe
-				const isInIframe = window.self !== window.top;
-				
-				if (isInIframe || platform === "tiktok") {
-					// In iframe or TikTok - open in new window to avoid blocking and allow account selection
-					const width = 600;
-					const height = 700;
-					const left = (window.screen.width - width) / 2;
-					const top = (window.screen.height - height) / 2;
-					const platformName = platform.charAt(0).toUpperCase() + platform.slice(1);
-					window.open(
-						`/api/auth/${platform}`,
-						`${platformName} OAuth`,
-						`width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
-					);
-				} else {
-					// Not in iframe - use direct redirect (will use HTTP 302)
-					window.location.href = `/api/auth/${platform}`;
-				}
-			} catch (error) {
-				// Fallback: open in new window if we can't determine iframe status
-				console.warn("Cannot determine iframe status, opening in new window:", error);
-				const width = 600;
-				const height = 700;
-				const left = (window.screen.width - width) / 2;
-				const top = (window.screen.height - height) / 2;
-				const platformName = platform.charAt(0).toUpperCase() + platform.slice(1);
-				window.open(
-					`/api/auth/${platform}`,
-					`${platformName} OAuth`,
-					`width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
-				);
-			}
-		} else {
-			// For other platforms, use normal redirect
-			window.location.href = `/api/auth/${platform}`;
-		}
+		// For YouTube, use normal redirect
+		window.location.href = `/api/auth/${platform}`;
 	};
 
 	const handleDisconnect = (platform: "youtube" | "instagram" | "tiktok") => {
@@ -221,18 +160,6 @@ function SocialConnectionsContent() {
 			key: "youtube" as const,
 			color: "red" as const,
 			icon: "📺",
-		},
-		{
-			name: "Instagram",
-			key: "instagram" as const,
-			color: "purple" as const,
-			icon: "📷",
-		},
-		{
-			name: "TikTok",
-			key: "tiktok" as const,
-			color: "gray" as const,
-			icon: "🎵",
 		},
 	];
 
@@ -280,12 +207,8 @@ function SocialConnectionsContent() {
 					const connection = socialConnections.find((c: SocialConnection) => c.platform === platform.key);
 					const isConnected = connection?.connected || false;
 					const isYoutube = platform.key === "youtube";
-					const isInstagram = platform.key === "instagram";
-					// Check OAuth availability
-					// Instagram always available since we can use access token for analytics
-					const oauthAvailable = isYoutube 
-						? youtubeOAuthEnabled // Use environment variable for YouTube
-						: true; // Instagram and TikTok always available
+					// Check OAuth availability (only YouTube supported now)
+					const oauthAvailable = isYoutube ? youtubeOAuthEnabled : false;
 
 					return (
 						<motion.div
