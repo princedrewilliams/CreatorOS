@@ -21,9 +21,13 @@ export async function GET(request: NextRequest) {
 			);
 		}
 
-		// Verify state
+		// Verify state to prevent CSRF attacks (required for v2 OAuth)
 		const storedState = request.cookies.get("tiktok_oauth_state")?.value;
 		if (state !== storedState) {
+			console.error("[TikTok OAuth] State mismatch - possible CSRF attack:", {
+				received: state,
+				expected: storedState,
+			});
 			return NextResponse.redirect(
 				new URL("/planner?error=invalid_state", request.url)
 			);
@@ -42,18 +46,21 @@ export async function GET(request: NextRequest) {
 			);
 		}
 
-		// Exchange code for tokens
+		// Exchange authorization code for access token (v2 OAuth endpoint)
+		// According to docs: https://developers.tiktok.com/doc/oauth-user-access-token-management
+		// Must use application/x-www-form-urlencoded content type
+		// Code must be URL decoded (which Next.js handles automatically)
 		const tokenResponse = await fetch("https://open.tiktokapis.com/v2/oauth/token/", {
 			method: "POST",
 			headers: {
-				"Content-Type": "application/x-www-form-urlencoded",
+				"Content-Type": "application/x-www-form-urlencoded", // Required for v2 OAuth
 			},
 			body: new URLSearchParams({
 				client_key: clientKey,
 				client_secret: clientSecret,
-				code,
-				grant_type: "authorization_code",
-				redirect_uri: redirectUri,
+				code: code, // Authorization code from callback
+				grant_type: "authorization_code", // Required for v2 OAuth
+				redirect_uri: redirectUri, // Must match the redirect_uri used in authorization request
 			}),
 		});
 

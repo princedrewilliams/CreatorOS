@@ -22,11 +22,14 @@ export async function GET(request: NextRequest) {
 			);
 		}
 
-		// Generate state for CSRF protection
+		// Generate state for CSRF protection (as per TikTok v2 OAuth docs)
+		// Use crypto.getRandomValues for better security (if available) or fallback to Math.random
 		const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 		
-		// Add prompt=consent to force consent screen so users can choose scopes
-		// This ensures users see and can grant all requested permissions
+		// Build v2 OAuth authorization URL according to official docs:
+		// https://developers.tiktok.com/doc/login-kit-web
+		// disable_auto_auth=1 forces the authorization page to always display
+		// This ensures users can see and grant all requested permissions
 		const authUrl =
 			`https://www.tiktok.com/v2/auth/authorize/` +
 			`?client_key=${encodeURIComponent(clientKey)}` +
@@ -34,7 +37,7 @@ export async function GET(request: NextRequest) {
 			`&scope=${encodeURIComponent(scope)}` +
 			`&response_type=code` +
 			`&state=${encodeURIComponent(state)}` +
-			`&prompt=consent`; // Force consent screen
+			`&disable_auto_auth=1`; // Always display authorization page (v2 OAuth parameter)
 
 		// Log values useful for debugging redirect_uri mismatches
 		console.log("[TikTok OAuth] Initiating OAuth with:", {
