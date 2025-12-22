@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { SocialConnections } from "@/components/SocialConnections";
 import { ScheduleModal } from "@/components/ScheduleModal";
 import { BackButton } from "@/components/BackButton";
+import { MetricsGuide } from "@/components/MetricsGuide";
 import { useAppStore, type SocialConnection } from "@/lib/store";
 import type { AnalyticsPlatform, PlatformAnalyticsSnapshot } from "@/lib/mockAnalytics";
 
@@ -602,7 +603,7 @@ export default function AnalyticsPage() {
 																Watch Time
 															</Text>
 															<Text size="4" weight="bold" className="text-gray-12 dark:text-gray-12">
-																{formatCompact(analyticsSnapshot.views * 2.5)} min
+																{formatCompact(analyticsSnapshot.watchTime || analyticsSnapshot.views * 2.5)} min
 															</Text>
 															<Badge color="green" size="1" variant="soft" className="mt-1">
 																{formatPercent(analyticsSnapshot.trend.views)}
@@ -620,6 +621,87 @@ export default function AnalyticsPage() {
 															</Badge>
 														</div>
 													</div>
+													
+													{/* Additional YouTube Metrics */}
+													{platform === "youtube" && analyticsSnapshot && (
+														<>
+															<Separator />
+															<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+																{analyticsSnapshot.avgViewDuration !== undefined && (
+																	<div>
+																		<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
+																			Avg View Duration
+																		</Text>
+																		<Text size="3" weight="bold" className="text-gray-12 dark:text-gray-12">
+																			{Math.round(analyticsSnapshot.avgViewDuration)}s
+																		</Text>
+																	</div>
+																)}
+																{analyticsSnapshot.ctr !== undefined && (
+																	<div>
+																		<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
+																			CTR
+																		</Text>
+																		<Text size="3" weight="bold" className="text-gray-12 dark:text-gray-12">
+																			{analyticsSnapshot.ctr.toFixed(2)}%
+																		</Text>
+																	</div>
+																)}
+																{analyticsSnapshot.audienceRetention !== undefined && (
+																	<div>
+																		<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
+																			Audience Retention
+																		</Text>
+																		<Text size="3" weight="bold" className="text-gray-12 dark:text-gray-12">
+																			{analyticsSnapshot.audienceRetention.toFixed(1)}%
+																		</Text>
+																	</div>
+																)}
+																{analyticsSnapshot.subscriberGrowth !== undefined && (
+																	<div>
+																		<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
+																			Subscriber Growth
+																		</Text>
+																		<Text size="3" weight="bold" className="text-gray-12 dark:text-gray-12">
+																			{formatCompact(analyticsSnapshot.subscriberGrowth)}
+																		</Text>
+																	</div>
+																)}
+																{analyticsSnapshot.impressions !== undefined && (
+																	<div>
+																		<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
+																			Impressions
+																		</Text>
+																		<Text size="3" weight="bold" className="text-gray-12 dark:text-gray-12">
+																			{formatCompact(analyticsSnapshot.impressions)}
+																		</Text>
+																	</div>
+																)}
+															</div>
+															{analyticsSnapshot.trafficSources && Object.keys(analyticsSnapshot.trafficSources).length > 0 && (
+																<div className="mt-4">
+																	<Text size="2" weight="medium" className="mb-2 text-gray-12 dark:text-gray-12">
+																		Traffic Sources
+																	</Text>
+																	<div className="space-y-2">
+																		{Object.entries(analyticsSnapshot.trafficSources)
+																			.sort(([, a], [, b]) => b - a)
+																			.slice(0, 5)
+																			.map(([source, views]) => (
+																				<div key={source} className="flex items-center justify-between p-2 rounded bg-gray-a2">
+																					<Text size="1" className="text-gray-11 capitalize">
+																						{source.replace(/_/g, " ").toLowerCase()}
+																					</Text>
+																					<Text size="2" weight="medium" className="text-gray-12">
+																						{formatCompact(views as number)}
+																					</Text>
+																				</div>
+																			))}
+																	</div>
+																</div>
+															)}
+														</>
+													)}
 													
 													{/* Additional KPIs */}
 													<Separator />

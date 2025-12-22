@@ -22,6 +22,14 @@ export interface PlatformAnalyticsSnapshot {
 		comments?: number;
 		shares?: number;
 	}>;
+	// Additional YouTube metrics
+	watchTime?: number; // in minutes
+	avgViewDuration?: number; // in seconds
+	ctr?: number; // Click-Through Rate percentage
+	trafficSources?: Record<string, number>; // Traffic source breakdown
+	subscriberGrowth?: number; // Subscriber growth per video
+	impressions?: number; // Total impressions
+	audienceRetention?: number; // Average retention percentage
 }
 
 const now = new Date();

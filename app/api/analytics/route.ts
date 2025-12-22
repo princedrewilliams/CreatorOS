@@ -784,9 +784,9 @@ export async function GET(request: NextRequest) {
 				const youtubeAccessToken = request.cookies.get("youtube_access_token")?.value;
 				if (youtubeAccessToken) {
 					try {
-						// Get channel statistics and videos
+						// Get channel ID first
 						const channelResponse = await fetch(
-							`https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet&mine=true`,
+							`https://www.googleapis.com/youtube/v3/channels?part=id,statistics,snippet&mine=true`,
 							{
 								headers: {
 									Authorization: `Bearer ${youtubeAccessToken}`,
@@ -798,9 +798,66 @@ export async function GET(request: NextRequest) {
 							const channelData = await channelResponse.json();
 							if (channelData.items && channelData.items.length > 0) {
 								const channel = channelData.items[0];
+								const channelId = channel.id;
 								const stats = channel.statistics;
 								const subscribers = Number(stats.subscriberCount || 0);
 								const videoCount = Number(stats.videoCount || 0);
+								
+								// Get YouTube Analytics data for detailed metrics
+								let totalWatchTime = 0;
+								let totalImpressions = 0;
+								let totalClicks = 0;
+								let totalViews = 0;
+								let avgViewDuration = 0;
+								let trafficSources: Record<string, number> = {};
+								
+								try {
+									const analyticsResponse = await fetch(
+										`https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==${channelId}&startDate=${new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]}&endDate=${new Date().toISOString().split("T")[0]}&metrics=views,estimatedMinutesWatched,impressions,impressionsClickThroughRate,averageViewDuration&dimensions=video`,
+										{
+											headers: {
+												Authorization: `Bearer ${youtubeAccessToken}`,
+											},
+										}
+									);
+									
+									if (analyticsResponse.ok) {
+										const analyticsData = await analyticsResponse.json();
+										if (analyticsData.rows) {
+											analyticsData.rows.forEach((row: any[]) => {
+												totalViews += row[0] || 0;
+												totalWatchTime += row[1] || 0; // minutes watched
+												totalImpressions += row[2] || 0;
+												totalClicks += (row[2] || 0) * (row[3] || 0) / 100; // impressions * CTR
+												avgViewDuration += row[4] || 0;
+											});
+											avgViewDuration = analyticsData.rows.length > 0 ? avgViewDuration / analyticsData.rows.length : 0;
+										}
+									}
+									
+									// Get traffic sources
+									const trafficResponse = await fetch(
+										`https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==${channelId}&startDate=${new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]}&endDate=${new Date().toISOString().split("T")[0]}&metrics=views&dimensions=insightTrafficSourceType`,
+										{
+											headers: {
+												Authorization: `Bearer ${youtubeAccessToken}`,
+											},
+										}
+									);
+									
+									if (trafficResponse.ok) {
+										const trafficData = await trafficResponse.json();
+										if (trafficData.rows) {
+											trafficData.rows.forEach((row: any[]) => {
+												const source = row[0] || "unknown";
+												const views = row[1] || 0;
+												trafficSources[source] = (trafficSources[source] || 0) + views;
+											});
+										}
+									}
+								} catch (error) {
+									console.warn("[analytics] YouTube Analytics API not available:", error);
+								}
 								
 								// Get recent videos
 								const videosResponse = await fetch(
@@ -812,8 +869,8 @@ export async function GET(request: NextRequest) {
 									}
 								);
 								
-								let topContent: Array<{ title: string; views: number; engagement: number; publishedAt: string; thumbnail?: string; likes?: number; comments?: number }> = [];
-								let totalViews = 0;
+								let topContent: Array<{ title: string; views: number; engagement: number; publishedAt: string; thumbnail?: string; likes?: number; comments?: number; shares?: number }> = [];
+								let subscriberGrowth = 0;
 								
 								if (videosResponse.ok) {
 									const videosData = await videosResponse.json();
@@ -837,8 +894,8 @@ export async function GET(request: NextRequest) {
 												const views = Number(videoStats.viewCount || 0);
 												const likes = Number(videoStats.likeCount || 0);
 												const comments = Number(videoStats.commentCount || 0);
-												const engagement = views > 0 ? ((likes + comments) / views) * 100 : 0;
-												totalViews += views;
+												const shares = Number(videoStats.shareCount || 0);
+												const engagement = views > 0 ? ((likes + comments + shares) / views) * 100 : 0;
 												
 												return {
 													title: item.snippet?.title || "Untitled Video",
@@ -848,23 +905,38 @@ export async function GET(request: NextRequest) {
 													thumbnail: item.snippet?.thumbnails?.high?.url || item.snippet?.thumbnails?.medium?.url,
 													likes,
 													comments,
+													shares,
 												};
 											});
 										}
 									}
 								}
 								
+								// Calculate CTR
+								const ctr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
+								
+								// Calculate subscriber growth (estimate from recent videos)
+								// Note: Actual subscriber growth per video requires additional API calls
+								subscriberGrowth = subscribers > 0 ? (totalViews / subscribers) * 0.02 : 0; // Estimate 2% conversion
+								
 								const now = new Date();
 								return {
 									platform,
 									data: {
-										views: totalViews,
+										views: totalViews || 0,
 										followers: subscribers,
 										engagement: subscribers > 0 ? (totalViews / subscribers / videoCount) * 100 : 0,
 										revenue: 0,
 										updatedAt: now.toISOString(),
 										trend: { views: 0, followers: 0, engagement: 0, revenue: 0 },
 										topContent: topContent.length > 0 ? topContent : analyticsMocks.youtube.topContent,
+										// Additional metrics
+										watchTime: totalWatchTime, // in minutes
+										avgViewDuration: avgViewDuration, // in seconds
+										ctr: ctr, // percentage
+										trafficSources: trafficSources,
+										subscriberGrowth: subscriberGrowth,
+										impressions: totalImpressions,
 									},
 								};
 							}
