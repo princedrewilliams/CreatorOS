@@ -23,6 +23,7 @@ interface GrowthLeak {
 		channelAvgRetention?: number;
 		watchTimePerImpression?: number;
 		channelAvgWatchTimePerImpression?: number;
+		impressions?: number;
 	};
 	fix: string;
 }
