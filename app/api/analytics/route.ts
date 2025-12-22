@@ -587,19 +587,26 @@ export async function GET(request: NextRequest) {
 								
 								if (refreshResponse.ok) {
 									const refreshData = await refreshResponse.json();
-									if (refreshData.data?.access_token) {
-										tiktokAccessToken = refreshData.data.access_token;
+									// According to TikTok docs, tokens are at root level
+									const newAccessToken = refreshData.access_token || refreshData.data?.access_token;
+									const newRefreshToken = refreshData.refresh_token || refreshData.data?.refresh_token;
+									const newExpiresIn = refreshData.expires_in || refreshData.data?.expires_in;
+									
+									if (newAccessToken) {
+										tiktokAccessToken = newAccessToken;
 										
 										// Update the connection with new token
 										const updatedConnection = {
 											...tiktokConnection,
-											accessToken: refreshData.data.access_token,
-											refreshToken: refreshData.data.refresh_token || tiktokConnection.refreshToken,
-											expiresAt: refreshData.data.expires_in ? Date.now() + refreshData.data.expires_in * 1000 : undefined,
+											accessToken: newAccessToken,
+											refreshToken: newRefreshToken || tiktokConnection.refreshToken,
+											expiresAt: newExpiresIn ? Date.now() + newExpiresIn * 1000 : undefined,
 										};
 										setUserSocialConnection(user.whop_user_id, updatedConnection);
 										
 										console.log("[analytics] TikTok token refreshed successfully");
+									} else {
+										console.error("[analytics] No access token in refresh response:", refreshData);
 									}
 								} else {
 									const errorData = await refreshResponse.json().catch(() => ({}));

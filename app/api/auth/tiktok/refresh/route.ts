@@ -49,17 +49,24 @@ export async function POST(request: NextRequest) {
 		}
 
 		const tokens = await tokenResponse.json();
+		console.log("[TikTok Refresh] Token response:", JSON.stringify(tokens, null, 2));
 
-		if (!tokens.data?.access_token) {
+		// According to TikTok docs, tokens are at root level, not in data wrapper
+		const accessToken = tokens.access_token || tokens.data?.access_token;
+		const refreshToken = tokens.refresh_token || tokens.data?.refresh_token;
+		const expiresIn = tokens.expires_in || tokens.data?.expires_in;
+
+		if (!accessToken) {
+			console.error("[TikTok Refresh] No access token in response:", tokens);
 			return NextResponse.json({ error: "No access token in response" }, { status: 500 });
 		}
 
 		// Update the connection with new tokens
 		const updatedConnection = {
 			...tiktokConnection,
-			accessToken: tokens.data.access_token,
-			refreshToken: tokens.data.refresh_token || tiktokConnection.refreshToken, // Use new refresh token if provided
-			expiresAt: tokens.data.expires_in ? Date.now() + tokens.data.expires_in * 1000 : undefined,
+			accessToken: accessToken,
+			refreshToken: refreshToken || tiktokConnection.refreshToken, // Use new refresh token if provided
+			expiresAt: expiresIn ? Date.now() + expiresIn * 1000 : undefined,
 		};
 
 		setUserSocialConnection(user.whop_user_id, updatedConnection);
@@ -67,19 +74,19 @@ export async function POST(request: NextRequest) {
 		// Also update the cookie
 		const response = NextResponse.json({
 			success: true,
-			accessToken: tokens.data.access_token,
-			expiresIn: tokens.data.expires_in,
+			accessToken: accessToken,
+			expiresIn: expiresIn,
 		});
 
-		response.cookies.set("tiktok_access_token", tokens.data.access_token, {
+		response.cookies.set("tiktok_access_token", accessToken, {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === "production",
 			sameSite: "lax",
-			maxAge: tokens.data.expires_in || 3600,
+			maxAge: expiresIn || 86400, // Default to 24 hours
 		});
 
-		if (tokens.data.refresh_token) {
-			response.cookies.set("tiktok_refresh_token", tokens.data.refresh_token, {
+		if (refreshToken) {
+			response.cookies.set("tiktok_refresh_token", refreshToken, {
 				httpOnly: true,
 				secure: process.env.NODE_ENV === "production",
 				sameSite: "lax",

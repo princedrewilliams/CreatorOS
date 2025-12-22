@@ -66,17 +66,33 @@ export async function GET(request: NextRequest) {
 		}
 
 		const tokens = await tokenResponse.json();
+		console.log("[TikTok OAuth] Token response:", JSON.stringify(tokens, null, 2));
+
+		// According to TikTok docs, tokens are at root level, not in data wrapper
+		// Handle both possible response structures
+		const accessToken = tokens.access_token || tokens.data?.access_token;
+		const refreshToken = tokens.refresh_token || tokens.data?.refresh_token;
+		const expiresIn = tokens.expires_in || tokens.data?.expires_in;
+		const openId = tokens.open_id || tokens.data?.open_id;
+		const scope = tokens.scope || tokens.data?.scope;
+
+		if (!accessToken) {
+			console.error("[TikTok OAuth] No access token in response:", tokens);
+			return NextResponse.redirect(
+				new URL("/planner?error=no_access_token", request.url)
+			);
+		}
 
 		// Get user info
 		let username = "TikTok User";
 		let profilePicture: string | undefined;
 		let userPlatformId: string | undefined;
-		if (tokens.data?.access_token) {
+		if (accessToken) {
 			try {
 				const userResponse = await fetch("https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name,username,unique_id,follower_count,following_count,likes_count,video_count", {
 					method: "GET",
 					headers: {
-						Authorization: `Bearer ${tokens.data.access_token}`,
+						Authorization: `Bearer ${accessToken}`,
 						"Content-Type": "application/json",
 					},
 				});
@@ -126,37 +142,44 @@ export async function GET(request: NextRequest) {
 		
 		// Get current user to save connection with user ID
 		const user = await getCurrentUser();
+		console.log("[TikTok OAuth] Current user:", user ? { userId: user.whop_user_id } : "null");
 		
 		// Store connection in user data (persists across devices)
-		if (user && tokens.data?.access_token) {
+		// Use open_id from token response if userPlatformId wasn't found from user info
+		if (!userPlatformId && openId) {
+			userPlatformId = openId;
+		}
+		
+		if (user && accessToken) {
 			// Ensure username is not empty or default
 			const finalUsername = (username && username !== "TikTok User" && username.trim() !== "") 
 				? username 
 				: "TikTok User"; // Will be refreshed later
 			
-			const expiresAt = tokens.data.expires_in ? Date.now() + tokens.data.expires_in * 1000 : undefined;
+			const expiresAt = expiresIn ? Date.now() + expiresIn * 1000 : undefined;
 			
 			const connection = {
 				userId: user.whop_user_id,
 				platform: "tiktok" as const,
 				connected: true,
-				accessToken: tokens.data.access_token,
-				refreshToken: tokens.data.refresh_token,
+				accessToken: accessToken,
+				refreshToken: refreshToken,
 				expiresAt,
 				username: finalUsername,
-				userPlatformId,
+				userPlatformId: userPlatformId || openId,
 				profilePicture,
 			};
 			
 			console.log("[TikTok OAuth] Saving connection:", { 
 				userId: user.whop_user_id,
 				username: finalUsername, 
-				userPlatformId, 
+				userPlatformId: userPlatformId || openId, 
 				hasProfilePicture: !!profilePicture,
-				hasAccessToken: !!tokens.data.access_token,
-				hasRefreshToken: !!tokens.data.refresh_token,
+				hasAccessToken: !!accessToken,
+				hasRefreshToken: !!refreshToken,
 				expiresAt: expiresAt ? new Date(expiresAt).toISOString() : "never",
-				accessTokenLength: tokens.data.access_token?.length || 0,
+				accessTokenLength: accessToken?.length || 0,
+				scope: scope,
 			});
 			
 			const savedConnection = setUserSocialConnection(user.whop_user_id, connection);
@@ -178,32 +201,43 @@ export async function GET(request: NextRequest) {
 		} else {
 			console.error("[TikTok OAuth] Failed to save connection:", {
 				hasUser: !!user,
-				hasAccessToken: !!tokens.data?.access_token,
+				hasAccessToken: !!accessToken,
+				tokenResponseKeys: Object.keys(tokens),
 			});
+			
+			// Even if user is not authenticated, store tokens in cookies so they can be used later
+			// The user can reconnect when they're logged in
 		}
 		
-		// Store tokens
+		// Store tokens in cookies regardless of user authentication status
+		// This allows the tokens to be used even if user session isn't available
 		const profilePictureParam = profilePicture ? `&profilePicture=${encodeURIComponent(profilePicture)}` : "";
 		const response = NextResponse.redirect(
 			new URL(`/planner?connected=tiktok&username=${encodeURIComponent(username)}${profilePictureParam}`, request.url)
 		);
 		
-		if (tokens.data?.access_token) {
-			response.cookies.set("tiktok_access_token", tokens.data.access_token, {
+		if (accessToken) {
+			response.cookies.set("tiktok_access_token", accessToken, {
 				httpOnly: true,
 				secure: process.env.NODE_ENV === "production",
 				sameSite: "lax",
-				maxAge: tokens.data.expires_in || 3600,
+				maxAge: expiresIn || 86400, // Default to 24 hours (86400 seconds)
 			});
 
-			if (tokens.data?.refresh_token) {
-				response.cookies.set("tiktok_refresh_token", tokens.data.refresh_token, {
+			if (refreshToken) {
+				response.cookies.set("tiktok_refresh_token", refreshToken, {
 					httpOnly: true,
 					secure: process.env.NODE_ENV === "production",
 					sameSite: "lax",
 					maxAge: 60 * 60 * 24 * 365, // 1 year
 				});
 			}
+			
+			console.log("[TikTok OAuth] Tokens stored in cookies:", {
+				hasAccessToken: !!accessToken,
+				hasRefreshToken: !!refreshToken,
+				expiresIn: expiresIn,
+			});
 		}
 
 		// Clear state cookie
