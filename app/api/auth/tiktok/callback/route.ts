@@ -58,10 +58,20 @@ export async function GET(request: NextRequest) {
 		});
 
 		if (!tokenResponse.ok) {
-			const errorData = await tokenResponse.json();
-			console.error("Token exchange error:", errorData);
+			const errorText = await tokenResponse.text();
+			let errorData;
+			try {
+				errorData = JSON.parse(errorText);
+			} catch {
+				errorData = { error: "Unknown error", error_description: errorText };
+			}
+			console.error("[TikTok OAuth] Token exchange error:", {
+				status: tokenResponse.status,
+				statusText: tokenResponse.statusText,
+				error: errorData,
+			});
 			return NextResponse.redirect(
-				new URL("/planner?error=token_exchange_failed", request.url)
+				new URL(`/planner?error=token_exchange_failed&details=${encodeURIComponent(errorData.error_description || errorData.error || "Unknown error")}`, request.url)
 			);
 		}
 
@@ -141,16 +151,22 @@ export async function GET(request: NextRequest) {
 		console.log("[TikTok OAuth] Extracted username:", username);
 		
 		// Get current user to save connection with user ID
+		// Note: User might not be authenticated during OAuth callback
+		// Tokens will be stored in cookies and can be associated with user later
 		const user = await getCurrentUser();
-		console.log("[TikTok OAuth] Current user:", user ? { userId: user.whop_user_id } : "null");
+		console.log("[TikTok OAuth] Current user:", user ? { userId: user.whop_user_id, username: user.whop_username } : "null (user not authenticated)");
 		
 		// Store connection in user data (persists across devices)
 		// Use open_id from token response if userPlatformId wasn't found from user info
 		if (!userPlatformId && openId) {
 			userPlatformId = openId;
+			console.log("[TikTok OAuth] Using open_id from token response:", openId);
 		}
 		
-		if (user && accessToken) {
+		// Store tokens even if user is not authenticated - they'll be associated later
+		if (accessToken) {
+			// If user is authenticated, save to user data store
+			if (user) {
 			// Ensure username is not empty or default
 			const finalUsername = (username && username !== "TikTok User" && username.trim() !== "") 
 				? username 
@@ -194,19 +210,22 @@ export async function GET(request: NextRequest) {
 				connected: verifiedConnection?.connected,
 			});
 			
-			// If username is still default, try to refresh it immediately
-			if (finalUsername === "TikTok User") {
-				console.log("[TikTok OAuth] Username is default, will be refreshed by client");
+				// If username is still default, try to refresh it immediately
+				if (finalUsername === "TikTok User") {
+					console.log("[TikTok OAuth] Username is default, will be refreshed by client");
+				}
+			} else {
+				// User not authenticated - tokens stored in cookies will be used
+				// When user logs in, they can sync their connections
+				console.log("[TikTok OAuth] User not authenticated, tokens stored in cookies only. User should log in and sync connections.");
 			}
 		} else {
-			console.error("[TikTok OAuth] Failed to save connection:", {
+			console.error("[TikTok OAuth] No access token received:", {
 				hasUser: !!user,
 				hasAccessToken: !!accessToken,
 				tokenResponseKeys: Object.keys(tokens),
+				tokenResponseSample: JSON.stringify(tokens).substring(0, 200),
 			});
-			
-			// Even if user is not authenticated, store tokens in cookies so they can be used later
-			// The user can reconnect when they're logged in
 		}
 		
 		// Store tokens in cookies regardless of user authentication status
