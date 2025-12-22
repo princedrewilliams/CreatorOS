@@ -173,7 +173,7 @@ export async function GET(request: NextRequest) {
 			channelAvgWatchTimePerImpression = totalImpressions > 0 ? totalWatchTime / totalImpressions : 0;
 
 			// Calculate median impressions
-			const impressionsArray = analyticsData.rows.map((row: any[]) => row[2] || 0).sort((a, b) => a - b);
+			const impressionsArray = analyticsData.rows.map((row: any[]) => row[2] || 0).sort((a: number, b: number) => a - b);
 			channelMedianImpressions = impressionsArray.length > 0 
 				? impressionsArray[Math.floor(impressionsArray.length / 2)]
 				: 0;
