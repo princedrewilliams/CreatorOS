@@ -13,6 +13,27 @@ function SocialConnectionsContent() {
 	const youtubeOAuthEnabled = process.env.NEXT_PUBLIC_YOUTUBE_OAUTH_ENABLED === "true";
 	const instagramOAuthEnabled = process.env.NEXT_PUBLIC_INSTAGRAM_OAUTH_ENABLED === "true";
 
+	// Listen for OAuth success messages from popup windows
+	useEffect(() => {
+		const handleMessage = (event: MessageEvent) => {
+			// Only accept messages from same origin
+			if (event.origin !== window.location.origin) return;
+			
+			if (event.data?.type === "oauth_success") {
+				const { platform, username, profilePicture } = event.data;
+				setSocialConnection({
+					platform: platform as "youtube" | "instagram" | "tiktok",
+					connected: true,
+					username: username || `${platform.charAt(0).toUpperCase() + platform.slice(1)} User`,
+					profilePicture: profilePicture,
+				});
+			}
+		};
+		
+		window.addEventListener("message", handleMessage);
+		return () => window.removeEventListener("message", handleMessage);
+	}, [setSocialConnection]);
+
 	// Check for OAuth callback success
 	useEffect(() => {
 		const connected = searchParams.get("connected");
