@@ -122,22 +122,23 @@ function SocialConnectionsContent() {
 	}, [socialConnections, setSocialConnection]);
 
 	const handleConnect = async (platform: "youtube" | "instagram" | "tiktok") => {
-		// For Instagram, handle iframe restrictions
+		// For Instagram and TikTok, use popup window so users can choose their account
 		// Instagram blocks OAuth in iframes, so we need special handling
-		if (platform === "instagram") {
+		if (platform === "instagram" || platform === "tiktok") {
 			try {
 				// Check if we're in an iframe
 				const isInIframe = window.self !== window.top;
 				
-				if (isInIframe) {
-					// In iframe - open in new window to avoid blocking
+				if (isInIframe || platform === "tiktok") {
+					// In iframe or TikTok - open in new window to avoid blocking and allow account selection
 					const width = 600;
 					const height = 700;
 					const left = (window.screen.width - width) / 2;
 					const top = (window.screen.height - height) / 2;
+					const platformName = platform.charAt(0).toUpperCase() + platform.slice(1);
 					window.open(
 						`/api/auth/${platform}`,
-						"Instagram OAuth",
+						`${platformName} OAuth`,
 						`width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
 					);
 				} else {
@@ -151,9 +152,10 @@ function SocialConnectionsContent() {
 				const height = 700;
 				const left = (window.screen.width - width) / 2;
 				const top = (window.screen.height - height) / 2;
+				const platformName = platform.charAt(0).toUpperCase() + platform.slice(1);
 				window.open(
 					`/api/auth/${platform}`,
-					"Instagram OAuth",
+					`${platformName} OAuth`,
 					`width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
 				);
 			}

@@ -264,6 +264,40 @@ export async function GET(request: NextRequest) {
 		// Store tokens in cookies regardless of user authentication status
 		// This allows the tokens to be used even if user session isn't available
 		const profilePictureParam = profilePicture ? `&profilePicture=${encodeURIComponent(profilePicture)}` : "";
+		
+		// Check if this is a popup window (OAuth callback from popup)
+		// If so, redirect to a page that closes the popup and notifies parent
+		const isPopup = request.headers.get("referer")?.includes("tiktok.com") || 
+		                request.url.includes("popup=true");
+		
+		if (isPopup) {
+			// Redirect to a page that closes the popup and notifies parent window
+			const redirectUrl = new URL(`/planner?connected=tiktok&username=${encodeURIComponent(username)}${profilePictureParam}&popup=true`, request.url);
+			const response = NextResponse.redirect(redirectUrl);
+			
+			if (accessToken) {
+				response.cookies.set("tiktok_access_token", accessToken, {
+					httpOnly: true,
+					secure: process.env.NODE_ENV === "production",
+					sameSite: "lax",
+					maxAge: expiresIn || 86400, // Default to 24 hours (86400 seconds)
+				});
+
+				if (refreshToken) {
+					response.cookies.set("tiktok_refresh_token", refreshToken, {
+						httpOnly: true,
+						secure: process.env.NODE_ENV === "production",
+						sameSite: "lax",
+						maxAge: 60 * 60 * 24 * 365, // 1 year
+					});
+				}
+			}
+			
+			response.cookies.delete("tiktok_oauth_state");
+			return response;
+		}
+		
+		// Normal redirect (not from popup)
 		const response = NextResponse.redirect(
 			new URL(`/planner?connected=tiktok&username=${encodeURIComponent(username)}${profilePictureParam}`, request.url)
 		);
