@@ -64,6 +64,17 @@ function SocialConnectionsContent() {
 					connected: true,
 					username: "Instagram User",
 				});
+			} else if (error === "missing_scopes") {
+				const missingScopes = searchParams.get("scopes");
+				alert(`TikTok connection incomplete: Missing required permissions (${missingScopes || "user.info.basic"}).\n\nPlease disconnect and reconnect your TikTok account, making sure to grant ALL requested permissions during authorization.\n\nYour account is connected but some features (like username display and analytics) won't work until you grant the required permissions.`);
+				// Still mark as connected since tokens were saved
+				if (searchParams.get("connected") === "tiktok") {
+					setSocialConnection({
+						platform: "tiktok",
+						connected: true,
+						username: "TikTok User",
+					});
+				}
 			} else if (error === "invalid_app_id") {
 				alert("Invalid Instagram App ID. Please check your environment variables and ensure you're using the Instagram App ID from Meta App Dashboard (not Facebook App ID).");
 			} else if (error === "invalid_redirect_uri") {
