@@ -7,10 +7,8 @@ import {
 	FileTextIcon,
 	BarChartIcon,
 	ArrowRightIcon,
-	DownloadIcon,
 	LockClosedIcon,
 	EyeOpenIcon,
-	VideoIcon,
 	ChatBubbleIcon,
 	LightningBoltIcon,
 } from "@radix-ui/react-icons";
@@ -311,7 +309,7 @@ export default function DashboardPage() {
 			description: "Store your content calendar and scheduled posts",
 		},
 		{
-			icon: VideoIcon,
+			icon: ChatBubbleIcon,
 			title: "Post Content",
 			description: "Use access tokens to post on your behalf",
 		},
