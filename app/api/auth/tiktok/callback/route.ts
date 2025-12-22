@@ -108,16 +108,37 @@ export async function GET(request: NextRequest) {
 		if (accessToken) {
 			try {
 				console.log("[TikTok OAuth] Attempting to fetch user info with access token...");
-				const userResponse = await fetch("https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name,username,unique_id,follower_count,following_count,likes_count,video_count", {
+				console.log("[TikTok OAuth] Access token (first 20 chars):", accessToken.substring(0, 20));
+				console.log("[TikTok OAuth] Granted scopes:", grantedScopes);
+				
+				// Use the same endpoint format as in analytics (which works)
+				const userInfoUrl = "https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name,username,unique_id,follower_count,following_count,likes_count,video_count";
+				console.log("[TikTok OAuth] Fetching from URL:", userInfoUrl);
+				
+				const userResponse = await fetch(userInfoUrl, {
 					method: "GET",
 					headers: {
 						Authorization: `Bearer ${accessToken}`,
 						"Content-Type": "application/json",
 					},
+					cache: "no-store",
 				});
 				
+				console.log("[TikTok OAuth] User info response status:", userResponse.status, userResponse.statusText);
+				
+				const responseText = await userResponse.text();
+				console.log("[TikTok OAuth] User info response text (first 500 chars):", responseText.substring(0, 500));
+				
 				if (userResponse.ok) {
-					const userInfo = await userResponse.json();
+					let userInfo;
+					try {
+						userInfo = JSON.parse(responseText);
+					} catch (parseError) {
+						console.error("[TikTok OAuth] Failed to parse user info response:", parseError);
+						console.error("[TikTok OAuth] Raw response:", responseText);
+						throw new Error("Invalid JSON response from TikTok API");
+					}
+					
 					console.log("[TikTok OAuth] User info response:", JSON.stringify(userInfo, null, 2));
 					
 					// Check for API errors in response body
@@ -125,53 +146,70 @@ export async function GET(request: NextRequest) {
 						console.error("[TikTok OAuth] API error in user info:", userInfo.error);
 						if (userInfo.error.code === "scope_not_authorized") {
 							console.warn("[TikTok OAuth] Scope not authorized - user info unavailable");
+							console.warn("[TikTok OAuth] Granted scopes were:", grantedScopes);
+							console.warn("[TikTok OAuth] Required scope: user.info.basic");
 						}
 					} else {
 						// Try different possible response structures
 						const user = userInfo.data?.user || userInfo.user || userInfo.data;
 						
 						if (user) {
+							console.log("[TikTok OAuth] Extracted user object:", JSON.stringify(user, null, 2));
+							
 							// Get user ID
 							userPlatformId = user.open_id || user.union_id || user.user_id || user.id;
+							console.log("[TikTok OAuth] User platform ID:", userPlatformId);
 							
 							// Prefer unique_id (handle/@username) over display_name
 							// TikTok API returns unique_id as the @username handle
 							const rawUsername = user.unique_id || user.username || user.display_name || user.nickname;
+							console.log("[TikTok OAuth] Raw username from API:", rawUsername);
+							
 							if (rawUsername && rawUsername.trim() !== "") {
 								username = rawUsername.trim();
 								// Remove @ if present (we'll add it in the UI)
 								username = username.replace(/^@/, "");
+								console.log("[TikTok OAuth] Final username:", username);
 							}
 							
 							// Get profile picture
 							profilePicture = user.avatar_url || user.avatar_larger || user.profile_picture_url;
+							console.log("[TikTok OAuth] Profile picture:", profilePicture ? "found" : "not found");
 							
-							console.log("[TikTok OAuth] Successfully extracted username:", username);
+							console.log("[TikTok OAuth] Successfully extracted user info:", { username, userPlatformId, hasProfilePicture: !!profilePicture });
+						} else {
+							console.warn("[TikTok OAuth] No user object found in response structure");
+							console.warn("[TikTok OAuth] Response keys:", Object.keys(userInfo));
 						}
 					}
 				} else {
-					const errorText = await userResponse.text();
 					let errorData;
 					try {
-						errorData = JSON.parse(errorText);
+						errorData = JSON.parse(responseText);
 					} catch {
-						errorData = { error: errorText };
+						errorData = { error: { message: responseText } };
 					}
 					
 					console.error("[TikTok OAuth] Failed to fetch user info:", {
 						status: userResponse.status,
 						statusText: userResponse.statusText,
 						error: errorData,
+						responseText: responseText.substring(0, 500),
 					});
 					
 					// Check if it's a scope error
 					if (errorData.error?.code === "scope_not_authorized") {
 						console.warn("[TikTok OAuth] Scope not authorized - user needs to reconnect with proper permissions");
-						// Don't fail the OAuth flow, just log it
+						console.warn("[TikTok OAuth] Granted scopes were:", grantedScopes);
+						console.warn("[TikTok OAuth] This usually means the user didn't grant user.info.basic scope during authorization");
 					}
 				}
 			} catch (error) {
 				console.error("[TikTok OAuth] Error fetching user info:", error);
+				if (error instanceof Error) {
+					console.error("[TikTok OAuth] Error message:", error.message);
+					console.error("[TikTok OAuth] Error stack:", error.stack);
+				}
 			}
 		}
 
