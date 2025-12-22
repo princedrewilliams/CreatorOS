@@ -134,29 +134,52 @@ export async function GET(request: NextRequest) {
 				? username 
 				: "TikTok User"; // Will be refreshed later
 			
+			const expiresAt = tokens.data.expires_in ? Date.now() + tokens.data.expires_in * 1000 : undefined;
+			
 			const connection = {
 				userId: user.whop_user_id,
 				platform: "tiktok" as const,
 				connected: true,
 				accessToken: tokens.data.access_token,
 				refreshToken: tokens.data.refresh_token,
-				expiresAt: tokens.data.expires_in ? Date.now() + tokens.data.expires_in * 1000 : undefined,
+				expiresAt,
 				username: finalUsername,
 				userPlatformId,
 				profilePicture,
 			};
+			
 			console.log("[TikTok OAuth] Saving connection:", { 
+				userId: user.whop_user_id,
 				username: finalUsername, 
 				userPlatformId, 
 				hasProfilePicture: !!profilePicture,
-				hasAccessToken: !!tokens.data.access_token 
+				hasAccessToken: !!tokens.data.access_token,
+				hasRefreshToken: !!tokens.data.refresh_token,
+				expiresAt: expiresAt ? new Date(expiresAt).toISOString() : "never",
+				accessTokenLength: tokens.data.access_token?.length || 0,
 			});
-			setUserSocialConnection(user.whop_user_id, connection);
+			
+			const savedConnection = setUserSocialConnection(user.whop_user_id, connection);
+			
+			// Verify it was saved
+			const verifyConnections = getUserSocialConnections(user.whop_user_id);
+			const verifiedConnection = verifyConnections.find((c) => c.platform === "tiktok");
+			console.log("[TikTok OAuth] Connection saved verification:", {
+				found: !!verifiedConnection,
+				hasAccessToken: !!verifiedConnection?.accessToken,
+				hasRefreshToken: !!verifiedConnection?.refreshToken,
+				connected: verifiedConnection?.connected,
+			});
 			
 			// If username is still default, try to refresh it immediately
 			if (finalUsername === "TikTok User") {
 				console.log("[TikTok OAuth] Username is default, will be refreshed by client");
 			}
+		} else {
+			console.error("[TikTok OAuth] Failed to save connection:", {
+				hasUser: !!user,
+				hasAccessToken: !!tokens.data?.access_token,
+			});
 		}
 		
 		// Store tokens
