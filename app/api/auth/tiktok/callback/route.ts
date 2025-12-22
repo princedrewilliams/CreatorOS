@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
 		const refreshToken = tokens.refresh_token || tokens.data?.refresh_token;
 		const expiresIn = tokens.expires_in || tokens.data?.expires_in;
 		const openId = tokens.open_id || tokens.data?.open_id;
-		const scope = tokens.scope || tokens.data?.scope;
+		const grantedScopes = (tokens.scope || tokens.data?.scope || "").split(",").map((s: string) => s.trim());
 
 		if (!accessToken) {
 			console.error("[TikTok OAuth] No access token in response:", tokens);
@@ -93,11 +93,28 @@ export async function GET(request: NextRequest) {
 			);
 		}
 
-		// Get user info
+		// Check if required scopes were granted
+		const requiredScopes = ["user.info.basic"];
+		const missingScopes = requiredScopes.filter((scope) => !grantedScopes.includes(scope));
+		
+		if (missingScopes.length > 0) {
+			console.error("[TikTok OAuth] Missing required scopes:", {
+				required: requiredScopes,
+				granted: grantedScopes,
+				missing: missingScopes,
+			});
+			return NextResponse.redirect(
+				new URL(`/planner?error=missing_scopes&scopes=${encodeURIComponent(missingScopes.join(","))}`, request.url)
+			);
+		}
+
+		console.log("[TikTok OAuth] Granted scopes:", grantedScopes);
+
+		// Get user info - only if user.info.basic scope is granted
 		let username = "TikTok User";
 		let profilePicture: string | undefined;
 		let userPlatformId: string | undefined;
-		if (accessToken) {
+		if (accessToken && grantedScopes.includes("user.info.basic")) {
 			try {
 				const userResponse = await fetch("https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name,username,unique_id,follower_count,following_count,likes_count,video_count", {
 					method: "GET",
@@ -140,11 +157,27 @@ export async function GET(request: NextRequest) {
 					console.log("[TikTok OAuth] Extracted username:", username);
 				} else {
 					const errorText = await userResponse.text();
-					console.error("[TikTok OAuth] Failed to fetch user info:", userResponse.status, errorText);
+					let errorData;
+					try {
+						errorData = JSON.parse(errorText);
+					} catch {
+						errorData = { error: errorText };
+					}
+					
+					// Check if it's a scope error
+					if (errorData.error?.code === "scope_not_authorized") {
+						console.error("[TikTok OAuth] Scope not authorized error:", errorData);
+						// Don't fail the OAuth flow, just log it - user can reconnect later
+						console.warn("[TikTok OAuth] User info unavailable due to missing scope, will use default username");
+					} else {
+						console.error("[TikTok OAuth] Failed to fetch user info:", userResponse.status, errorData);
+					}
 				}
 			} catch (error) {
 				console.error("[TikTok OAuth] Error fetching user info:", error);
 			}
+		} else if (!grantedScopes.includes("user.info.basic")) {
+			console.warn("[TikTok OAuth] user.info.basic scope not granted, skipping user info fetch");
 		}
 
 		// Log the username for debugging

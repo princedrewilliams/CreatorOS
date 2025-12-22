@@ -74,12 +74,22 @@ function SocialConnectionsContent() {
 				fetch("/api/auth/tiktok/refresh-username", {
 					credentials: "include",
 				})
-					.then((res) => {
+					.then(async (res) => {
 						if (!res.ok) {
 							// If 401, token might be expired - don't spam errors
 							if (res.status === 401) {
 								console.warn("[TikTok] Token expired or invalid, user needs to reconnect");
 								return null;
+							}
+							// If 403, scope not authorized
+							if (res.status === 403) {
+								const errorData = await res.json().catch(() => ({}));
+								if (errorData.code === "scope_not_authorized") {
+									console.warn("[TikTok] Scope not authorized, user needs to reconnect with proper permissions");
+									// Show user-friendly message
+									alert("TikTok permissions are missing. Please disconnect and reconnect your TikTok account, making sure to grant all requested permissions.");
+									return null;
+								}
 							}
 							throw new Error(`HTTP error! status: ${res.status}`);
 						}

@@ -102,9 +102,29 @@ export async function GET(request: NextRequest) {
 
 		if (!userResponse.ok) {
 			const errorText = await userResponse.text();
-			console.error("[TikTok] Failed to fetch user info:", userResponse.status, errorText);
+			let errorData;
+			try {
+				errorData = JSON.parse(errorText);
+			} catch {
+				errorData = { error: errorText };
+			}
+			
+			console.error("[TikTok] Failed to fetch user info:", userResponse.status, errorData);
+			
+			// Check if it's a scope error
+			if (errorData.error?.code === "scope_not_authorized") {
+				return NextResponse.json(
+					{ 
+						error: "Scope not authorized. Please disconnect and reconnect your TikTok account, making sure to grant all requested permissions.",
+						code: "scope_not_authorized",
+						details: errorData.error.message
+					},
+					{ status: 403 }
+				);
+			}
+			
 			return NextResponse.json(
-				{ error: "Failed to fetch TikTok user info" },
+				{ error: "Failed to fetch TikTok user info", details: errorData.error?.message || errorText },
 				{ status: userResponse.status }
 			);
 		}
