@@ -1,11 +1,87 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth";
+import { getUserSocialConnections, setUserSocialConnection } from "@/lib/user-data";
 
 export async function GET(request: NextRequest) {
 	try {
-		const tiktokToken = request.cookies.get("tiktok_access_token")?.value;
+		// Try to get token from cookies first
+		let tiktokToken = request.cookies.get("tiktok_access_token")?.value;
+		
+		// Also check user data store (more reliable)
+		try {
+			const user = await getCurrentUser();
+			if (user) {
+				const socialConnections = getUserSocialConnections(user.whop_user_id);
+				const tiktokConnection = socialConnections.find(
+					(conn) => conn.platform === "tiktok" && conn.connected
+				);
+				
+				if (tiktokConnection) {
+					// Check if token is expired
+					const isExpired = tiktokConnection.expiresAt && tiktokConnection.expiresAt < Date.now();
+					
+					if (tiktokConnection.accessToken && !isExpired) {
+						tiktokToken = tiktokConnection.accessToken;
+						console.log("[refresh-username] Using token from user data store");
+					} else if (isExpired && tiktokConnection.refreshToken) {
+						// Try to refresh the token
+						console.log("[refresh-username] Token expired, attempting refresh...");
+						try {
+							const clientKey = process.env.TIKTOK_CLIENT_KEY;
+							const clientSecret = process.env.TIKTOK_CLIENT_SECRET;
+							
+							if (clientKey && clientSecret) {
+								const refreshResponse = await fetch("https://open.tiktokapis.com/v2/oauth/token/", {
+									method: "POST",
+									headers: {
+										"Content-Type": "application/x-www-form-urlencoded",
+									},
+									body: new URLSearchParams({
+										client_key: clientKey,
+										client_secret: clientSecret,
+										grant_type: "refresh_token",
+										refresh_token: tiktokConnection.refreshToken,
+									}),
+								});
+								
+								if (refreshResponse.ok) {
+									const refreshData = await refreshResponse.json();
+									if (refreshData.data?.access_token) {
+										tiktokToken = refreshData.data.access_token;
+										
+										// Update the connection with new token
+										const updatedConnection = {
+											...tiktokConnection,
+											accessToken: refreshData.data.access_token,
+											refreshToken: refreshData.data.refresh_token || tiktokConnection.refreshToken,
+											expiresAt: refreshData.data.expires_in ? Date.now() + refreshData.data.expires_in * 1000 : undefined,
+										};
+										setUserSocialConnection(user.whop_user_id, updatedConnection);
+										
+										console.log("[refresh-username] Token refreshed successfully");
+									}
+								} else {
+									const errorData = await refreshResponse.json().catch(() => ({}));
+									console.warn("[refresh-username] Failed to refresh token:", refreshResponse.status, errorData);
+								}
+							}
+						} catch (refreshError) {
+							console.error("[refresh-username] Error refreshing token:", refreshError);
+						}
+					} else if (tiktokConnection.accessToken) {
+						// Token exists but might be expired, try using it anyway
+						tiktokToken = tiktokConnection.accessToken;
+						console.log("[refresh-username] Using potentially expired token from user data store");
+					}
+				}
+			}
+		} catch (error) {
+			console.warn("[refresh-username] Error getting user data:", error);
+		}
 
 		if (!tiktokToken) {
-			return NextResponse.json({ error: "TikTok not connected" }, { status: 401 });
+			console.warn("[refresh-username] No TikTok access token available");
+			return NextResponse.json({ error: "TikTok not connected or token expired. Please reconnect your TikTok account." }, { status: 401 });
 		}
 
 		// Fetch user info from TikTok API
@@ -61,12 +137,10 @@ export async function GET(request: NextRequest) {
 
 		// Also update the user data store if user is authenticated
 		try {
-			const { getCurrentUser } = await import("@/lib/auth");
-			const { setUserSocialConnection } = await import("@/lib/user-data");
 			const user = await getCurrentUser();
 			
 			if (user && tiktokToken) {
-				const socialConnections = (await import("@/lib/user-data")).getUserSocialConnections(user.whop_user_id);
+				const socialConnections = getUserSocialConnections(user.whop_user_id);
 				const existingConnection = socialConnections.find((c) => c.platform === "tiktok");
 				
 				if (existingConnection) {
@@ -74,7 +148,11 @@ export async function GET(request: NextRequest) {
 						...existingConnection,
 						username,
 						profilePicture,
+						accessToken: tiktokToken, // Ensure token is saved
 					});
+					console.log("[refresh-username] Updated user data store with username:", username);
+				} else {
+					console.warn("[refresh-username] No existing TikTok connection found in user data store");
 				}
 			}
 		} catch (error) {
