@@ -202,6 +202,45 @@ export async function GET(request: NextRequest) {
 			channelAvgSubscriberConversion = totalViews > 0 ? 0.02 : 0; // Estimate 2% conversion
 		}
 
+		// Helper function to parse duration
+		const parseDuration = (duration: string): number => {
+			const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+			if (!match) return 0;
+			const hours = parseInt(match[1] || "0", 10);
+			const minutes = parseInt(match[2] || "0", 10);
+			const seconds = parseInt(match[3] || "0", 10);
+			return hours * 3600 + minutes * 60 + seconds;
+		};
+
+		// Calculate Growth Score for each video
+		// Growth Score = (Watch Time per Impression * 0.4) + (CTR vs Channel Avg * 0.3) + (Subscriber Conversion * 0.2) + (Revenue per View * 0.1)
+		const videosWithScores = videos.map((video: any) => {
+			const analytics = videoAnalyticsMap[video.id];
+			if (!analytics || analytics.impressions === 0) return null;
+
+			const watchTimePerImpression = analytics.watchTime / analytics.impressions;
+			const watchTimeScore = (watchTimePerImpression / Math.max(channelAvgWatchTimePerImpression, 1)) * 0.4;
+
+			const ctrVsAvg = channelAvgCTR > 0 ? (analytics.ctr / channelAvgCTR) * 0.3 : 0;
+
+			// Estimate subscriber conversion (2% of views as baseline)
+			const estimatedSubs = analytics.views * 0.02;
+			const subscriberScore = (estimatedSubs / Math.max(analytics.views * channelAvgSubscriberConversion, 1)) * 0.2;
+
+			// Revenue per view (estimated, would need actual revenue data)
+			const revenuePerView = 0.002; // $0.002 per view estimate
+			const revenueScore = (revenuePerView / 0.002) * 0.1;
+
+			const growthScore = watchTimeScore + ctrVsAvg + subscriberScore + revenueScore;
+
+			return {
+				video,
+				analytics,
+				growthScore,
+				watchTimePerImpression,
+			};
+		}).filter(Boolean);
+
 		// 1. POST THIS NEXT - Content Direction Engine (Pattern Matching + Ranking)
 		const postRecommendations: PostRecommendation[] = [];
 
