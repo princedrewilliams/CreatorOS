@@ -6,7 +6,7 @@ import {
 	BarChartIcon,
 	LightningBoltIcon,
 	ExclamationTriangleIcon,
-	DollarSignIcon,
+	SymbolIcon,
 	TargetIcon,
 	ArrowUpIcon,
 	ArrowDownIcon,
@@ -338,7 +338,7 @@ export default function YouTubeInsightsPage() {
 						{revenueData && (
 							<Card size="3" variant="surface" className="p-6">
 								<div className="flex items-center gap-3 mb-4">
-									<DollarSignIcon className="w-6 h-6 text-green-11" />
+									<SymbolIcon className="w-6 h-6 text-green-11" />
 									<Heading size="5">Revenue & RPM Tracker</Heading>
 								</div>
 
