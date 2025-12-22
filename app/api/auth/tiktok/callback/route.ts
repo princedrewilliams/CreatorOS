@@ -4,21 +4,42 @@ import { setUserSocialConnection, getUserSocialConnections } from "@/lib/user-da
 
 export async function GET(request: NextRequest) {
 	try {
+		// v2 OAuth callback parameters (per official docs):
+		// - code: Authorization code
+		// - scopes: Comma-separated list of granted scopes (NEW in v2)
+		// - state: CSRF protection token
+		// - error: Error code if authorization failed
+		// - error_description: Human-readable error description
 		const searchParams = request.nextUrl.searchParams;
 		const code = searchParams.get("code");
 		const state = searchParams.get("state");
+		const scopes = searchParams.get("scopes"); // v2 OAuth includes scopes in callback
 		const error = searchParams.get("error");
+		const errorDescription = searchParams.get("error_description");
 
 		if (error) {
+			console.error("[TikTok OAuth] Authorization error:", {
+				error,
+				errorDescription,
+			});
 			return NextResponse.redirect(
-				new URL(`/planner?error=${encodeURIComponent(error)}`, request.url)
+				new URL(`/planner?error=${encodeURIComponent(error)}&details=${encodeURIComponent(errorDescription || "")}`, request.url)
 			);
 		}
 
 		if (!code || !state) {
+			console.error("[TikTok OAuth] Missing required parameters:", {
+				hasCode: !!code,
+				hasState: !!state,
+			});
 			return NextResponse.redirect(
 				new URL("/planner?error=missing_code_or_state", request.url)
 			);
+		}
+
+		// Log granted scopes from callback (v2 OAuth feature)
+		if (scopes) {
+			console.log("[TikTok OAuth] Scopes granted in callback:", scopes.split(",").map((s: string) => s.trim()));
 		}
 
 		// Verify state to prevent CSRF attacks (required for v2 OAuth)
