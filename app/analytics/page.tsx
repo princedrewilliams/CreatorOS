@@ -584,10 +584,10 @@ export default function AnalyticsPage() {
 																Views
 															</Text>
 															<Text size="4" weight="bold" className="text-gray-12 dark:text-gray-12">
-																{formatCompact(analyticsSnapshot.views)}
+																{formatCompact(analyticsSnapshot.views || 0)}
 															</Text>
 															<Badge color="green" size="1" variant="soft" className="mt-1">
-																{formatPercent(analyticsSnapshot.trend.views)}
+																{formatPercent(analyticsSnapshot.trend?.views || 0)}
 															</Badge>
 														</div>
 														<div>
@@ -595,10 +595,10 @@ export default function AnalyticsPage() {
 																{meta.followerLabel}
 															</Text>
 															<Text size="4" weight="bold" className="text-gray-12 dark:text-gray-12">
-																{formatCompact(analyticsSnapshot.followers)}
+																{formatCompact(analyticsSnapshot.followers || 0)}
 															</Text>
 															<Badge color="green" size="1" variant="soft" className="mt-1">
-																{formatPercent(analyticsSnapshot.trend.followers)}
+																{formatPercent(analyticsSnapshot.trend?.followers || 0)}
 															</Badge>
 														</div>
 														<div>
@@ -606,10 +606,10 @@ export default function AnalyticsPage() {
 																Watch Time
 															</Text>
 															<Text size="4" weight="bold" className="text-gray-12 dark:text-gray-12">
-																{formatCompact(analyticsSnapshot.watchTime || analyticsSnapshot.views * 2.5)} min
+																{formatCompact((analyticsSnapshot.watchTime ?? (analyticsSnapshot.views || 0) * 2.5) || 0)} min
 															</Text>
 															<Badge color="green" size="1" variant="soft" className="mt-1">
-																{formatPercent(analyticsSnapshot.trend.views)}
+																{formatPercent(analyticsSnapshot.trend?.views || 0)}
 															</Badge>
 														</div>
 														<div>
