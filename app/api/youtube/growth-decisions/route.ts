@@ -205,10 +205,11 @@ export async function GET(request: NextRequest) {
 		// 1. POST THIS NEXT - Content Direction Engine (Pattern Matching + Ranking)
 		const postRecommendations: PostRecommendation[] = [];
 
-		// Use Growth Score to identify top performers (top 20%)
+		// Use Growth Score to identify top performers (top 20%, or at least top 3 if fewer videos)
+		const topPerformersCount = Math.max(3, Math.ceil(videosWithScores.length * 0.2));
 		const topPerformers = videosWithScores
 			.sort((a: any, b: any) => b.growthScore - a.growthScore)
-			.slice(0, Math.ceil(videosWithScores.length * 0.2));
+			.slice(0, topPerformersCount);
 
 		// Extract topics from top performers
 		const topicPerformance: Record<string, { count: number; avgWatchTimePerImpression: number; lastPostDate: Date | null }> = {};
@@ -217,8 +218,8 @@ export async function GET(request: NextRequest) {
 			const video = item.video;
 			const text = `${video.title} ${video.description}`.toLowerCase();
 			
-			// Extract topics
-			const keywords = ["ai", "tutorial", "review", "tips", "how to", "guide", "tools", "software", "productivity", "business", "freelance", "automation", "strategy", "mistakes"];
+			// Extract topics - expanded keyword list for better detection
+			const keywords = ["ai", "tutorial", "review", "tips", "how to", "guide", "tools", "software", "productivity", "business", "freelance", "automation", "strategy", "mistakes", "beginner", "advanced", "comparison", "vs", "best", "top", "list"];
 			
 			keywords.forEach((keyword) => {
 				if (text.includes(keyword)) {
@@ -250,19 +251,78 @@ export async function GET(request: NextRequest) {
 				? Math.floor((Date.now() - data.lastPostDate.getTime()) / (24 * 60 * 60 * 1000))
 				: 999;
 
-			if (daysSinceLastPost > 14) {
-				const retentionBoost = ((data.avgWatchTimePerImpression / channelAvgWatchTimePerImpression - 1) * 100) || 0;
+			// Lower threshold when channel average is not available, or recommend based on relative performance
+			const shouldRecommend = channelAvgWatchTimePerImpression > 0
+				? (daysSinceLastPost > 14 && data.avgWatchTimePerImpression > channelAvgWatchTimePerImpression)
+				: (daysSinceLastPost > 7 && data.count >= 1); // Fallback: recommend if not posted in 7+ days
+
+			if (shouldRecommend) {
+				const retentionBoost = channelAvgWatchTimePerImpression > 0
+					? ((data.avgWatchTimePerImpression / channelAvgWatchTimePerImpression - 1) * 100) || 0
+					: 0;
+				
+				// Calculate confidence based on performance gap and consistency
+				let confidence: "low" | "medium" | "high" = "low";
+				if (channelAvgWatchTimePerImpression > 0) {
+					if (retentionBoost > 30 && data.count >= 3) {
+						confidence = "high";
+					} else if (retentionBoost > 15 && data.count >= 2) {
+						confidence = "medium";
+					} else if (data.count >= 2) {
+						confidence = "medium";
+					}
+				} else {
+					// Fallback confidence when no channel average
+					confidence = data.count >= 2 ? "medium" : "low";
+				}
+				
+				const topicLabel = topic.charAt(0).toUpperCase() + topic.slice(1) + 
+					(topic.includes("ai") ? " tools" : 
+					 topic.includes("how to") ? " guide" : 
+					 topic.includes("tutorial") ? " tutorial" : 
+					 topic.includes("tips") ? " tips" : "");
 				
 				postRecommendations.push({
-					topic: topic.charAt(0).toUpperCase() + topic.slice(1) + (topic.includes("ai") ? " tools" : topic.includes("how to") ? " guide" : ""),
-					reason: `${Math.round(retentionBoost)}% higher watch time per impression than channel average. Last posted ${daysSinceLastPost} days ago.`,
-					expectedImpact: retentionBoost > 30 ? "High views & watch time" : retentionBoost > 15 ? "Good views" : "Moderate views",
-					confidence: retentionBoost > 30 ? "high" : retentionBoost > 15 ? "medium" : "low",
+					topic: topicLabel,
+					reason: channelAvgWatchTimePerImpression > 0
+						? `${Math.round(retentionBoost)}% higher watch time per impression than channel average. Last posted ${daysSinceLastPost} days ago.`
+						: `Based on your top performing videos. Last posted ${daysSinceLastPost} days ago.`,
+					expectedImpact: retentionBoost > 30 ? "High views & watch time" : retentionBoost > 15 ? "Good views" : data.count >= 2 ? "Good potential" : "Moderate views",
+					confidence,
 					retentionBoost: Math.round(retentionBoost),
 					daysSinceLastPost,
 				});
 			}
 		});
+
+		// If no topic-based recommendations, provide general recommendations based on best performing videos
+		if (postRecommendations.length === 0 && topPerformers.length > 0) {
+			// Get the best performing video
+			const bestVideo = topPerformers[0];
+			const daysSinceBestVideo = Math.floor((Date.now() - new Date(bestVideo.video.publishedAt).getTime()) / (24 * 60 * 60 * 1000));
+			
+			// Extract a general topic from the best video
+			const bestVideoText = `${bestVideo.video.title} ${bestVideo.video.description}`.toLowerCase();
+			let generalTopic = "Similar content";
+			
+			if (bestVideoText.includes("tutorial") || bestVideoText.includes("how to")) {
+				generalTopic = "Tutorial content";
+			} else if (bestVideoText.includes("review")) {
+				generalTopic = "Review content";
+			} else if (bestVideoText.includes("tips")) {
+				generalTopic = "Tips & advice";
+			} else if (bestVideoText.includes("ai") || bestVideoText.includes("tools")) {
+				generalTopic = "Tools & software";
+			}
+			
+			postRecommendations.push({
+				topic: generalTopic,
+				reason: `Your best performing video is "${bestVideo.video.title.substring(0, 50)}${bestVideo.video.title.length > 50 ? '...' : ''}". Create similar content to leverage what's working.`,
+				expectedImpact: "Good potential based on top performer",
+				confidence: "medium",
+				daysSinceLastPost: daysSinceBestVideo,
+			});
+		}
 
 		// Sort by confidence and retention boost
 		postRecommendations.sort((a, b) => {
