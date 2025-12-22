@@ -436,7 +436,7 @@ export default function YouTubeInsightsPage() {
 												sponsorData.readinessLevel === "almost" ? "yellow" :
 												"red"
 											}
-											size="3"
+											size="2"
 											variant="soft"
 										>
 											{sponsorData.readinessLevel === "ready" ? "Ready" :
