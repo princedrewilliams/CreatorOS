@@ -199,9 +199,13 @@ export async function GET(request: NextRequest) {
 					
 					// Check if it's a scope error
 					if (errorData.error?.code === "scope_not_authorized") {
-						console.warn("[TikTok OAuth] Scope not authorized - user needs to reconnect with proper permissions");
-						console.warn("[TikTok OAuth] Granted scopes were:", grantedScopes);
-						console.warn("[TikTok OAuth] This usually means the user didn't grant user.info.basic scope during authorization");
+						console.warn("[TikTok OAuth] Scope not authorized error - IMPORTANT:");
+						console.warn("[TikTok OAuth] Granted scopes in token:", grantedScopes);
+						console.warn("[TikTok OAuth] This error occurs even when scope is in token if:");
+						console.warn("[TikTok OAuth] 1. App is in sandbox mode and needs TikTok review/approval");
+						console.warn("[TikTok OAuth] 2. App needs to be submitted for review in TikTok Developer Portal");
+						console.warn("[TikTok OAuth] 3. user.info.basic scope requires app approval to actually work");
+						console.warn("[TikTok OAuth] Solution: Submit app for review in TikTok Developer Portal");
 					}
 				}
 			} catch (error) {

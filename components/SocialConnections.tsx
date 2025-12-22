@@ -64,9 +64,9 @@ function SocialConnectionsContent() {
 					connected: true,
 					username: "Instagram User",
 				});
-			} else if (error === "missing_scopes") {
+			} else if (error === "missing_scopes" || error === "scope_not_authorized") {
 				const missingScopes = searchParams.get("scopes");
-				alert(`TikTok connection incomplete: Missing required permissions (${missingScopes || "user.info.basic"}).\n\nPlease disconnect and reconnect your TikTok account, making sure to grant ALL requested permissions during authorization.\n\nYour account is connected but some features (like username display and analytics) won't work until you grant the required permissions.`);
+				alert(`TikTok connection issue: The app needs to be reviewed and approved by TikTok.\n\nEven though you granted permissions, TikTok requires app review for user.info.basic scope to actually work.\n\nTo fix this:\n1. Go to TikTok Developer Portal (developers.tiktok.com)\n2. Submit your app for review\n3. Wait for TikTok approval\n4. Then reconnect your account\n\nYour account is connected for video posting, but username/analytics won't work until app is approved.`);
 				// Still mark as connected since tokens were saved
 				if (searchParams.get("connected") === "tiktok") {
 					setSocialConnection({

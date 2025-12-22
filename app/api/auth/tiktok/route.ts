@@ -25,13 +25,16 @@ export async function GET(request: NextRequest) {
 		// Generate state for CSRF protection
 		const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 		
+		// Add prompt=consent to force consent screen so users can choose scopes
+		// This ensures users see and can grant all requested permissions
 		const authUrl =
 			`https://www.tiktok.com/v2/auth/authorize/` +
 			`?client_key=${encodeURIComponent(clientKey)}` +
 			`&redirect_uri=${encodeURIComponent(redirectUri)}` +
 			`&scope=${encodeURIComponent(scope)}` +
 			`&response_type=code` +
-			`&state=${encodeURIComponent(state)}`;
+			`&state=${encodeURIComponent(state)}` +
+			`&prompt=consent`; // Force consent screen
 
 		// Log values useful for debugging redirect_uri mismatches
 		console.log("[TikTok OAuth] Initiating OAuth with:", {
