@@ -11,6 +11,7 @@ import {
 	EyeOpenIcon,
 	ChatBubbleIcon,
 	LightningBoltIcon,
+	TargetIcon,
 } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -55,6 +56,13 @@ const features = [
 		icon: LightningBoltIcon,
 		href: "/youtube-insights",
 		color: "red" as const,
+	},
+	{
+		title: "Growth Decisions",
+		description: "Data-driven decisions on what to post and fix",
+		icon: TargetIcon,
+		href: "/growth-decisions",
+		color: "green" as const,
 	},
 ];
 
