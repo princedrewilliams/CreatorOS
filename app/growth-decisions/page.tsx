@@ -22,6 +22,7 @@ interface PostRecommendation {
 	confidence: "low" | "medium" | "high";
 	retentionBoost?: number;
 	daysSinceLastPost?: number;
+	explanation?: string; // AI-generated explanation
 }
 
 interface GrowthLeak {
@@ -36,8 +37,10 @@ interface GrowthLeak {
 		channelAvgRetention?: number;
 		watchTimePerImpression?: number;
 		channelAvgWatchTimePerImpression?: number;
+		impressions?: number;
 	};
 	fix: string;
+	explanation?: string; // AI-generated explanation
 }
 
 interface DoubleDownInsight {
@@ -188,6 +191,24 @@ export default function GrowthDecisionsPage() {
 															<span>Last posted {rec.daysSinceLastPost} days ago</span>
 														)}
 													</div>
+													{rec.explanation && (
+														<div className="mt-3 p-3 rounded bg-blue-a2 border border-blue-a4">
+															<Text size="1" color="gray" className="text-blue-11">
+																💡 {rec.explanation}
+															</Text>
+														</div>
+													)}
+													{!rec.explanation && (
+														<Button
+															variant="ghost"
+															size="1"
+															onClick={() => fetchExplanation("recommendation", rec, index)}
+															disabled={loadingExplanations[`recommendation-${index}`]}
+															className="mt-2"
+														>
+															{loadingExplanations[`recommendation-${index}`] ? "Loading..." : "Get explanation"}
+														</Button>
+													)}
 												</div>
 												<Badge color="blue" size="2" variant="soft">
 													{rec.expectedImpact}
@@ -256,6 +277,24 @@ export default function GrowthDecisionsPage() {
 														<Text size="1" className="text-blue-11">👉</Text>
 														<Text size="2" weight="medium">{leak.fix}</Text>
 													</div>
+													{leak.explanation && (
+														<div className="mt-3 p-3 rounded bg-red-a2 border border-red-a4">
+															<Text size="1" color="gray" className="text-red-11">
+																💡 {leak.explanation}
+															</Text>
+														</div>
+													)}
+													{!leak.explanation && (
+														<Button
+															variant="ghost"
+															size="1"
+															onClick={() => fetchExplanation("leak", leak, index)}
+															disabled={loadingExplanations[`leak-${index}`]}
+															className="mt-2"
+														>
+															{loadingExplanations[`leak-${index}`] ? "Loading..." : "Get explanation"}
+														</Button>
+													)}
 												</div>
 											</div>
 										</motion.div>

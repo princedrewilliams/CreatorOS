@@ -132,11 +132,13 @@ export async function GET(request: NextRequest) {
 			duration: item.contentDetails.duration,
 		})) || [];
 
-		// Get analytics data if available
+		// Get analytics data if available - comprehensive metrics
 		let analyticsData: any = null;
+		let retentionData: any = null;
 		try {
+			// Get comprehensive video analytics
 			const analyticsResponse = await fetch(
-				`https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==${channelId}&startDate=${new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]}&endDate=${new Date().toISOString().split("T")[0]}&metrics=views,estimatedMinutesWatched,impressions,impressionsClickThroughRate,averageViewDuration&dimensions=video`,
+				`https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==${channelId}&startDate=${new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]}&endDate=${new Date().toISOString().split("T")[0]}&metrics=views,estimatedMinutesWatched,impressions,impressionsClickThroughRate,averageViewDuration,subscribersGained&dimensions=video`,
 				{
 					headers: {
 						Authorization: `Bearer ${youtubeAccessToken}`,
@@ -146,6 +148,24 @@ export async function GET(request: NextRequest) {
 
 			if (analyticsResponse.ok) {
 				analyticsData = await analyticsResponse.json();
+			}
+
+			// Get audience retention data (if available)
+			try {
+				const retentionResponse = await fetch(
+					`https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==${channelId}&startDate=${new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]}&endDate=${new Date().toISOString().split("T")[0]}&metrics=audienceWatchRatio&dimensions=video`,
+					{
+						headers: {
+							Authorization: `Bearer ${youtubeAccessToken}`,
+						},
+					}
+				);
+
+				if (retentionResponse.ok) {
+					retentionData = await retentionResponse.json();
+				}
+			} catch (error) {
+				console.warn("[Growth Decisions] Retention API not available:", error);
 			}
 		} catch (error) {
 			console.warn("[Growth Decisions] Analytics API not available:", error);
@@ -219,13 +239,21 @@ export async function GET(request: NextRequest) {
 			if (!analytics || analytics.impressions === 0) return null;
 
 			const watchTimePerImpression = analytics.watchTime / analytics.impressions;
-			const watchTimeScore = (watchTimePerImpression / Math.max(channelAvgWatchTimePerImpression, 1)) * 0.4;
+			const watchTimeScore = channelAvgWatchTimePerImpression > 0
+				? (watchTimePerImpression / channelAvgWatchTimePerImpression) * 0.4
+				: watchTimePerImpression * 0.4; // Fallback if no channel average
 
-			const ctrVsAvg = channelAvgCTR > 0 ? (analytics.ctr / channelAvgCTR) * 0.3 : 0;
+			const ctrVsAvg = channelAvgCTR > 0 
+				? (analytics.ctr / channelAvgCTR) * 0.3 
+				: analytics.ctr * 0.3; // Fallback
 
-			// Estimate subscriber conversion (2% of views as baseline)
-			const estimatedSubs = analytics.views * 0.02;
-			const subscriberScore = (estimatedSubs / Math.max(analytics.views * channelAvgSubscriberConversion, 1)) * 0.2;
+			// Subscriber conversion (use actual data if available, otherwise estimate)
+			const subscriberConversion = analytics.subscribersGained > 0 && analytics.views > 0
+				? (analytics.subscribersGained / analytics.views) * 100
+				: channelAvgSubscriberConversion * 100;
+			const subscriberScore = channelAvgSubscriberConversion > 0
+				? (subscriberConversion / (channelAvgSubscriberConversion * 100)) * 0.2
+				: subscriberConversion * 0.2;
 
 			// Revenue per view (estimated, would need actual revenue data)
 			const revenuePerView = 0.002; // $0.002 per view estimate
@@ -238,6 +266,7 @@ export async function GET(request: NextRequest) {
 				analytics,
 				growthScore,
 				watchTimePerImpression,
+				subscriberConversion,
 			};
 		}).filter(Boolean);
 
@@ -372,29 +401,65 @@ export async function GET(request: NextRequest) {
 			return (b.retentionBoost || 0) - (a.retentionBoost || 0);
 		});
 
-		// 2. FIX THESE VIDEOS - Growth Leak Detection
+		// Helper function for formatting
+		const formatCompact = (value: number) => {
+			return new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(value);
+		};
+
+		// 2. FIX THESE VIDEOS - Growth Leak Detection (Decision Rules)
 		const growthLeaks: GrowthLeak[] = [];
 
 		videos.forEach((video: any) => {
 			const analytics = videoAnalyticsMap[video.id];
 			if (!analytics) return;
 
-			// High impressions + low CTR
-			if (analytics.impressions > 1000 && analytics.ctr < channelAvgCTR * 0.7 && channelAvgCTR > 0) {
+			// Rule: Fix Thumbnail/Title
+			// Trigger: High impressions AND CTR significantly below channel average
+			if (analytics.impressions > channelMedianImpressions && 
+				analytics.ctr < (channelAvgCTR * 0.8) && 
+				channelAvgCTR > 0) {
+				const ctrGap = ((channelAvgCTR - analytics.ctr) / channelAvgCTR) * 100;
 				growthLeaks.push({
 					videoId: video.id,
 					title: video.title,
-					issue: "High impressions, low CTR",
-					severity: analytics.ctr < channelAvgCTR * 0.5 ? "high" : "medium",
+					issue: "Title/Thumbnail issue",
+					severity: analytics.ctr < (channelAvgCTR * 0.6) ? "high" : "medium",
 					metrics: {
 						ctr: analytics.ctr,
 						channelAvgCTR,
+						impressions: analytics.impressions,
 					},
-					fix: "Fix thumbnail/title - CTR is significantly below channel average",
+					fix: `Fix thumbnail/title - CTR is ${ctrGap.toFixed(0)}% below channel average despite high impressions (${formatCompact(analytics.impressions)}). This indicates a mismatch between what the thumbnail promises and what the video delivers.`,
 				});
 			}
 
-			// Low watch time per impression
+			// Rule: Fix Hook/Structure
+			// Trigger: First 30-60s retention below threshold OR low average view duration
+			const videoLength = parseDuration(video.duration);
+			if (videoLength > 30) {
+				// Estimate retention from average view duration vs video length
+				const estimatedRetention = analytics.avgViewDuration > 0
+					? (analytics.avgViewDuration / videoLength) * 100
+					: 0;
+				
+				// Check if retention drops in first 30-60 seconds
+				if (estimatedRetention < 65 && analytics.avgViewDuration < 60) {
+					const dropOffTime = Math.round(analytics.avgViewDuration);
+					growthLeaks.push({
+						videoId: video.id,
+						title: video.title,
+						issue: "Weak opening",
+						severity: estimatedRetention < 50 ? "high" : "medium",
+						metrics: {
+							retention: estimatedRetention,
+							channelAvgRetention: 70, // Estimated
+						},
+						fix: `Improve opening hook - Most viewers leave around ${dropOffTime} seconds. Your first 30 seconds need a stronger hook to keep viewers engaged.`,
+					});
+				}
+			}
+
+			// Rule: Low watch time per impression (wasting impressions)
 			if (analytics.impressions > 500) {
 				const watchTimePerImpression = analytics.watchTime / analytics.impressions;
 				if (watchTimePerImpression < channelAvgWatchTimePerImpression * 0.6 && channelAvgWatchTimePerImpression > 0) {
@@ -406,9 +471,31 @@ export async function GET(request: NextRequest) {
 						metrics: {
 							watchTimePerImpression,
 							channelAvgWatchTimePerImpression,
+							impressions: analytics.impressions,
 						},
-						fix: "Improve opening hook and pacing - viewers aren't staying",
+						fix: "Improve opening hook and pacing - You're getting impressions but viewers aren't staying. This wastes potential reach.",
 					});
+				}
+			}
+
+			// Rule: Videos pulling down channel average (growth leaks)
+			if (analytics.impressions > 1000) {
+				const videoScore = videosWithScores.find((v: any) => v.video.id === video.id);
+				if (videoScore) {
+					const avgScore = videosWithScores.reduce((sum: number, v: any) => sum + v.growthScore, 0) / videosWithScores.length;
+					if (videoScore.growthScore < avgScore * 0.7) {
+						growthLeaks.push({
+							videoId: video.id,
+							title: video.title,
+							issue: "Pulling down channel average",
+							severity: videoScore.growthScore < avgScore * 0.5 ? "high" : "medium",
+							metrics: {
+								watchTimePerImpression: videoScore.watchTimePerImpression,
+								channelAvgWatchTimePerImpression,
+							},
+							fix: "This video's performance is significantly below your channel average. Consider unlisting it or creating a new version with improvements.",
+						});
+					}
 				}
 			}
 		});
@@ -513,10 +600,10 @@ export async function GET(request: NextRequest) {
 			const comparison = Object.values(titleFormats).reduce((sum, d) => sum + d.totalWatchTime / d.count, 0) / Object.keys(titleFormats).length;
 			const boost = ((bestFormat.avgWatchTime / comparison) - 1) * 100;
 			
-			// Rule: Double Down
-			// IF watch time per impression > channel avg + 25% AND subscribers gained > channel avg
-			// (Here we're checking if format boost is significant)
-			if (boost > 25) {
+		// Rule: Double Down
+		// IF watch time per impression > channel avg + 25% AND subscribers gained > channel avg
+		// (Here we're checking if format boost is significant)
+		if (boost > 25 && bestFormat.avgWatchTime > 0) {
 				doubleDownInsights.push({
 					category: "title_format",
 					insight: `"${formatLabel}" titles outperform other formats by ${Math.round(boost)}%`,
