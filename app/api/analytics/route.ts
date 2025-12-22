@@ -545,8 +545,14 @@ export async function GET(request: NextRequest) {
 		const requestedPlatforms = url.searchParams.getAll("platform");
 		const tiktokSecUid = url.searchParams.get("tiktok_sec_uid"); // Optional sec_uid for TikTok
 		
-		// Get TikTok access token from cookies first
+		// Get TikTok access token - check multiple sources
 		let tiktokAccessToken = request.cookies.get("tiktok_access_token")?.value;
+		let tiktokRefreshToken = request.cookies.get("tiktok_refresh_token")?.value;
+		
+		console.log("[analytics] Initial token check:", {
+			hasCookieToken: !!tiktokAccessToken,
+			hasCookieRefreshToken: !!tiktokRefreshToken,
+		});
 		
 		// Also check user data store for access token (more reliable for cross-device sync)
 		try {
@@ -558,11 +564,18 @@ export async function GET(request: NextRequest) {
 				);
 				
 				if (tiktokConnection) {
+					console.log("[analytics] Found TikTok connection in user data store:", {
+						hasAccessToken: !!tiktokConnection.accessToken,
+						hasRefreshToken: !!tiktokConnection.refreshToken,
+						isExpired: tiktokConnection.expiresAt ? tiktokConnection.expiresAt < Date.now() : false,
+					});
+					
 					// Check if token is expired
 					const isExpired = tiktokConnection.expiresAt && tiktokConnection.expiresAt < Date.now();
 					
 					if (tiktokConnection.accessToken && !isExpired) {
 						tiktokAccessToken = tiktokConnection.accessToken;
+						tiktokRefreshToken = tiktokConnection.refreshToken || tiktokRefreshToken;
 						console.log("[analytics] Using TikTok access token from user data store");
 					} else if (isExpired && tiktokConnection.refreshToken) {
 						// Try to refresh the token inline
@@ -617,13 +630,67 @@ export async function GET(request: NextRequest) {
 							console.error("[analytics] Error refreshing TikTok token:", refreshError);
 						}
 					} else if (!tiktokConnection.accessToken) {
-						console.warn("[analytics] No TikTok access token in user data store");
+						console.warn("[analytics] No TikTok access token in user data store, using cookie token if available");
+						// Use cookie token if available, even if not in user data store
+						if (!tiktokAccessToken) {
+							tiktokAccessToken = request.cookies.get("tiktok_access_token")?.value;
+						}
 					} else {
 						console.warn("[analytics] TikTok access token expired and no refresh token available");
 					}
 				} else {
-					console.warn("[analytics] No TikTok connection found in user data store");
+					console.warn("[analytics] No TikTok connection found in user data store, using cookie token if available");
+					// If no connection in user data store, try to use cookie token
+					// This handles the case where OAuth happened but user wasn't authenticated
+					if (!tiktokAccessToken) {
+						tiktokAccessToken = request.cookies.get("tiktok_access_token")?.value;
+						tiktokRefreshToken = request.cookies.get("tiktok_refresh_token")?.value;
+					}
+					
+					// If we have tokens from cookies but not in user data store, try to save them
+					if (user && tiktokAccessToken && !tiktokConnection) {
+						console.log("[analytics] Tokens found in cookies but not in user data store, attempting to save");
+						try {
+							// Try to get user info to create connection
+							const userResponse = await fetch("https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name,username,unique_id", {
+								method: "GET",
+								headers: {
+									Authorization: `Bearer ${tiktokAccessToken}`,
+									"Content-Type": "application/json",
+								},
+							});
+							
+							if (userResponse.ok) {
+								const userInfo = await userResponse.json();
+								const tiktokUser = userInfo.data?.user || userInfo.user || userInfo.data;
+								if (tiktokUser) {
+									const username = (tiktokUser.unique_id || tiktokUser.username || tiktokUser.display_name || "TikTok User").replace(/^@/, "");
+									const userPlatformId = tiktokUser.open_id || tiktokUser.union_id;
+									
+									const connection = {
+										userId: user.whop_user_id,
+										platform: "tiktok" as const,
+										connected: true,
+										accessToken: tiktokAccessToken,
+										refreshToken: tiktokRefreshToken,
+										expiresAt: undefined, // Will be set on next refresh
+										username,
+										userPlatformId,
+										profilePicture: tiktokUser.avatar_url || tiktokUser.avatar_larger,
+									};
+									
+									setUserSocialConnection(user.whop_user_id, connection);
+									console.log("[analytics] TikTok connection saved to user data store from cookie tokens");
+								}
+							}
+						} catch (error) {
+							console.warn("[analytics] Failed to save TikTok connection from cookies:", error);
+						}
+					}
 				}
+			} else {
+				// User not authenticated, but we can still use cookie tokens
+				console.log("[analytics] User not authenticated, using cookie tokens if available");
 			}
 		} catch (error) {
 			console.warn("[analytics] Error getting user data for TikTok token:", error);
@@ -633,7 +700,7 @@ export async function GET(request: NextRequest) {
 		if (tiktokAccessToken) {
 			console.log("[analytics] TikTok access token available:", tiktokAccessToken.substring(0, 20) + "...");
 		} else {
-			console.warn("[analytics] No TikTok access token available");
+			console.warn("[analytics] No TikTok access token available from any source");
 		}
 
 		// Validate and filter platforms
