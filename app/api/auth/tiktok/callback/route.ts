@@ -228,7 +228,7 @@ export async function GET(request: NextRequest) {
 				hasRefreshToken: !!refreshToken,
 				expiresAt: expiresAt ? new Date(expiresAt).toISOString() : "never",
 				accessTokenLength: accessToken?.length || 0,
-				scope: scope,
+				grantedScopes: grantedScopes,
 			});
 			
 			const savedConnection = setUserSocialConnection(user.whop_user_id, connection);
