@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-	apiKey: process.env.OPENAI_API_KEY,
-});
+// Lazy initialization - only create client when needed
+function getOpenAIClient() {
+	if (!process.env.OPENAI_API_KEY) {
+		return null;
+	}
+	return new OpenAI({
+		apiKey: process.env.OPENAI_API_KEY,
+	});
+}
 
 interface ExplanationRequest {
 	metrics: {
@@ -23,11 +29,13 @@ interface ExplanationRequest {
 export async function POST(request: NextRequest) {
 	try {
 		// Check if OpenAI API key is configured
-		if (!process.env.OPENAI_API_KEY) {
-			return NextResponse.json(
-				{ error: "OpenAI API key not configured" },
-				{ status: 500 }
-			);
+		const openai = getOpenAIClient();
+		if (!openai) {
+			// Return a fallback explanation if OpenAI is not configured
+			return NextResponse.json({
+				success: false,
+				explanation: "Based on your analytics data, the triggered rules indicate areas for improvement. Review the specific metrics and recommendations above.",
+			});
 		}
 
 		const body: ExplanationRequest = await request.json();
