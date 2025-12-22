@@ -38,13 +38,6 @@ const features = [
 		color: "blue" as const,
 	},
 	{
-		title: "Video Downloader",
-		description: "Download TikTok, IG Reels, and YouTube Shorts",
-		icon: DownloadIcon,
-		href: "/video-downloader",
-		color: "blue" as const,
-	},
-	{
 		title: "Sponsor Management",
 		description: "Track deals, revenue, and invoices",
 		icon: FileTextIcon,

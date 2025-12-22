@@ -7,8 +7,6 @@ import {
 	CalendarIcon,
 	FileTextIcon,
 	BarChartIcon,
-	DownloadIcon,
-	VideoIcon,
 	LightningBoltIcon,
 	TargetIcon,
 } from "@radix-ui/react-icons";
@@ -20,9 +18,7 @@ import { motion, AnimatePresence } from "framer-motion";
 const navItems = [
 	{ href: "/dashboard", label: "Dashboard", icon: HomeIcon },
 	{ href: "/planner", label: "Content Planner", icon: CalendarIcon },
-	{ href: "/library", label: "Content Library", icon: VideoIcon },
 	{ href: "/sponsors", label: "Sponsors", icon: FileTextIcon },
-	{ href: "/video-downloader", label: "Video Downloader", icon: DownloadIcon },
 	{ href: "/analytics", label: "Analytics", icon: BarChartIcon },
 	{ href: "/youtube-insights", label: "YouTube Insights", icon: LightningBoltIcon },
 	{ href: "/growth-decisions", label: "Growth Decisions", icon: TargetIcon },
