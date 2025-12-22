@@ -10,6 +10,7 @@ import {
 	DownloadIcon,
 	VideoIcon,
 	LightningBoltIcon,
+	TargetIcon,
 } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
