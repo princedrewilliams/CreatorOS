@@ -306,6 +306,9 @@ export default function AnalyticsPage() {
 			</div>
 
 			<SocialConnections />
+			
+			{/* Metrics Guide */}
+			{connectedPlatforms.includes("youtube") && <MetricsGuide />}
 
 			{/* Automation Features */}
 			{connectedPlatforms.length > 0 && (
