@@ -11,7 +11,6 @@ function SocialConnectionsContent() {
 	const { socialConnections, setSocialConnection, removeSocialConnection } = useAppStore();
 	const searchParams = useSearchParams();
 	const youtubeOAuthEnabled = process.env.NEXT_PUBLIC_YOUTUBE_OAUTH_ENABLED === "true";
-	const instagramOAuthEnabled = process.env.NEXT_PUBLIC_INSTAGRAM_OAUTH_ENABLED === "true";
 
 	// Listen for OAuth success messages from popup windows (YouTube only now)
 	useEffect(() => {
