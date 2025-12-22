@@ -83,12 +83,23 @@ function SocialConnectionsContent() {
 	}, [searchParams, setSocialConnection]);
 
 	// Refresh TikTok username if it's still showing "TikTok User" or missing
+	// Only try once per session to avoid spamming errors
 	useEffect(() => {
 		const tiktokConnection = socialConnections.find(
 			(conn) => conn.platform === "tiktok" && conn.connected && (!conn.username || conn.username === "TikTok User" || conn.username.trim() === "")
 		);
 
+		// Check if we've already tried to refresh (to avoid repeated attempts)
+		const refreshAttempted = sessionStorage.getItem("tiktok_refresh_attempted");
+		if (refreshAttempted === "true" && tiktokConnection) {
+			// Already tried, don't try again
+			return;
+		}
+
 		if (tiktokConnection) {
+			// Mark that we've attempted a refresh
+			sessionStorage.setItem("tiktok_refresh_attempted", "true");
+			
 			// Add a small delay to avoid race conditions with other data loading
 			const timeoutId = setTimeout(() => {
 				// Try to refresh the username from the API
@@ -102,18 +113,19 @@ function SocialConnectionsContent() {
 								console.warn("[TikTok] Token expired or invalid, user needs to reconnect");
 								return null;
 							}
-							// If 403, scope not authorized
+							// If 403, scope not authorized - don't show alert repeatedly
 							if (res.status === 403) {
 								const errorData = await res.json().catch(() => ({}));
 								if (errorData.code === "scope_not_authorized") {
-									console.warn("[TikTok] Scope not authorized, user needs to reconnect with proper permissions");
-									// Show user-friendly message
-									alert("TikTok permissions are missing. Please disconnect and reconnect your TikTok account, making sure to grant all requested permissions.");
+									console.warn("[TikTok] Scope not authorized - user needs to reconnect with proper permissions");
+									// Don't show alert - user already knows from OAuth error
 									return null;
 								}
 							}
 							throw new Error(`HTTP error! status: ${res.status}`);
 						}
+						// Success - clear the flag so we can try again if needed
+						sessionStorage.removeItem("tiktok_refresh_attempted");
 						return res.json();
 					})
 					.then((data) => {

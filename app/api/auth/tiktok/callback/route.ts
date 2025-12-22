@@ -103,9 +103,31 @@ export async function GET(request: NextRequest) {
 				granted: grantedScopes,
 				missing: missingScopes,
 			});
-			return NextResponse.redirect(
-				new URL(`/planner?error=missing_scopes&scopes=${encodeURIComponent(missingScopes.join(","))}`, request.url)
+			// Store tokens anyway (for video posting), but redirect with error
+			// User can still use the connection, but won't have username/analytics
+			const response = NextResponse.redirect(
+				new URL(`/planner?error=missing_scopes&scopes=${encodeURIComponent(missingScopes.join(","))}&connected=tiktok`, request.url)
 			);
+			
+			// Still store tokens in cookies even if scope is missing
+			if (accessToken) {
+				response.cookies.set("tiktok_access_token", accessToken, {
+					httpOnly: true,
+					secure: process.env.NODE_ENV === "production",
+					sameSite: "lax",
+					maxAge: expiresIn || 86400,
+				});
+				if (refreshToken) {
+					response.cookies.set("tiktok_refresh_token", refreshToken, {
+						httpOnly: true,
+						secure: process.env.NODE_ENV === "production",
+						sameSite: "lax",
+						maxAge: 60 * 60 * 24 * 365,
+					});
+				}
+			}
+			response.cookies.delete("tiktok_oauth_state");
+			return response;
 		}
 
 		console.log("[TikTok OAuth] Granted scopes:", grantedScopes);
