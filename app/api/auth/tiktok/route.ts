@@ -4,10 +4,25 @@ export async function GET(request: NextRequest) {
 	try {
 		// TikTok OAuth configuration
 		const clientKey = process.env.TIKTOK_CLIENT_KEY;
-		// Build redirect URI consistently (no trailing slash on base URL)
+		// Build redirect URI for v2 OAuth (must match registered URI exactly)
+		// Requirements per migration guide:
+		// - Must be absolute and begin with https
+		// - Must be static (no query parameters)
+		// - Must not include fragment (#)
+		// - Must be registered in TikTok Developer Portal
 		const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
 		const cleanBaseUrl = baseUrl.replace(/\/$/, "");
 		const redirectUri = `${cleanBaseUrl}/api/auth/tiktok/callback`;
+		
+		// Validate redirect URI format
+		if (!redirectUri.startsWith("https://")) {
+			console.error("[TikTok OAuth] Invalid redirect URI - must start with https:", redirectUri);
+			return NextResponse.json(
+				{ error: "Invalid redirect URI configuration. Must use HTTPS." },
+				{ status: 500 }
+			);
+		}
+		
 		// TikTok Content Posting API requires these scopes:
 		// - user.info.basic: Get user information (username, profile, follower count, etc.)
 		// - video.upload: Upload videos
