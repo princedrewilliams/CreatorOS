@@ -353,13 +353,15 @@ export async function GET(request: NextRequest) {
 
 		if (bestLength) {
 			const lengthLabel = bestLength.category === "long" ? "8-11 minutes" : bestLength.category === "medium" ? "5-10 minutes" : "Under 5 minutes";
+			const avgWatchTime = Object.values(lengthPerformance).reduce((sum, d) => sum + d.totalWatchTime / d.count, 0) / Object.keys(lengthPerformance).length;
+			const boostPercent = Math.round(((bestLength.avgWatchTime / avgWatchTime) - 1) * 100);
 			doubleDownInsights.push({
 				category: "length",
 				insight: `Videos between ${lengthLabel} perform best`,
 				performance: {
 					metric: "Watch time",
 					value: Math.round(bestLength.avgWatchTime),
-					comparison: `${Math.round((bestLength.avgWatchTime / (Object.values(lengthPerformance).reduce((sum, d) => sum + d.totalWatchTime / d.count, 0) / Object.keys(lengthPerformance).length)) - 1) * 100)}% above average`,
+					comparison: `${boostPercent}% above average`,
 				},
 				examples: videos
 					.filter((v: any) => {
