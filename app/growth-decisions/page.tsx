@@ -85,9 +85,9 @@ export default function GrowthDecisionsPage() {
 
 				const data = await response.json();
 				if (data.success) {
-					setPostThisNext(data.data.postThisNext || []);
-					setFixTheseVideos(data.data.fixTheseVideos || []);
-					setDoubleDown(data.data.doubleDown || []);
+					setPostThisNext(data.data?.postThisNext || data.postThisNext || []);
+					setFixTheseVideos(data.data?.fixTheseVideos || data.fixTheseVideos || []);
+					setDoubleDown(data.data?.doubleDown || data.doubleDown || []);
 				}
 			} catch (err) {
 				setError(err instanceof Error ? err.message : "Failed to load growth decisions");
@@ -98,6 +98,66 @@ export default function GrowthDecisionsPage() {
 
 		fetchGrowthDecisions();
 	}, [youtubeConnected]);
+
+	// Optional: Fetch AI explanation for a specific recommendation or leak
+	const fetchExplanation = async (
+		type: "recommendation" | "leak",
+		item: PostRecommendation | GrowthLeak,
+		index: number
+	) => {
+		const key = `${type}-${index}`;
+		if (loadingExplanations[key] || item.explanation) return;
+
+		setLoadingExplanations((prev) => ({ ...prev, [key]: true }));
+
+		try {
+			const metrics: any = {};
+			if (type === "recommendation") {
+				const rec = item as PostRecommendation;
+				metrics.retentionBoost = rec.retentionBoost;
+			} else {
+				const leak = item as GrowthLeak;
+				metrics.ctr = leak.metrics.ctr;
+				metrics.channelAvgCTR = leak.metrics.channelAvgCTR;
+				metrics.retention = leak.metrics.retention;
+				metrics.impressions = leak.metrics.impressions;
+			}
+
+			const response = await fetch("/api/youtube/growth-decisions/explain", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					metrics,
+					triggeredRules: [type === "recommendation" ? "Post recommendation" : item.issue],
+					context: type === "recommendation" ? (item as PostRecommendation).reason : (item as GrowthLeak).fix,
+					videoTitle: type === "leak" ? (item as GrowthLeak).title : undefined,
+				}),
+			});
+
+			if (response.ok) {
+				const data = await response.json();
+				if (data.explanation) {
+					if (type === "recommendation") {
+						setPostThisNext((prev) => {
+							const updated = [...prev];
+							updated[index] = { ...updated[index], explanation: data.explanation };
+							return updated;
+						});
+					} else {
+						setFixTheseVideos((prev) => {
+							const updated = [...prev];
+							updated[index] = { ...updated[index], explanation: data.explanation };
+							return updated;
+						});
+					}
+				}
+			}
+		} catch (error) {
+			console.error("Failed to fetch explanation:", error);
+		} finally {
+			setLoadingExplanations((prev) => ({ ...prev, [key]: false }));
+		}
+	};
 
 	if (!youtubeConnected) {
 		return (
