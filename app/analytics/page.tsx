@@ -10,23 +10,6 @@ import { ScheduleModal } from "@/components/ScheduleModal";
 import { BackButton } from "@/components/BackButton";
 import { useAppStore, type SocialConnection } from "@/lib/store";
 import type { AnalyticsPlatform, PlatformAnalyticsSnapshot } from "@/lib/mockAnalytics";
-import {
-	BarChart,
-	Bar,
-	LineChart,
-	Line,
-	PieChart,
-	Pie,
-	Cell,
-	AreaChart,
-	Area,
-	XAxis,
-	YAxis,
-	CartesianGrid,
-	Tooltip,
-	Legend,
-	ResponsiveContainer,
-} from "recharts";
 
 type AnalyticsMap = Partial<Record<AnalyticsPlatform, PlatformAnalyticsSnapshot>>;
 
@@ -49,18 +32,12 @@ const formatCompact = (value: number, style: "decimal" | "currency" = "decimal")
 const formatPercent = (value: number) =>
 	new Intl.NumberFormat("en", { style: "percent", maximumFractionDigits: 1 }).format(value / 100);
 
-type ChartType = "bar" | "pie" | "line" | "area";
 
 export default function AnalyticsPage() {
 	const { socialConnections, user, setSocialConnection, setIsPro } = useAppStore();
 	const [analytics, setAnalytics] = useState<AnalyticsMap>({});
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const [viewsChartType, setViewsChartType] = useState<ChartType>("bar");
-	const [followersChartType, setFollowersChartType] = useState<ChartType>("bar");
-	const [watchTimeChartType, setWatchTimeChartType] = useState<ChartType>("line");
-	const [revenueChartType, setRevenueChartType] = useState<ChartType>("pie");
-	const [retentionChartType, setRetentionChartType] = useState<ChartType>("area");
 	const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
 	const [autoInsightsEnabled, setAutoInsightsEnabled] = useState(true);
 	const [autoAlertsEnabled, setAutoAlertsEnabled] = useState(true);
@@ -756,195 +733,6 @@ export default function AnalyticsPage() {
 						})}
 					</div>
 
-					{/* Charts Section */}
-					{chartData.length > 0 && (
-						<>
-							<Card size="3" variant="surface" className="p-4 sm:p-6">
-								<Heading size="5" as="h2" className="mb-4 text-gray-12 dark:text-gray-12">
-									Analytics Charts
-								</Heading>
-								<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-									{/* Views Metric */}
-									<Card size="2" variant="surface" className="p-4">
-										<Text size="2" weight="medium" className="mb-2 text-gray-12 dark:text-gray-12">
-											Views
-										</Text>
-										{chartData.map((entry: any) => (
-											<div key={entry.platform} className="mb-2">
-												<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
-													{entry.platform}
-												</Text>
-												<Heading size="5" weight="bold" className="text-gray-12 dark:text-gray-12">
-													{formatCompact(entry.views)}
-												</Heading>
-											</div>
-										))}
-									</Card>
-
-									{/* Followers Metric */}
-									<Card size="2" variant="surface" className="p-4">
-										<Text size="2" weight="medium" className="mb-2 text-gray-12 dark:text-gray-12">
-											Followers
-										</Text>
-										{chartData.map((entry: any) => (
-											<div key={entry.platform} className="mb-2">
-												<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
-													{entry.platform}
-												</Text>
-												<Heading size="5" weight="bold" className="text-gray-12 dark:text-gray-12">
-													{formatCompact(entry.followers)}
-												</Heading>
-											</div>
-										))}
-									</Card>
-
-
-									{/* Watch Time Metric */}
-									<Card size="2" variant="surface" className="p-4">
-										<Text size="2" weight="medium" className="mb-2 text-gray-12 dark:text-gray-12">
-											Watch Time
-										</Text>
-										{chartData.map((entry: any) => (
-											<div key={entry.platform} className="mb-2">
-												<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
-													{entry.platform}
-												</Text>
-												<Heading size="5" weight="bold" className="text-gray-12 dark:text-gray-12">
-													{formatCompact(entry.watchTime)} min
-												</Heading>
-											</div>
-										))}
-									</Card>
-
-
-									{/* Audience Demographics Chart */}
-									<div>
-										<div className="flex items-center justify-between mb-2">
-											<Text size="2" weight="medium" className="text-gray-12 dark:text-gray-12">
-												Audience Demographics
-											</Text>
-										</div>
-										<div className="h-32 sm:h-40">
-											<ResponsiveContainer width="100%" height="100%">
-												<PieChart>
-													<Pie
-														data={chartData}
-														dataKey="followers"
-														nameKey="platform"
-														cx="50%"
-														cy="50%"
-														outerRadius={60}
-														label={(entry: any) => `${entry.platform}: ${formatCompact(entry.followers)}`}
-													>
-														{chartData.map((entry: { color: "red" | "cyan" | "pink" }, index: number) => (
-															<Cell key={`cell-${index}`} fill={`var(--${entry.color}-9)`} />
-														))}
-													</Pie>
-													<Tooltip
-														contentStyle={{
-															backgroundColor: "var(--gray-a2)",
-															border: "1px solid var(--gray-a6)",
-															borderRadius: "8px",
-														}}
-													/>
-												</PieChart>
-											</ResponsiveContainer>
-										</div>
-									</div>
-
-									{/* Traffic Sources Chart */}
-									<div>
-										<div className="flex items-center justify-between mb-2">
-											<Text size="2" weight="medium" className="text-gray-12 dark:text-gray-12">
-												Traffic Sources
-											</Text>
-										</div>
-										<div className="h-32 sm:h-40">
-											<ResponsiveContainer width="100%" height="100%">
-												<PieChart>
-													<Pie
-														data={chartData}
-														dataKey="views"
-														nameKey="platform"
-														cx="50%"
-														cy="50%"
-														outerRadius={60}
-														label={(entry: any) => `${entry.platform}: ${formatCompact(entry.views)}`}
-													>
-														{chartData.map((entry: { color: "red" | "cyan" | "pink" }, index: number) => (
-															<Cell key={`cell-${index}`} fill={`var(--${entry.color}-9)`} />
-														))}
-													</Pie>
-													<Tooltip
-														contentStyle={{
-															backgroundColor: "var(--gray-a2)",
-															border: "1px solid var(--gray-a6)",
-															borderRadius: "8px",
-														}}
-													/>
-												</PieChart>
-											</ResponsiveContainer>
-										</div>
-									</div>
-
-									{/* Retention Metric */}
-									<Card size="2" variant="surface" className="p-4">
-										<Text size="2" weight="medium" className="mb-2 text-gray-12 dark:text-gray-12">
-											Retention
-										</Text>
-										{chartData.map((entry: any) => (
-											<div key={entry.platform} className="mb-2">
-												<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
-													{entry.platform}
-												</Text>
-												<Heading size="5" weight="bold" className="text-gray-12 dark:text-gray-12">
-													{((entry.watchTime / Math.max(entry.views, 1)) * 100).toFixed(1)}%
-												</Heading>
-											</div>
-										))}
-									</Card>
-
-									{/* Revenue Chart (Pie Only) */}
-									{chartData.some((d: { revenue: number }) => d.revenue > 0) && (
-										<div>
-											<div className="flex items-center justify-between mb-2">
-												<Text size="2" weight="medium" className="text-gray-12 dark:text-gray-12">
-													Revenue
-												</Text>
-											</div>
-											<div className="h-32 sm:h-40">
-												<ResponsiveContainer width="100%" height="100%">
-													<PieChart>
-														<Pie
-															data={chartData.filter((d: { revenue: number }) => d.revenue > 0)}
-															dataKey="revenue"
-															nameKey="platform"
-															cx="50%"
-															cy="50%"
-															outerRadius={60}
-															label={(entry: any) => `${entry.platform}: ${formatCompact(entry.revenue, "currency")}`}
-														>
-															{chartData.map((entry, index) => (
-																<Cell key={`cell-${index}`} fill={`var(--${entry.color}-9)`} />
-															))}
-														</Pie>
-														<Tooltip
-															contentStyle={{
-																backgroundColor: "var(--gray-a2)",
-																border: "1px solid var(--gray-a6)",
-																borderRadius: "8px",
-															}}
-															formatter={(value: number) => formatCompact(value, "currency")}
-														/>
-													</PieChart>
-												</ResponsiveContainer>
-											</div>
-										</div>
-									)}
-								</div>
-							</Card>
-						</>
-					)}
 
 					{totals && (
 						<>

@@ -24,6 +24,7 @@ const navItems = [
 	{ href: "/video-downloader", label: "Video Downloader", icon: DownloadIcon },
 	{ href: "/analytics", label: "Analytics", icon: BarChartIcon },
 	{ href: "/youtube-insights", label: "YouTube Insights", icon: LightningBoltIcon },
+	{ href: "/growth-decisions", label: "Growth Decisions", icon: TargetIcon },
 ];
 
 export function Sidebar() {
