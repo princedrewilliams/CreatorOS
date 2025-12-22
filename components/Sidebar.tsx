@@ -9,6 +9,7 @@ import {
 	BarChartIcon,
 	DownloadIcon,
 	VideoIcon,
+	LightningBoltIcon,
 } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -22,6 +23,7 @@ const navItems = [
 	{ href: "/sponsors", label: "Sponsors", icon: FileTextIcon },
 	{ href: "/video-downloader", label: "Video Downloader", icon: DownloadIcon },
 	{ href: "/analytics", label: "Analytics", icon: BarChartIcon },
+	{ href: "/youtube-insights", label: "YouTube Insights", icon: LightningBoltIcon },
 ];
 
 export function Sidebar() {

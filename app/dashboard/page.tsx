@@ -12,6 +12,7 @@ import {
 	EyeOpenIcon,
 	VideoIcon,
 	ChatBubbleIcon,
+	LightningBoltIcon,
 } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -56,6 +57,13 @@ const features = [
 		icon: BarChartIcon,
 		href: "/analytics",
 		color: "cyan" as const,
+	},
+	{
+		title: "YouTube Insights",
+		description: "Advanced analytics and recommendations",
+		icon: LightningBoltIcon,
+		href: "/youtube-insights",
+		color: "red" as const,
 	},
 ];
 

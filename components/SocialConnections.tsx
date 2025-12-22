@@ -201,7 +201,7 @@ function SocialConnectionsContent() {
 					</div>
 				</div>
 			)}
-			<div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
+			<div className="grid grid-cols-1 gap-3 sm:gap-4">
 				{platforms.map((platform) => {
 					const connection = socialConnections.find((c: SocialConnection) => c.platform === platform.key);
 					const isConnected = connection?.connected || false;
@@ -214,78 +214,78 @@ function SocialConnectionsContent() {
 							key={platform.key}
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
-							whileHover={{ scale: 1.02 }}
+							whileHover={{ scale: 1.01 }}
+							className="w-full"
 						>
 							<Card
-								size="2"
+								size="3"
 								variant="surface"
-								className={`p-4 h-full ${
+								className={`p-6 w-full ${
 									isConnected ? "border-green-6 bg-green-a2" : "border-gray-a4"
 								}`}
 							>
-								<div className="flex flex-col items-center gap-3">
-									{connection?.profilePicture ? (
-										<img
-											src={connection.profilePicture}
-											alt={`${connection.username || platform.name} profile`}
-											className="w-16 h-16 rounded-full object-cover border-2 border-gray-a6"
-										/>
-									) : (
-										<div className="text-4xl">{platform.icon}</div>
-									)}
-									<Heading size="4" as="h3" className="text-gray-12 dark:text-gray-12">
-										{platform.name}
-									</Heading>
-									{isConnected ? (
-										<>
-											<Badge color="green" size="2" variant="soft">
-												<CheckIcon className="mr-1" />
-												Connected
-											</Badge>
-											{connection?.username ? (
-												<div className="flex flex-col items-center gap-0.5">
-													<Text size="2" weight="medium" className="text-gray-12 dark:text-gray-12">
+								<div className="flex flex-row items-center gap-6 w-full">
+									<div className="flex-shrink-0">
+										{connection?.profilePicture ? (
+											<img
+												src={connection.profilePicture}
+												alt={`${connection.username || platform.name} profile`}
+												className="w-20 h-20 rounded-full object-cover border-2 border-gray-a6"
+											/>
+										) : (
+											<div className="text-6xl">{platform.icon}</div>
+										)}
+									</div>
+									<div className="flex-grow flex flex-col gap-2">
+										<Heading size="5" as="h3" className="text-gray-12 dark:text-gray-12">
+											{platform.name}
+										</Heading>
+										{isConnected ? (
+											<>
+												{connection?.username ? (
+													<Text size="3" weight="medium" className="text-gray-12 dark:text-gray-12">
 														@{connection.username}
 													</Text>
-													<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
-														{platform.name} Account
-													</Text>
-												</div>
-											) : (
-												<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
-													{platform.name} Connected
-												</Text>
-											)}
+												) : null}
+												<Badge color="green" size="2" variant="soft" className="w-fit">
+													<CheckIcon className="mr-1" />
+													Connected
+												</Badge>
+											</>
+										) : null}
+									</div>
+									<div className="flex-shrink-0">
+										{isConnected ? (
 											<Button
 												variant="ghost"
 												color="red"
-												size="2"
+												size="3"
 												onClick={() => handleDisconnect(platform.key)}
 											>
 												<Cross2Icon className="mr-1" />
 												Disconnect
 											</Button>
-										</>
-									) : oauthAvailable ? (
-										<Button
-											color={platform.color}
-											size="2"
-											variant="solid"
-											onClick={() => handleConnect(platform.key)}
-											className="w-full"
-										>
-											Connect {platform.name}
-										</Button>
-									) : (
-										<div className="flex flex-col items-center gap-1">
-											<Badge color="yellow" size="2" variant="soft">
-												Coming soon
-											</Badge>
-											<Text size="2" color="gray" className="text-center text-gray-11 dark:text-gray-11">
-												{platform.name} integration is coming soon.
-											</Text>
-										</div>
-									)}
+										) : oauthAvailable ? (
+											<Button
+												color={platform.color}
+												size="3"
+												variant="solid"
+												onClick={() => handleConnect(platform.key)}
+												className="min-w-[180px]"
+											>
+												Connect {platform.name}
+											</Button>
+										) : (
+											<div className="flex flex-col items-end gap-1">
+												<Badge color="yellow" size="2" variant="soft">
+													Coming soon
+												</Badge>
+												<Text size="2" color="gray" className="text-right text-gray-11 dark:text-gray-11">
+													{platform.name} integration is coming soon.
+												</Text>
+											</div>
+										)}
+									</div>
 								</div>
 							</Card>
 						</motion.div>
