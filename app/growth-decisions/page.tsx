@@ -131,7 +131,7 @@ export default function GrowthDecisionsPage() {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
 					metrics,
-					triggeredRules: [type === "recommendation" ? "Post recommendation" : item.issue],
+					triggeredRules: [type === "recommendation" ? "Post recommendation" : (item as GrowthLeak).issue],
 					context: type === "recommendation" ? (item as PostRecommendation).reason : (item as GrowthLeak).fix,
 					videoTitle: type === "leak" ? (item as GrowthLeak).title : undefined,
 				}),
