@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { setUserSocialConnection } from "@/lib/user-data";
+import { setUserSocialConnection, getUserSocialConnections } from "@/lib/user-data";
 
 export async function GET(request: NextRequest) {
 	try {
