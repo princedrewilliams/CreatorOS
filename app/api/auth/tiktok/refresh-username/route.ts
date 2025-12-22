@@ -109,18 +109,22 @@ export async function GET(request: NextRequest) {
 				errorData = { error: errorText };
 			}
 			
-			console.error("[TikTok] Failed to fetch user info:", userResponse.status, errorData);
+			console.error("[TikTok] Failed to fetch user info:", {
+				status: userResponse.status,
+				statusText: userResponse.statusText,
+				error: errorData,
+			});
 			
 			// Check if it's a scope error
 			if (errorData.error?.code === "scope_not_authorized") {
-				return NextResponse.json(
-					{ 
-						error: "Scope not authorized. Please disconnect and reconnect your TikTok account, making sure to grant all requested permissions.",
-						code: "scope_not_authorized",
-						details: errorData.error.message
-					},
-					{ status: 403 }
-				);
+				console.warn("[TikTok] Scope not authorized - returning default username");
+				// Return success with default username instead of error
+				// This prevents repeated error attempts
+				return NextResponse.json({
+					username: "TikTok User",
+					profilePicture: undefined,
+					warning: "Scope not authorized - username unavailable",
+				});
 			}
 			
 			return NextResponse.json(
