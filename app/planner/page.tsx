@@ -169,6 +169,8 @@ function PlannerContent() {
 	// Handle OAuth callback
 	useEffect(() => {
 		const connected = searchParams.get("connected");
+		const isPopup = searchParams.get("popup") === "true";
+		
 		if (connected) {
 			const platform = connected as "youtube" | "instagram" | "tiktok";
 			const username = searchParams.get("username") || `${platform.charAt(0).toUpperCase() + platform.slice(1)} User`;
@@ -181,8 +183,17 @@ function PlannerContent() {
 				profilePicture,
 			});
 			
-			// Sync again to get latest from server
-			if (user) {
+			// If this is a popup window, close it and notify parent
+			if (isPopup && window.opener) {
+				// Notify parent window that connection succeeded
+				window.opener.postMessage({ type: "oauth_success", platform, username, profilePicture }, window.location.origin);
+				// Close the popup
+				window.close();
+				return;
+			}
+			
+			// Sync again to get latest from server (only if not in popup)
+			if (user && !isPopup) {
 				fetch("/api/user/sync", {
 					credentials: "include",
 				})
