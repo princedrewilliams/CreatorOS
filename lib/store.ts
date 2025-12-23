@@ -7,14 +7,14 @@ export interface Task {
 	description?: string;
 	date: string; // YYYY-MM-DD format
 	time?: string; // HH:MM format
-	platforms: ("youtube" | "instagram" | "tiktok")[];
+	platforms: ("youtube")[];
 	status: "planned" | "scheduled" | "posted" | "cancelled";
 	createdAt: string;
 	updatedAt: string;
 }
 
 export interface SocialConnection {
-	platform: "youtube" | "instagram" | "tiktok";
+	platform: "youtube";
 	connected: boolean;
 	accessToken?: string;
 	refreshToken?: string;
@@ -77,7 +77,7 @@ interface AppState {
 	getTasksByDate: (date: string) => Task[];
 	socialConnections: SocialConnection[];
 	setSocialConnection: (connection: SocialConnection) => void;
-	removeSocialConnection: (platform: "youtube" | "instagram" | "tiktok") => void;
+	removeSocialConnection: (platform: "youtube") => void;
 	sponsors: SponsorDeal[];
 	addSponsor: (deal: Omit<SponsorDeal, "id" | "createdAt" | "updatedAt">) => void;
 	updateSponsor: (id: string, updates: Partial<SponsorDeal>) => void;
@@ -121,8 +121,6 @@ export const useAppStore = create<AppState>()(
             getTasksByDate: (date) => get().tasks.filter((task) => task.date === date),
 			socialConnections: [
 				{ platform: "youtube", connected: false },
-				{ platform: "instagram", connected: false },
-				{ platform: "tiktok", connected: false },
 			],
 			setSocialConnection: (connection) =>
 				set((state) => ({

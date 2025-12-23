@@ -51,10 +51,8 @@ function PlannerContent() {
 		if (!autoScheduleEnabled || !user) return;
 
 		// Calculate optimal posting times based on platform analytics
-		// Optimal times (in 24-hour format): TikTok: 19-21, Instagram: 11-13, YouTube: 14-16
+		// Optimal times (in 24-hour format): YouTube: 14-16
 		const optimalTimes: Record<string, { start: number; end: number }> = {
-			tiktok: { start: 19, end: 21 },
-			instagram: { start: 11, end: 13 },
 			youtube: { start: 14, end: 16 },
 		};
 
