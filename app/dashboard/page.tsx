@@ -164,7 +164,7 @@ export default function DashboardPage() {
 
 				if (response.ok) {
 					const payload = (await response.json()) as {
-						platforms: Array<{ platform: AnalyticsPlatform; data: PlatformAnalyticsSnapshot }>;
+						platforms: Array<{ platform: AnalyticsPlatform; data: PlatformAnalyticsSnapshot | null }>;
 					};
 					const map: Partial<Record<AnalyticsPlatform, PlatformAnalyticsSnapshot>> = {};
 					for (const entry of payload.platforms) {
@@ -224,9 +224,9 @@ export default function DashboardPage() {
 
 		// Calculate totals from analytics
 		const analyticsSnapshots = Object.values(analytics).filter(Boolean) as PlatformAnalyticsSnapshot[];
-		const totalRevenue = analyticsSnapshots.reduce((sum, snapshot) => sum + snapshot.revenue, 0);
-		const totalViews = analyticsSnapshots.reduce((sum, snapshot) => sum + snapshot.views, 0);
-		const totalFollowers = analyticsSnapshots.reduce((sum, snapshot) => sum + snapshot.followers, 0);
+		const totalRevenue = analyticsSnapshots.reduce((sum, snapshot) => sum + (snapshot.revenue || 0), 0);
+		const totalViews = analyticsSnapshots.reduce((sum, snapshot) => sum + (snapshot.views || 0), 0);
+		const totalFollowers = analyticsSnapshots.reduce((sum, snapshot) => sum + (snapshot.followers || 0), 0);
 
 		// Calculate active deals from sponsors
 		const activeDeals = sponsors.filter((deal) => deal.status === "active" || deal.status === "pending").length;
