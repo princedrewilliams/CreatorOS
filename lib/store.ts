@@ -25,18 +25,28 @@ export interface SocialConnection {
 	profilePicture?: string;
 }
 
-export type SponsorStatus = "active" | "pending" | "completed";
+export type SponsorStatus = "lead" | "negotiating" | "active" | "completed";
+export type PaymentStatus = "unpaid" | "partially_paid" | "paid";
 
 export interface SponsorDeal {
 	id: string;
-	brand: string;
-	type: string;
-	amount: number;
+	name: string; // Sponsor name
+	contactEmail?: string;
+	dealValue: number; // Deal value in USD
+	deliverables: string; // e.g. "1 video mention, 60s integration"
+	youtubeVideoIds: string[]; // Array of YouTube video IDs linked to this sponsor
 	status: SponsorStatus;
-	deadline: string;
+	paymentStatus: PaymentStatus;
+	startDate: string; // YYYY-MM-DD
+	endDate: string; // YYYY-MM-DD
 	notes?: string;
 	createdAt: string;
 	updatedAt: string;
+	// Legacy fields for backward compatibility
+	brand?: string;
+	type?: string;
+	amount?: number;
+	deadline?: string;
 }
 
 const generateId = () => {
@@ -132,8 +142,18 @@ export const useAppStore = create<AppState>()(
 			addSponsor: (deal) =>
 				set((state) => {
 					const now = new Date().toISOString();
+					// Handle backward compatibility with old sponsor format
 					const newDeal: SponsorDeal = {
 						...deal,
+						// Map old fields to new fields if needed
+						name: deal.name || deal.brand || "Unknown Sponsor",
+						dealValue: deal.dealValue || deal.amount || 0,
+						deliverables: deal.deliverables || deal.type || "",
+						youtubeVideoIds: deal.youtubeVideoIds || [],
+						status: deal.status || "lead",
+						paymentStatus: deal.paymentStatus || "unpaid",
+						startDate: deal.startDate || now.split("T")[0],
+						endDate: deal.endDate || deal.deadline || now.split("T")[0],
 						id: generateId(),
 						createdAt: now,
 						updatedAt: now,
