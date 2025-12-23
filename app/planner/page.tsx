@@ -57,7 +57,7 @@ function PlannerContent() {
 		};
 
 		const getOptimalTime = (platform: string): string => {
-			const times = optimalTimes[platform.toLowerCase()] || optimalTimes.tiktok;
+			const times = optimalTimes[platform.toLowerCase()] || optimalTimes.youtube;
 			// Pick a random time within the optimal window
 			const hour = times.start + Math.floor(Math.random() * (times.end - times.start));
 			const minute = Math.floor(Math.random() * 60);
