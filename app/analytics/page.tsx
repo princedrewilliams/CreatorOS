@@ -859,7 +859,7 @@ export default function AnalyticsPage() {
 											Watch Time
 										</Text>
 										<Heading size="7" weight="bold" className="text-gray-12 dark:text-gray-12">
-											{formatCompact(totals.views * 2.5)} min
+											{formatCompact(totals.watchTime || totals.views * 2.5)} min
 										</Heading>
 										<Badge color="blue" size="1" variant="soft" className="mt-2">
 											Total
