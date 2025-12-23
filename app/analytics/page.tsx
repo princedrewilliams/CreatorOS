@@ -19,8 +19,6 @@ const PLATFORM_META: Record<
 	{ label: string; color: "red" | "cyan" | "pink"; followerLabel: string }
 > = {
 	youtube: { label: "YouTube", color: "red", followerLabel: "Subscribers" },
-	tiktok: { label: "TikTok", color: "cyan", followerLabel: "Followers" },
-	instagram: { label: "Instagram", color: "pink", followerLabel: "Followers" },
 };
 
 const formatCompact = (value: number, style: "decimal" | "currency" = "decimal") =>
@@ -98,20 +96,10 @@ export default function AnalyticsPage() {
 		setError(null);
 
 		try {
-			// Get TikTok user ID (open_id/union_id) from connection if available
-			// Note: This is used as a fallback if access token method fails
-			const tiktokConnection = socialConnections.find(
-				(conn) => conn.platform === "tiktok" && conn.connected
-			);
-			const tiktokSecUid = tiktokConnection?.userPlatformId; // TikTok open_id/union_id stored in userPlatformId
-			
 			const queryParams = new URLSearchParams();
 			connectedPlatforms.forEach((platform) => {
 				queryParams.append("platform", platform);
 			});
-			if (tiktokSecUid) {
-				queryParams.set("tiktok_sec_uid", tiktokSecUid);
-			}
 			
 			const response = await fetch(`/api/analytics?${queryParams.toString()}`, { cache: "no-store" });
 
@@ -267,7 +255,7 @@ export default function AnalyticsPage() {
 						Analytics Dashboard
 					</Heading>
 					<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11 sm:text-4">
-						Track performance across YouTube, TikTok, and Instagram
+						Track performance across YouTube
 					</Text>
 				</div>
 				<div className="flex gap-2 sm:gap-3 flex-shrink-0">
@@ -315,7 +303,7 @@ export default function AnalyticsPage() {
 						Connect an account to view analytics
 					</Heading>
 					<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11 max-w-2xl">
-						Link your YouTube, TikTok, or Instagram profile using the social connections panel above.
+						Link your YouTube profile using the social connections panel above.
 						We&apos;ll pull in your latest reach, engagement, and revenue numbers automatically.
 					</Text>
 				</Card>
