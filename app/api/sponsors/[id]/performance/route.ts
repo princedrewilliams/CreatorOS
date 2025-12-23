@@ -41,18 +41,17 @@ async function handleRequest(
 
 		// Get YouTube access token
 		const youtubeAccessToken = request.cookies.get("youtube_access_token")?.value;
-		if (!youtubeAccessToken) {
-			// Also check user data store
-			const socialConnections = getUserSocialConnections(user.whop_user_id);
-			const youtubeConnection = socialConnections.find(
-				(conn) => conn.platform === "youtube" && conn.connected
+		const socialConnections = getUserSocialConnections(user.whop_user_id);
+		const youtubeConnection = socialConnections.find(
+			(conn) => conn.platform === "youtube" && conn.connected
+		);
+		
+		const accessToken = youtubeAccessToken || youtubeConnection?.accessToken;
+		if (!accessToken) {
+			return NextResponse.json(
+				{ error: "YouTube not connected" },
+				{ status: 400 }
 			);
-			if (!youtubeConnection?.accessToken) {
-				return NextResponse.json(
-					{ error: "YouTube not connected" },
-					{ status: 400 }
-				);
-			}
 		}
 
 		const sponsorId = params.id;
@@ -63,9 +62,9 @@ async function handleRequest(
 		// Try to get from request body first (POST)
 		if (request.method === "POST") {
 			try {
-				const body = await request.json();
-				if (body.videoIds && Array.isArray(body.videoIds)) {
-					videoIds = body.videoIds;
+				const requestBody = await request.json();
+				if (requestBody.videoIds && Array.isArray(requestBody.videoIds)) {
+					videoIds = requestBody.videoIds;
 				}
 			} catch (error) {
 				console.error("[Sponsor Performance] Error parsing request body:", error);
@@ -92,7 +91,7 @@ async function handleRequest(
 			`https://www.googleapis.com/youtube/v3/channels?part=id&mine=true`,
 			{
 				headers: {
-					Authorization: `Bearer ${youtubeAccessToken || getUserSocialConnections(user.whop_user_id).find(c => c.platform === "youtube")?.accessToken}`,
+					Authorization: `Bearer ${accessToken}`,
 				},
 			}
 		);
@@ -118,7 +117,7 @@ async function handleRequest(
 			`https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${videoIds.join(",")}`,
 			{
 				headers: {
-					Authorization: `Bearer ${youtubeAccessToken || getUserSocialConnections(user.whop_user_id).find(c => c.platform === "youtube")?.accessToken}`,
+					Authorization: `Bearer ${accessToken}`,
 				},
 			}
 		);
@@ -141,7 +140,7 @@ async function handleRequest(
 			`https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==${channelId}&startDate=${startDate}&endDate=${endDate}&metrics=views,estimatedMinutesWatched,impressions,impressionsClickThroughRate,averageViewDuration&dimensions=video`,
 			{
 				headers: {
-					Authorization: `Bearer ${youtubeAccessToken || getUserSocialConnections(user.whop_user_id).find(c => c.platform === "youtube")?.accessToken}`,
+					Authorization: `Bearer ${accessToken}`,
 				},
 			}
 		);
@@ -216,4 +215,3 @@ async function handleRequest(
 		);
 	}
 }
-
