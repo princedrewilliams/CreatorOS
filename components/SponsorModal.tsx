@@ -96,8 +96,14 @@ export function SponsorModal({ isOpen, onClose, onSave, sponsor }: SponsorModalP
 		onSave(sponsorData);
 	};
 
+	if (!isOpen) return null;
+
 	return (
-		<Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
+		<Dialog.Root open={isOpen} onOpenChange={(open) => {
+			if (!open) {
+				onClose();
+			}
+		}}>
 			<Dialog.Content className="max-w-2xl max-h-[90vh] overflow-y-auto">
 				<div className="flex items-center justify-between mb-6">
 					<Heading size="6" as="h2" className="text-gray-12 dark:text-gray-12">
@@ -142,13 +148,27 @@ export function SponsorModal({ isOpen, onClose, onSave, sponsor }: SponsorModalP
 							<input
 								type="number"
 								min="0"
-								step="0.01"
+								step="100"
 								placeholder="5000"
 								value={dealValue}
-								onChange={(e) => setDealValue(e.target.value)}
+								onChange={(e) => {
+									const value = e.target.value;
+									// Only allow whole numbers, round to nearest 100
+									if (value === "") {
+										setDealValue("");
+									} else {
+										const num = Math.round(Number.parseFloat(value) / 100) * 100;
+										if (!Number.isNaN(num) && num >= 0) {
+											setDealValue(num.toString());
+										}
+									}
+								}}
 								required
 								className="w-full rounded-lg border border-gray-a4 dark:border-gray-a6 bg-surface-1 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-8"
 							/>
+							<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
+								Value increments in hundreds (e.g., 100, 200, 300...)
+							</Text>
 						</FormField>
 						<FormField label="Status *">
 							<select
@@ -187,16 +207,6 @@ export function SponsorModal({ isOpen, onClose, onSave, sponsor }: SponsorModalP
 							/>
 						</FormField>
 					</div>
-
-					<FormField label="Deliverables">
-						<input
-							type="text"
-							placeholder="1 video mention, 60s integration"
-							value={deliverables}
-							onChange={(e) => setDeliverables(e.target.value)}
-							className="w-full rounded-lg border border-gray-a4 dark:border-gray-a6 bg-surface-1 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-8"
-						/>
-					</FormField>
 
 					<FormField label="Deliverables">
 						<input
