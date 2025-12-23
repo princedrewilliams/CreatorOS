@@ -722,65 +722,8 @@ export async function GET(request: NextRequest) {
 		const payload = await Promise.all(
 			platforms.map(async (platform) => {
 				try {
-					// TikTok: Prefer server-side access token if available; fallback to RapidAPI via sec_uid
-					if (platform === "tiktok") {
-						// Try access token method first
-						if (tiktokAccessToken) {
-							console.log("[analytics] Attempting TikTok analytics with access token");
-							const tokenData = await fetchTikTokAnalyticsWithAccessToken(tiktokAccessToken);
-							if (tokenData) {
-								console.log("[analytics] TikTok analytics fetched successfully with access token");
-								return { platform, data: tokenData };
-							}
-							console.warn("[analytics] TikTok access token method failed, trying sec_uid fallback");
-						} else {
-							console.warn("[analytics] TikTok access token not available");
-						}
-						
-						// Fallback to sec_uid method if access token method failed or not available
-						if (tiktokSecUid) {
-							console.log("[analytics] Attempting TikTok analytics with sec_uid");
-							const realData = await fetchTikTokAnalytics(tiktokSecUid);
-							if (realData) {
-								console.log("[analytics] TikTok analytics fetched successfully with sec_uid");
-								return {
-									platform,
-									data: realData,
-								};
-							}
-							console.warn("[analytics] TikTok sec_uid method also failed");
-						} else {
-							console.warn("[analytics] TikTok sec_uid not available");
-						}
-						
-						// If both methods failed, return null - don't use mock data
-						console.error("[analytics] Both TikTok methods failed - no real data available. User needs to reconnect TikTok account.");
-						return {
-							platform,
-							data: null, // Return null instead of mock data
-						};
-					}
-					
-			// Fetch real Instagram data if access token is available
-			if (platform === "instagram" && INSTAGRAM_ACCESS_TOKEN) {
-				// Use specific account ID if provided, otherwise use "me" or userId from OAuth
-				const accountId = INSTAGRAM_ACCOUNT_ID || undefined;
-				const realData = await fetchInstagramAnalytics(accountId);
-				if (realData) {
-					return {
-						platform,
-						data: realData,
-					};
-				}
-				// Return null if no real data - don't use mock
-				return {
-					platform,
-					data: null,
-				};
-			}
-			
-			// Fetch real YouTube data if access token is available
-			if (platform === "youtube") {
+					// Only YouTube is supported now
+					if (platform === "youtube") {
 				const youtubeAccessToken = request.cookies.get("youtube_access_token")?.value;
 				if (youtubeAccessToken) {
 					try {
