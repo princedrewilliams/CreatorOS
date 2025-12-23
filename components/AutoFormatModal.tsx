@@ -19,8 +19,6 @@ export function AutoFormatModal({ isOpen, onClose }: AutoFormatModalProps) {
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const platforms = [
-		{ id: "tiktok", label: "TikTok", color: "cyan" as const },
-		{ id: "instagram", label: "Instagram Reels", color: "pink" as const },
 		{ id: "youtube", label: "YouTube Shorts", color: "red" as const },
 	];
 

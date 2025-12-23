@@ -15,7 +15,7 @@ export function PostVideoModal({ isOpen, onClose }: PostVideoModalProps) {
 	const { socialConnections } = useAppStore();
 	const [video, setVideo] = useState<File | null>(null);
 	const [caption, setCaption] = useState("");
-	const [selectedPlatforms, setSelectedPlatforms] = useState<("youtube" | "instagram" | "tiktok")[]>([]);
+	const [selectedPlatforms, setSelectedPlatforms] = useState<("youtube")[]>([]);
 	const [uploading, setUploading] = useState(false);
 	
 	// YouTube-specific fields
@@ -29,10 +29,10 @@ export function PostVideoModal({ isOpen, onClose }: PostVideoModalProps) {
 	const isYouTubeSelected = selectedPlatforms.includes("youtube");
 
 	const connectedPlatforms = socialConnections.filter(
-		(conn) => conn.connected && (conn.platform === "youtube" || conn.platform === "instagram" || conn.platform === "tiktok")
+		(conn) => conn.connected && conn.platform === "youtube"
 	);
 
-	const handlePlatformToggle = (platform: "youtube" | "instagram" | "tiktok") => {
+	const handlePlatformToggle = (platform: "youtube") => {
 		setSelectedPlatforms((prev) =>
 			prev.includes(platform) ? prev.filter((p) => p !== platform) : [...prev, platform]
 		);
@@ -188,7 +188,7 @@ export function PostVideoModal({ isOpen, onClose }: PostVideoModalProps) {
 							{/* Caption */}
 							<div>
 								<Text size="2" weight="medium" className="mb-2 block text-gray-11 dark:text-gray-11">
-									Caption {!isYouTubeSelected && "(for Instagram/TikTok)"}
+									Caption
 								</Text>
 								<textarea
 									value={caption}
@@ -393,19 +393,14 @@ export function PostVideoModal({ isOpen, onClose }: PostVideoModalProps) {
 								</Text>
 								<div className="flex flex-wrap gap-3">
 									{connectedPlatforms.map((conn) => {
-										const platform = conn.platform as "youtube" | "instagram" | "tiktok";
+										const platform = conn.platform as "youtube";
 										const isSelected = selectedPlatforms.includes(platform);
-										const username = conn.username || `${platform} User`;
-										const platformColors: Record<"youtube" | "instagram" | "tiktok", "red" | "purple" | "gray"> = {
-											youtube: "red",
-											instagram: "purple",
-											tiktok: "gray",
-										};
+										const username = conn.username || "YouTube User";
 										return (
 											<div key={platform} className="flex flex-col gap-1">
 												<Button
 													variant={isSelected ? "soft" : "ghost"}
-													color={platformColors[platform]}
+													color="red"
 													size="2"
 													onClick={() => handlePlatformToggle(platform)}
 													className="capitalize"

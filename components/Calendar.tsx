@@ -45,10 +45,6 @@ export function Calendar({ selectedDate, onDateSelect }: CalendarProps) {
 		switch (platform) {
 			case "youtube":
 				return "red";
-			case "instagram":
-				return "purple";
-			case "tiktok":
-				return "gray";
 			default:
 				return "blue";
 		}

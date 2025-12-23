@@ -20,7 +20,7 @@ export function TaskModal({ isOpen, onClose, task, selectedDate }: TaskModalProp
 	const [description, setDescription] = useState("");
 	const [date, setDate] = useState(selectedDate ? format(selectedDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"));
 	const [time, setTime] = useState("");
-	const [platforms, setPlatforms] = useState<("youtube" | "instagram" | "tiktok")[]>([]);
+	const [platforms, setPlatforms] = useState<("youtube")[]>([]);
 	const [status, setStatus] = useState<"planned" | "scheduled" | "posted" | "cancelled">("planned");
 	const [video, setVideo] = useState<File | null>(null);
 
@@ -42,7 +42,7 @@ export function TaskModal({ isOpen, onClose, task, selectedDate }: TaskModalProp
 		}
 	}, [task, selectedDate]);
 
-	const handlePlatformToggle = (platform: "youtube" | "instagram" | "tiktok") => {
+	const handlePlatformToggle = (platform: "youtube") => {
 		setPlatforms((prev) =>
 			prev.includes(platform)
 				? prev.filter((p) => p !== platform)
@@ -87,8 +87,6 @@ export function TaskModal({ isOpen, onClose, task, selectedDate }: TaskModalProp
 
 	const platformColors = {
 		youtube: "red",
-		instagram: "purple",
-		tiktok: "gray",
 	} as const;
 
 	return (
@@ -181,7 +179,7 @@ export function TaskModal({ isOpen, onClose, task, selectedDate }: TaskModalProp
 										Platforms * (Select at least one)
 									</Text>
 									<div className="flex gap-3">
-										{(["youtube", "instagram", "tiktok"] as const).map((platform) => (
+										{(["youtube"] as const).map((platform) => (
 											<Button
 												key={platform}
 												variant={platforms.includes(platform) ? "soft" : "ghost"}
