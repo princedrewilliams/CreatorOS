@@ -129,11 +129,9 @@ export default function LoginPage() {
 			setEmail("");
 			// Clear any stored data
 			const { setSocialConnection } = useAppStore.getState();
-			["youtube", "instagram", "tiktok"].forEach((platform) => {
-				setSocialConnection({
-					platform: platform as "youtube" | "instagram" | "tiktok",
-					connected: false,
-				});
+			setSocialConnection({
+				platform: "youtube",
+				connected: false,
 			});
 			router.push("/");
 		} catch (err) {
