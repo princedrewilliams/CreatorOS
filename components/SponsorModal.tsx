@@ -96,8 +96,6 @@ export function SponsorModal({ isOpen, onClose, onSave, sponsor }: SponsorModalP
 		onSave(sponsorData);
 	};
 
-	if (!isOpen) return null;
-
 	return (
 		<Dialog.Root open={isOpen} onOpenChange={(open) => {
 			if (!open) {
