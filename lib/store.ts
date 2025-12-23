@@ -128,38 +128,7 @@ export const useAppStore = create<AppState>()(
 							: conn
 					),
 				})),
-			sponsors: [
-				{
-					id: "deal-1",
-					brand: "TechCorp",
-					type: "Video Sponsorship",
-					amount: 5000,
-					status: "active",
-					deadline: "2024-11-15",
-					createdAt: new Date().toISOString(),
-					updatedAt: new Date().toISOString(),
-				},
-				{
-					id: "deal-2",
-					brand: "BrandX",
-					type: "Product Placement",
-					amount: 2500,
-					status: "pending",
-					deadline: "2024-11-20",
-					createdAt: new Date().toISOString(),
-					updatedAt: new Date().toISOString(),
-				},
-				{
-					id: "deal-3",
-					brand: "StartupY",
-					type: "Series Sponsorship",
-					amount: 8000,
-					status: "completed",
-					deadline: "2024-11-05",
-					createdAt: new Date().toISOString(),
-					updatedAt: new Date().toISOString(),
-				},
-			],
+			sponsors: [],
 			addSponsor: (deal) =>
 				set((state) => {
 					const now = new Date().toISOString();
