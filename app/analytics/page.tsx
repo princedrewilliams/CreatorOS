@@ -173,18 +173,24 @@ export default function AnalyticsPage() {
 					? snapshot.topContent.reduce((sum, content) => sum + content.views, 0) / totalVideos
 					: 0;
 
+				// Get views - use snapshot.views if available, otherwise sum from topContent
+				const snapshotViews = snapshot.views || snapshot.topContent.reduce((sum, c) => sum + (c.views || 0), 0);
+				
+				// Get watch time - use snapshot.watchTime if available, otherwise estimate from views
+				const snapshotWatchTime = snapshot.watchTime ?? (snapshotViews * 2.5);
+
 				return {
-					views: acc.views + snapshot.views,
-					followers: acc.followers + snapshot.followers,
-					revenue: acc.revenue + snapshot.revenue,
-					watchTime: acc.watchTime + (snapshot.views * 2.5), // Estimated watch time
+					views: acc.views + snapshotViews,
+					followers: acc.followers + (snapshot.followers || 0),
+					revenue: acc.revenue + (snapshot.revenue || 0),
+					watchTime: acc.watchTime + snapshotWatchTime,
 					interactions: acc.interactions + totalInteractions,
 					totalVideos: acc.totalVideos + totalVideos,
-					totalViewsFromContent: acc.totalViewsFromContent + snapshot.topContent.reduce((sum, c) => sum + c.views, 0),
+					totalViewsFromContent: acc.totalViewsFromContent + snapshot.topContent.reduce((sum, c) => sum + (c.views || 0), 0),
 					trend: {
-						views: acc.trend.views + snapshot.trend.views,
-						followers: acc.trend.followers + snapshot.trend.followers,
-						revenue: acc.trend.revenue + snapshot.trend.revenue,
+						views: acc.trend.views + (snapshot.trend?.views || 0),
+						followers: acc.trend.followers + (snapshot.trend?.followers || 0),
+						revenue: acc.trend.revenue + (snapshot.trend?.revenue || 0),
 					},
 					count: acc.count + 1,
 				};
