@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { AnalyticsPlatform } from "@/lib/mockAnalytics";
 
-const RAPIDAPI_TIKTOK_ANALYTICS_KEY = process.env.RAPIDAPI_TIKTOK_ANALYTICS_KEY;
-const RAPIDAPI_TIKTOK_ANALYTICS_HOST = process.env.RAPIDAPI_TIKTOK_ANALYTICS_HOST || "tikapi5.p.rapidapi.com";
-const INSTAGRAM_ACCESS_TOKEN = process.env.INSTAGRAM_ACCESS_TOKEN;
-const INSTAGRAM_ACCOUNT_ID = process.env.INSTAGRAM_ACCOUNT_ID;
-
 interface Post {
 	title: string;
 	views: number;
@@ -246,26 +241,16 @@ export async function GET(request: NextRequest) {
 		const url = request.nextUrl;
 		const platform = url.searchParams.get("platform") as AnalyticsPlatform | null;
 		
-		if (!platform || !["youtube", "tiktok", "instagram"].includes(platform)) {
-			return NextResponse.json({ error: "Invalid platform" }, { status: 400 });
+		if (!platform || platform !== "youtube") {
+			return NextResponse.json({ error: "Invalid platform. Only YouTube is supported." }, { status: 400 });
 		}
 
 		let posts: Post[] = [];
 
-		if (platform === "tiktok") {
-			const tiktokAccessToken = request.cookies.get("tiktok_access_token")?.value;
-			if (tiktokAccessToken) {
-				posts = await fetchTikTokPosts(tiktokAccessToken);
-			}
-		} else if (platform === "instagram") {
-			if (INSTAGRAM_ACCESS_TOKEN) {
-				posts = await fetchInstagramPosts();
-			}
-		} else if (platform === "youtube") {
-			const youtubeAccessToken = request.cookies.get("youtube_access_token")?.value;
-			if (youtubeAccessToken) {
-				posts = await fetchYouTubePosts(youtubeAccessToken);
-			}
+		// Only YouTube is supported now
+		const youtubeAccessToken = request.cookies.get("youtube_access_token")?.value;
+		if (youtubeAccessToken) {
+			posts = await fetchYouTubePosts(youtubeAccessToken);
 		}
 
 		return NextResponse.json({ platform, posts, count: posts.length });
