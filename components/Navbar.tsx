@@ -44,11 +44,9 @@ export function Navbar() {
 			setUser(null);
 			// Clear social connections
 			const { setSocialConnection } = useAppStore.getState();
-			["youtube", "instagram", "tiktok"].forEach((platform) => {
-				setSocialConnection({
-					platform: platform as "youtube" | "instagram" | "tiktok",
-					connected: false,
-				});
+			setSocialConnection({
+				platform: "youtube",
+				connected: false,
 			});
 			router.push("/");
 		} catch (err) {
