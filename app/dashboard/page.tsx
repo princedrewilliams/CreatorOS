@@ -182,7 +182,7 @@ export default function DashboardPage() {
 				},
 				{
 					label: "Active Deals",
-					value: sponsors.filter((deal) => deal.status === "active" || deal.status === "pending").length.toString(),
+					value: sponsors.filter((deal) => deal.status === "active").length.toString(),
 					change: sponsors.length > 0 ? `+${sponsors.length}` : "0",
 				},
 				{
@@ -205,7 +205,7 @@ export default function DashboardPage() {
 		const totalFollowers = analyticsSnapshots.reduce((sum, snapshot) => sum + (snapshot.followers || 0), 0);
 
 		// Calculate active deals from sponsors
-		const activeDeals = sponsors.filter((deal) => deal.status === "active" || deal.status === "pending").length;
+		const activeDeals = sponsors.filter((deal) => deal.status === "active").length;
 		const totalDeals = sponsors.length;
 		const dealsChange = totalDeals > 0 ? `+${totalDeals}` : "0";
 
