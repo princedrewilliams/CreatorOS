@@ -18,6 +18,7 @@ export interface Sponsor {
 	dueDate?: string; // YYYY-MM-DD format
 	paymentStatus: PaymentStatus;
 	notes?: string;
+	youtubeVideoIds?: string[]; // Array of YouTube video IDs linked to this sponsor
 	createdAt: string;
 	updatedAt: string;
 	deletedAt?: string; // Soft delete timestamp

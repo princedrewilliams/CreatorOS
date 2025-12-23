@@ -78,6 +78,7 @@ export async function POST(request: NextRequest) {
 			dueDate: body.dueDate || undefined,
 			paymentStatus: body.paymentStatus || "unpaid",
 			notes: body.notes?.trim(),
+			youtubeVideoIds: Array.isArray(body.youtubeVideoIds) ? body.youtubeVideoIds : undefined,
 		};
 
 		// Validate sponsor data
