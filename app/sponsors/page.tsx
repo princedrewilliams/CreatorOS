@@ -248,7 +248,7 @@ export default function SponsorsPage() {
 									<div className="flex items-start justify-between mb-4">
 										<div className="flex-1 min-w-0">
 											<Heading size="5" as="h3" className="mb-2 text-gray-12 dark:text-gray-12 truncate">
-												{getSponsorName(sponsor)}
+												{sponsor.brandName}
 											</Heading>
 										<div className="flex flex-wrap gap-2 mb-3">
 											<Badge color={statusColors[sponsor.dealStatus]} variant="soft" size="1">

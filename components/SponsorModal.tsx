@@ -27,41 +27,38 @@ function FormField({ label, children, className }: { label: string; children: Re
 }
 
 export function SponsorModal({ isOpen, onClose, onSave, sponsor }: SponsorModalProps) {
-	const [name, setName] = useState("");
+	const [brandName, setBrandName] = useState("");
+	const [contactName, setContactName] = useState("");
 	const [contactEmail, setContactEmail] = useState("");
 	const [dealValue, setDealValue] = useState("");
 	const [deliverables, setDeliverables] = useState("");
-	const [youtubeVideoIds, setYoutubeVideoIds] = useState("");
-	const [status, setStatus] = useState<SponsorStatus>("lead");
+	const [status, setStatus] = useState<DealStatus>("lead");
 	const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("unpaid");
-	const [startDate, setStartDate] = useState("");
-	const [endDate, setEndDate] = useState("");
+	const [dueDate, setDueDate] = useState("");
 	const [notes, setNotes] = useState("");
 	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
 		if (sponsor) {
-			setName(sponsor.brandName || "");
+			setBrandName(sponsor.brandName || "");
+			setContactName(sponsor.contactName || "");
 			setContactEmail(sponsor.contactEmail || "");
 			setDealValue(sponsor.rate.toString());
 			setDeliverables(sponsor.deliverables.join(", "));
-			setYoutubeVideoIds(""); // Not in new model, can be added later
 			setStatus(sponsor.dealStatus);
 			setPaymentStatus(sponsor.paymentStatus);
-			setStartDate(""); // Not in new model
-			setEndDate(sponsor.dueDate || "");
+			setDueDate(sponsor.dueDate || "");
 			setNotes(sponsor.notes || "");
 		} else {
 			// Reset form
-			setName("");
+			setBrandName("");
+			setContactName("");
 			setContactEmail("");
 			setDealValue("");
 			setDeliverables("");
-			setYoutubeVideoIds("");
 			setStatus("lead");
 			setPaymentStatus("unpaid");
-			setStartDate("");
-			setEndDate("");
+			setDueDate("");
 			setNotes("");
 		}
 		setError(null);
@@ -71,8 +68,8 @@ export function SponsorModal({ isOpen, onClose, onSave, sponsor }: SponsorModalP
 		event.preventDefault();
 
 		const value = Number.parseFloat(dealValue.replace(/[^0-9.]/g, ""));
-		if (!name || Number.isNaN(value) || value <= 0) {
-			setError("Please provide a sponsor name and valid deal value.");
+		if (!brandName || Number.isNaN(value) || value <= 0) {
+			setError("Please provide a brand name and valid deal value.");
 			return;
 		}
 
@@ -83,14 +80,15 @@ export function SponsorModal({ isOpen, onClose, onSave, sponsor }: SponsorModalP
 			.filter((d) => d.length > 0);
 
 		const sponsorData: Omit<Sponsor, "id" | "userId" | "createdAt" | "updatedAt" | "deletedAt"> = {
-			brandName: name.trim(),
+			brandName: brandName.trim(),
+			contactName: contactName.trim() || undefined,
 			contactEmail: contactEmail.trim() || undefined,
 			dealStatus: status,
 			platform: "youtube",
 			deliverables: deliverablesArray,
 			rate: value,
 			currency: "USD", // Default to USD, can be made configurable later
-			dueDate: endDate || undefined,
+			dueDate: dueDate || undefined,
 			paymentStatus,
 			notes: notes.trim() || undefined,
 		};
@@ -112,13 +110,22 @@ export function SponsorModal({ isOpen, onClose, onSave, sponsor }: SponsorModalP
 
 				<form onSubmit={handleSubmit} className="space-y-4">
 					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-						<FormField label="Sponsor Name *">
+						<FormField label="Brand Name *">
 							<input
 								type="text"
 								placeholder="Acme Co."
-								value={name}
-								onChange={(e) => setName(e.target.value)}
+								value={brandName}
+								onChange={(e) => setBrandName(e.target.value)}
 								required
+								className="w-full rounded-lg border border-gray-a4 dark:border-gray-a6 bg-surface-1 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-8"
+							/>
+						</FormField>
+						<FormField label="Contact Name">
+							<input
+								type="text"
+								placeholder="John Doe"
+								value={contactName}
+								onChange={(e) => setContactName(e.target.value)}
 								className="w-full rounded-lg border border-gray-a4 dark:border-gray-a6 bg-surface-1 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-8"
 							/>
 						</FormField>
@@ -171,19 +178,11 @@ export function SponsorModal({ isOpen, onClose, onSave, sponsor }: SponsorModalP
 								))}
 							</select>
 						</FormField>
-						<FormField label="Start Date">
+						<FormField label="Due Date">
 							<input
 								type="date"
-								value={startDate}
-								onChange={(e) => setStartDate(e.target.value)}
-								className="w-full rounded-lg border border-gray-a4 dark:border-gray-a6 bg-surface-1 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-8"
-							/>
-						</FormField>
-						<FormField label="End Date">
-							<input
-								type="date"
-								value={endDate}
-								onChange={(e) => setEndDate(e.target.value)}
+								value={dueDate}
+								onChange={(e) => setDueDate(e.target.value)}
 								className="w-full rounded-lg border border-gray-a4 dark:border-gray-a6 bg-surface-1 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-8"
 							/>
 						</FormField>
