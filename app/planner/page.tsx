@@ -75,7 +75,7 @@ function PlannerContent() {
 		if (plannedTasks.length > 0) {
 			plannedTasks.forEach((task) => {
 				// Get optimal time based on the first platform
-				const platform = task.platforms[0] || "tiktok";
+				const platform = task.platforms[0] || "youtube";
 				const optimalTime = getOptimalTime(platform);
 				
 				// Update task with optimal time and change status to scheduled
@@ -170,8 +170,8 @@ function PlannerContent() {
 		const isPopup = searchParams.get("popup") === "true";
 		
 		if (connected) {
-			const platform = connected as "youtube" | "instagram" | "tiktok";
-			const username = searchParams.get("username") || `${platform.charAt(0).toUpperCase() + platform.slice(1)} User`;
+			const platform = "youtube" as const;
+			const username = searchParams.get("username") || "YouTube User";
 			const profilePicture = searchParams.get("profilePicture") || undefined;
 			
 			setSocialConnection({
@@ -295,10 +295,6 @@ function PlannerContent() {
 		switch (platform) {
 			case "youtube":
 				return "red";
-			case "instagram":
-				return "purple";
-			case "tiktok":
-				return "cyan";
 			default:
 				return "blue";
 		}
@@ -461,7 +457,7 @@ function PlannerContent() {
 														</Text>
 													)}
 													{task.time && <Separator orientation="vertical" className="h-4" />}
-													{task.platforms.map((platform: "youtube" | "instagram" | "tiktok") => (
+													{task.platforms.map((platform: "youtube") => (
 														<Badge
 															key={platform}
 															color={getPlatformColor(platform)}
@@ -567,7 +563,7 @@ function PlannerContent() {
 						Filter by Platform:
 					</Text>
 					<div className="flex gap-2">
-						{(["all", "youtube", "instagram", "tiktok"] as const).map((platform) => (
+						{(["all", "youtube"] as const).map((platform) => (
 							<Button
 								key={platform}
 								variant={filterPlatform === platform ? "soft" : "ghost"}
@@ -651,7 +647,7 @@ function PlannerContent() {
 															{task.time && ` at ${task.time}`}
 														</Text>
 														<Separator orientation="vertical" className="h-4" />
-														{task.platforms.map((platform: "youtube" | "instagram" | "tiktok") => (
+														{task.platforms.map((platform: "youtube") => (
 															<Badge
 																key={platform}
 																color={getPlatformColor(platform)}
