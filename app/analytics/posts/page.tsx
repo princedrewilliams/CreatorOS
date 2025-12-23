@@ -30,8 +30,6 @@ interface Post {
 
 const PLATFORM_META: Record<AnalyticsPlatform, { label: string; color: "red" | "cyan" | "pink" }> = {
 	youtube: { label: "YouTube", color: "red" },
-	tiktok: { label: "TikTok", color: "cyan" },
-	instagram: { label: "Instagram", color: "pink" },
 };
 
 function PostsContent() {
@@ -133,9 +131,7 @@ function PostsContent() {
 						No posts found
 					</Heading>
 					<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11 text-center max-w-2xl mx-auto">
-						{platform === "youtube" && "Make sure you're connected to YouTube and have published videos."}
-						{platform === "tiktok" && "Make sure you're connected to TikTok and have posted videos."}
-						{platform === "instagram" && "Make sure you're connected to Instagram and have posted content."}
+						Make sure you're connected to YouTube and have published videos.
 					</Text>
 				</Card>
 			) : (
