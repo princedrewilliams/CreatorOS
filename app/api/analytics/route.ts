@@ -198,7 +198,7 @@ async function fetchTikTokAnalytics(secUid: string): Promise<PlatformAnalyticsSn
 				engagement: 0,
 				revenue: 0,
 			},
-			topContent: topContent.length > 0 ? topContent : analyticsMocks.tiktok.topContent,
+			topContent: topContent, // Return empty array if no videos, not mock data
 		};
 	} catch (error) {
 		console.error("[analytics] Error fetching TikTok analytics:", error);
@@ -362,7 +362,7 @@ async function fetchInstagramAnalytics(userId?: string): Promise<PlatformAnalyti
 				engagement: 0,
 				revenue: 0,
 			},
-			topContent: topContent.length > 0 ? topContent : analyticsMocks.instagram.topContent,
+			topContent: topContent, // Return empty array if no videos, not mock data
 		};
 	} catch (error) {
 		console.error("[analytics] Error fetching Instagram analytics:", error);
