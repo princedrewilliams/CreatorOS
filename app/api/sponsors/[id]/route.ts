@@ -15,7 +15,7 @@ import { validateSponsor, checkOverdueWarnings } from "@/lib/sponsor-business-lo
  */
 export async function GET(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
 		const user = await getCurrentUser();
@@ -23,7 +23,8 @@ export async function GET(
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
-		const sponsor = getSponsorById(user.whop_user_id, params.id);
+		const { id } = await params;
+		const sponsor = getSponsorById(user.whop_user_id, id);
 		
 		if (!sponsor) {
 			return NextResponse.json(
@@ -55,7 +56,7 @@ export async function GET(
  */
 export async function PUT(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
 		const user = await getCurrentUser();
@@ -63,8 +64,9 @@ export async function PUT(
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
+		const { id } = await params;
 		// Check if sponsor exists and belongs to user
-		const existingSponsor = getSponsorById(user.whop_user_id, params.id);
+		const existingSponsor = getSponsorById(user.whop_user_id, id);
 		if (!existingSponsor) {
 			return NextResponse.json(
 				{ error: "Sponsor not found" },
@@ -101,7 +103,7 @@ export async function PUT(
 		}
 
 		// Update sponsor
-		const updatedSponsor = updateSponsor(user.whop_user_id, params.id, updates);
+		const updatedSponsor = updateSponsor(user.whop_user_id, id, updates);
 		
 		if (!updatedSponsor) {
 			return NextResponse.json(
@@ -133,7 +135,7 @@ export async function PUT(
  */
 export async function DELETE(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
 		const user = await getCurrentUser();
@@ -141,7 +143,8 @@ export async function DELETE(
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
-		const success = deleteSponsor(user.whop_user_id, params.id);
+		const { id } = await params;
+		const success = deleteSponsor(user.whop_user_id, id);
 		
 		if (!success) {
 			return NextResponse.json(

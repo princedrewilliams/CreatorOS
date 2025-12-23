@@ -17,21 +17,21 @@ interface VideoPerformance {
 
 export async function GET(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	return handleRequest(request, params);
 }
 
 export async function POST(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	return handleRequest(request, params);
 }
 
 async function handleRequest(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	params: Promise<{ id: string }>
 ) {
 	try {
 		const user = await getCurrentUser();
@@ -54,7 +54,7 @@ async function handleRequest(
 			);
 		}
 
-		const sponsorId = params.id;
+		const { id: sponsorId } = await params;
 		
 		// Get video IDs from request body or query params
 		let videoIds: string[] = [];

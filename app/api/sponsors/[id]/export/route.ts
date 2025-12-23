@@ -3,7 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 
 export async function GET(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
 		const user = await getCurrentUser();
@@ -11,7 +11,7 @@ export async function GET(
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
-		const sponsorId = params.id;
+		const { id: sponsorId } = await params;
 		
 		// For now, return a simple text report
 		// In production, you'd use a PDF library like pdfkit or puppeteer
