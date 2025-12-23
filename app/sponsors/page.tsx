@@ -41,9 +41,34 @@ export default function SponsorsPage() {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
 
-	// Fetch sponsors from API
+	// Sync user data and fetch sponsors on mount
 	useEffect(() => {
-		const fetchSponsors = async () => {
+		const syncAndFetch = async () => {
+			// First, check if user is authenticated
+			try {
+				const authResponse = await fetch("/api/auth/me", {
+					credentials: "include",
+				});
+				
+				if (authResponse.ok) {
+					const authData = await authResponse.json();
+					if (!authData.success || !authData.user) {
+						console.warn("User not authenticated");
+						setLoading(false);
+						return;
+					}
+				} else {
+					console.warn("Authentication check failed");
+					setLoading(false);
+					return;
+				}
+			} catch (error) {
+				console.error("Failed to check authentication:", error);
+				setLoading(false);
+				return;
+			}
+
+			// Fetch sponsors
 			try {
 				const response = await fetch("/api/sponsors", {
 					credentials: "include",
@@ -53,6 +78,8 @@ export default function SponsorsPage() {
 					const data = await response.json();
 					setSponsors(data.sponsors || []);
 					setSummary(data.summary || null);
+				} else if (response.status === 401) {
+					console.warn("Unauthorized - user needs to log in");
 				}
 			} catch (error) {
 				console.error("Failed to fetch sponsors:", error);
@@ -61,7 +88,7 @@ export default function SponsorsPage() {
 			}
 		};
 
-		fetchSponsors();
+		syncAndFetch();
 	}, []);
 
 	const stats = useMemo(() => {
