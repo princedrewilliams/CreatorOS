@@ -3,16 +3,16 @@
 import { FormEvent, ReactNode, useState, useEffect } from "react";
 import { Heading, Text, Card, Button, Dialog } from "@whop/react/components";
 import { Cross2Icon } from "@radix-ui/react-icons";
-import type { SponsorDeal, SponsorStatus, PaymentStatus } from "@/lib/store";
+import type { Sponsor, DealStatus, PaymentStatus } from "@/lib/sponsor-data";
 
-const statusOptions: SponsorStatus[] = ["lead", "negotiating", "active", "completed"];
-const paymentStatusOptions: PaymentStatus[] = ["unpaid", "partially_paid", "paid"];
+const statusOptions: DealStatus[] = ["lead", "negotiating", "active", "completed", "rejected"];
+const paymentStatusOptions: PaymentStatus[] = ["unpaid", "invoiced", "paid"];
 
 interface SponsorModalProps {
 	isOpen: boolean;
 	onClose: () => void;
-	onSave: (sponsor: Omit<SponsorDeal, "id" | "createdAt" | "updatedAt">) => void;
-	sponsor?: SponsorDeal | null;
+	onSave: (sponsor: Omit<Sponsor, "id" | "userId" | "createdAt" | "updatedAt" | "deletedAt">) => void;
+	sponsor?: Sponsor | null;
 }
 
 function FormField({ label, children, className }: { label: string; children: ReactNode; className?: string }) {
@@ -41,15 +41,15 @@ export function SponsorModal({ isOpen, onClose, onSave, sponsor }: SponsorModalP
 
 	useEffect(() => {
 		if (sponsor) {
-			setName(sponsor.name || sponsor.brand || "");
+			setName(sponsor.brandName || "");
 			setContactEmail(sponsor.contactEmail || "");
-			setDealValue((sponsor.dealValue || sponsor.amount || 0).toString());
-			setDeliverables(sponsor.deliverables || "");
-			setYoutubeVideoIds((sponsor.youtubeVideoIds || []).join(", "));
-			setStatus(sponsor.status);
-			setPaymentStatus(sponsor.paymentStatus || "unpaid");
-			setStartDate(sponsor.startDate || "");
-			setEndDate(sponsor.endDate || sponsor.deadline || "");
+			setDealValue(sponsor.rate.toString());
+			setDeliverables(sponsor.deliverables.join(", "));
+			setYoutubeVideoIds(""); // Not in new model, can be added later
+			setStatus(sponsor.dealStatus);
+			setPaymentStatus(sponsor.paymentStatus);
+			setStartDate(""); // Not in new model
+			setEndDate(sponsor.dueDate || "");
 			setNotes(sponsor.notes || "");
 		} else {
 			// Reset form
@@ -76,27 +76,22 @@ export function SponsorModal({ isOpen, onClose, onSave, sponsor }: SponsorModalP
 			return;
 		}
 
-		// Parse YouTube video IDs (comma-separated, extract IDs from URLs if needed)
-		const videoIds = youtubeVideoIds
+		// Parse deliverables (comma-separated)
+		const deliverablesArray = deliverables
 			.split(",")
-			.map((id) => {
-				const trimmed = id.trim();
-				// Extract video ID from YouTube URL if provided
-				const urlMatch = trimmed.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
-				return urlMatch ? urlMatch[1] : trimmed;
-			})
-			.filter((id) => id.length > 0);
+			.map((d) => d.trim())
+			.filter((d) => d.length > 0);
 
-		const sponsorData: Omit<SponsorDeal, "id" | "createdAt" | "updatedAt"> = {
-			name,
+		const sponsorData: Omit<Sponsor, "id" | "userId" | "createdAt" | "updatedAt" | "deletedAt"> = {
+			brandName: name.trim(),
 			contactEmail: contactEmail.trim() || undefined,
-			dealValue: value,
-			deliverables: deliverables.trim() || "",
-			youtubeVideoIds: videoIds,
-			status,
+			dealStatus: status,
+			platform: "youtube",
+			deliverables: deliverablesArray,
+			rate: value,
+			currency: "USD", // Default to USD, can be made configurable later
+			dueDate: endDate || undefined,
 			paymentStatus,
-			startDate: startDate || new Date().toISOString().split("T")[0],
-			endDate: endDate || new Date().toISOString().split("T")[0],
 			notes: notes.trim() || undefined,
 		};
 
@@ -151,13 +146,13 @@ export function SponsorModal({ isOpen, onClose, onSave, sponsor }: SponsorModalP
 						<FormField label="Status *">
 							<select
 								value={status}
-								onChange={(e) => setStatus(e.target.value as SponsorStatus)}
+								onChange={(e) => setStatus(e.target.value as DealStatus)}
 								required
 								className="w-full rounded-lg border border-gray-a4 dark:border-gray-a6 bg-surface-1 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-8"
 							>
 								{statusOptions.map((option) => (
 									<option key={option} value={option}>
-										{option.charAt(0).toUpperCase() + option.slice(1).replace("_", " ")}
+										{option.charAt(0).toUpperCase() + option.slice(1)}
 									</option>
 								))}
 							</select>
@@ -171,7 +166,7 @@ export function SponsorModal({ isOpen, onClose, onSave, sponsor }: SponsorModalP
 							>
 								{paymentStatusOptions.map((option) => (
 									<option key={option} value={option}>
-										{option === "partially_paid" ? "Partially Paid" : option.charAt(0).toUpperCase() + option.slice(1)}
+										{option === "invoiced" ? "Invoiced" : option.charAt(0).toUpperCase() + option.slice(1)}
 									</option>
 								))}
 							</select>
@@ -204,16 +199,16 @@ export function SponsorModal({ isOpen, onClose, onSave, sponsor }: SponsorModalP
 						/>
 					</FormField>
 
-					<FormField label="YouTube Video IDs or URLs">
+					<FormField label="Deliverables">
 						<input
 							type="text"
-							placeholder="dQw4w9WgXcQ or https://youtube.com/watch?v=dQw4w9WgXcQ (comma-separated)"
-							value={youtubeVideoIds}
-							onChange={(e) => setYoutubeVideoIds(e.target.value)}
+							placeholder="1 video mention, 60s integration (comma-separated)"
+							value={deliverables}
+							onChange={(e) => setDeliverables(e.target.value)}
 							className="w-full rounded-lg border border-gray-a4 dark:border-gray-a6 bg-surface-1 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-8"
 						/>
 						<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
-							Performance data will be pulled automatically from YouTube Analytics
+							Enter deliverables separated by commas
 						</Text>
 					</FormField>
 

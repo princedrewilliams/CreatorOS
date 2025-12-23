@@ -1,16 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Heading, Text, Card, Button, Badge } from "@whop/react/components";
 import { PlusIcon, FileTextIcon, ExternalLinkIcon, ArrowRightIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useAppStore, type SponsorDeal, type SponsorStatus, type PaymentStatus } from "@/lib/store";
 import { BackButton } from "@/components/BackButton";
 import { SponsorModal } from "@/components/SponsorModal";
+import type { Sponsor, DealStatus, PaymentStatus } from "@/lib/sponsor-data";
 
-const statusOptions: SponsorStatus[] = ["lead", "negotiating", "active", "completed"];
-const paymentStatusOptions: PaymentStatus[] = ["unpaid", "partially_paid", "paid"];
+const statusOptions: DealStatus[] = ["lead", "negotiating", "active", "completed", "rejected"];
+const paymentStatusOptions: PaymentStatus[] = ["unpaid", "invoiced", "paid"];
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
 	style: "currency",
@@ -18,65 +18,128 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
 	maximumFractionDigits: 0,
 });
 
-const statusColors: Record<SponsorStatus, "blue" | "amber" | "green" | "gray"> = {
+const statusColors: Record<DealStatus, "blue" | "amber" | "green" | "gray" | "red"> = {
 	lead: "blue",
 	negotiating: "amber",
 	active: "green",
 	completed: "gray",
+	rejected: "red",
 };
 
 const paymentStatusColors: Record<PaymentStatus, "red" | "amber" | "green"> = {
 	unpaid: "red",
-	partially_paid: "amber",
+	invoiced: "amber",
 	paid: "green",
 };
 
 export default function SponsorsPage() {
-	const { sponsors, addSponsor, updateSponsor, removeSponsor } = useAppStore();
+	const [sponsors, setSponsors] = useState<Sponsor[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [summary, setSummary] = useState<any>(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
-	const [editingSponsor, setEditingSponsor] = useState<SponsorDeal | null>(null);
+	const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
+
+	// Fetch sponsors from API
+	useEffect(() => {
+		const fetchSponsors = async () => {
+			try {
+				const response = await fetch("/api/sponsors", {
+					credentials: "include",
+				});
+
+				if (response.ok) {
+					const data = await response.json();
+					setSponsors(data.sponsors || []);
+					setSummary(data.summary || null);
+				}
+			} catch (error) {
+				console.error("Failed to fetch sponsors:", error);
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		fetchSponsors();
+	}, []);
 
 	const stats = useMemo(() => {
-		const totalRevenue = sponsors.reduce((sum, deal) => sum + (deal.dealValue || deal.amount || 0), 0);
-		const activeCount = sponsors.filter((deal) => deal.status === "active").length;
-		const pendingValue = sponsors
-			.filter((deal) => deal.status === "negotiating" || deal.status === "lead")
-			.reduce((sum, deal) => sum + (deal.dealValue || deal.amount || 0), 0);
-		const unpaidValue = sponsors
-			.filter((deal) => deal.paymentStatus === "unpaid" || deal.paymentStatus === "partially_paid")
-			.reduce((sum, deal) => sum + (deal.dealValue || deal.amount || 0), 0);
+		if (!summary) {
+			return {
+				totalRevenue: 0,
+				activeCount: 0,
+				pendingValue: 0,
+				unpaidValue: 0,
+			};
+		}
 
 		return {
-			totalRevenue,
-			activeCount,
-			pendingValue,
-			unpaidValue,
+			totalRevenue: summary.totalDealValue || 0,
+			activeCount: summary.activeDealsCount || 0,
+			pendingValue: summary.totalDealValue || 0, // Total pipeline value
+			unpaidValue: summary.unpaidAmount || 0,
 		};
-	}, [sponsors]);
+	}, [summary]);
 
 	const handleAddSponsor = () => {
 		setEditingSponsor(null);
 		setIsModalOpen(true);
 	};
 
-	const handleEditSponsor = (sponsor: SponsorDeal) => {
+	const handleEditSponsor = (sponsor: Sponsor) => {
 		setEditingSponsor(sponsor);
 		setIsModalOpen(true);
 	};
 
-	const handleSaveSponsor = (sponsorData: Omit<SponsorDeal, "id" | "createdAt" | "updatedAt">) => {
-		if (editingSponsor) {
-			updateSponsor(editingSponsor.id, sponsorData);
-		} else {
-			addSponsor(sponsorData);
-		}
-		setIsModalOpen(false);
-		setEditingSponsor(null);
-	};
+	const handleSaveSponsor = async (sponsorData: Omit<Sponsor, "id" | "userId" | "createdAt" | "updatedAt" | "deletedAt">) => {
+		try {
+			if (editingSponsor) {
+				// Update existing sponsor
+				const response = await fetch(`/api/sponsors/${editingSponsor.id}`, {
+					method: "PUT",
+					headers: { "Content-Type": "application/json" },
+					credentials: "include",
+					body: JSON.stringify(sponsorData),
+				});
 
-	// Helper to get sponsor name (backward compatibility)
-	const getSponsorName = (deal: SponsorDeal) => deal.name || deal.brand || "Unknown Sponsor";
-	const getDealValue = (deal: SponsorDeal) => deal.dealValue || deal.amount || 0;
+				if (response.ok) {
+					// Refresh sponsors list
+					const refreshResponse = await fetch("/api/sponsors", {
+						credentials: "include",
+					});
+					if (refreshResponse.ok) {
+						const data = await refreshResponse.json();
+						setSponsors(data.sponsors || []);
+						setSummary(data.summary || null);
+					}
+				}
+			} else {
+				// Create new sponsor
+				const response = await fetch("/api/sponsors", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					credentials: "include",
+					body: JSON.stringify(sponsorData),
+				});
+
+				if (response.ok) {
+					// Refresh sponsors list
+					const refreshResponse = await fetch("/api/sponsors", {
+						credentials: "include",
+					});
+					if (refreshResponse.ok) {
+						const data = await refreshResponse.json();
+						setSponsors(data.sponsors || []);
+						setSummary(data.summary || null);
+					}
+				}
+			}
+		} catch (error) {
+			console.error("Failed to save sponsor:", error);
+		} finally {
+			setIsModalOpen(false);
+			setEditingSponsor(null);
+		}
+	};
 
 	return (
 		<div className="space-y-6 sm:space-y-8">
@@ -165,7 +228,13 @@ export default function SponsorsPage() {
 			</div>
 
 			{/* Sponsors Grid */}
-			{sponsors.length > 0 ? (
+			{loading ? (
+				<Card size="3" variant="surface" className="p-12 text-center">
+					<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11">
+						Loading sponsors...
+					</Text>
+				</Card>
+			) : sponsors.length > 0 ? (
 				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 					{sponsors.map((sponsor, index) => (
 						<motion.div
@@ -181,14 +250,14 @@ export default function SponsorsPage() {
 											<Heading size="5" as="h3" className="mb-2 text-gray-12 dark:text-gray-12 truncate">
 												{getSponsorName(sponsor)}
 											</Heading>
-											<div className="flex flex-wrap gap-2 mb-3">
-												<Badge color={statusColors[sponsor.status]} variant="soft" size="1">
-													{sponsor.status.charAt(0).toUpperCase() + sponsor.status.slice(1)}
-												</Badge>
-												<Badge color={paymentStatusColors[sponsor.paymentStatus || "unpaid"]} variant="soft" size="1">
-													{sponsor.paymentStatus === "partially_paid" ? "Partially Paid" : sponsor.paymentStatus === "unpaid" ? "Unpaid" : "Paid"}
-												</Badge>
-											</div>
+										<div className="flex flex-wrap gap-2 mb-3">
+											<Badge color={statusColors[sponsor.dealStatus]} variant="soft" size="1">
+												{sponsor.dealStatus.charAt(0).toUpperCase() + sponsor.dealStatus.slice(1)}
+											</Badge>
+											<Badge color={paymentStatusColors[sponsor.paymentStatus]} variant="soft" size="1">
+												{sponsor.paymentStatus === "invoiced" ? "Invoiced" : sponsor.paymentStatus === "unpaid" ? "Unpaid" : "Paid"}
+											</Badge>
+										</div>
 										</div>
 									</div>
 
@@ -198,26 +267,16 @@ export default function SponsorsPage() {
 												Deal Value
 											</Text>
 											<Text size="3" weight="bold" className="text-gray-12 dark:text-gray-12">
-												{currencyFormatter.format(getDealValue(sponsor))}
+												{currencyFormatter.format(sponsor.rate)} {sponsor.currency}
 											</Text>
 										</div>
-										{sponsor.deliverables && (
+										{sponsor.deliverables && sponsor.deliverables.length > 0 && (
 											<div>
 												<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11 mb-1">
 													Deliverables
 												</Text>
 												<Text size="2" className="text-gray-12 dark:text-gray-12">
-													{sponsor.deliverables}
-												</Text>
-											</div>
-										)}
-										{sponsor.youtubeVideoIds && sponsor.youtubeVideoIds.length > 0 && (
-											<div>
-												<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11 mb-1">
-													Videos
-												</Text>
-												<Text size="2" className="text-gray-12 dark:text-gray-12">
-													{sponsor.youtubeVideoIds.length} video{sponsor.youtubeVideoIds.length !== 1 ? "s" : ""} linked
+													{sponsor.deliverables.join(", ")}
 												</Text>
 											</div>
 										)}
@@ -226,16 +285,16 @@ export default function SponsorsPage() {
 												Platform
 											</Text>
 											<Badge color="red" variant="soft" size="1">
-												YouTube
+												{sponsor.platform.charAt(0).toUpperCase() + sponsor.platform.slice(1)}
 											</Badge>
 										</div>
-										{sponsor.endDate && (
+										{sponsor.dueDate && (
 											<div className="flex items-center justify-between">
 												<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
-													End Date
+													Due Date
 												</Text>
 												<Text size="2" className="text-gray-12 dark:text-gray-12">
-													{new Date(sponsor.endDate).toLocaleDateString()}
+													{new Date(sponsor.dueDate).toLocaleDateString()}
 												</Text>
 											</div>
 										)}
