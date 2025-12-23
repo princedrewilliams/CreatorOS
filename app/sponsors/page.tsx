@@ -7,6 +7,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { BackButton } from "@/components/BackButton";
 import { SponsorModal } from "@/components/SponsorModal";
+import { useAppStore } from "@/lib/store";
 import type { Sponsor, DealStatus, PaymentStatus } from "@/lib/sponsor-data";
 
 const statusOptions: DealStatus[] = ["lead", "negotiating", "active", "completed", "rejected"];
@@ -33,6 +34,7 @@ const paymentStatusColors: Record<PaymentStatus, "red" | "amber" | "green"> = {
 };
 
 export default function SponsorsPage() {
+	const { user } = useAppStore();
 	const [sponsors, setSponsors] = useState<Sponsor[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [summary, setSummary] = useState<any>(null);
@@ -91,6 +93,13 @@ export default function SponsorsPage() {
 	};
 
 	const handleSaveSponsor = async (sponsorData: Omit<Sponsor, "id" | "userId" | "createdAt" | "updatedAt" | "deletedAt">) => {
+		// Check if user is logged in
+		if (!user) {
+			alert("Please log in to add sponsors. Redirecting to login page...");
+			window.location.href = "/login";
+			return;
+		}
+
 		try {
 			let response: Response;
 			
@@ -116,7 +125,15 @@ export default function SponsorsPage() {
 
 			if (!response.ok) {
 				// Show error message
-				const errorMessage = responseData.error || responseData.errors?.join(", ") || "Failed to save sponsor";
+				let errorMessage = responseData.error || responseData.errors?.join(", ") || "Failed to save sponsor";
+				
+				// Provide more helpful error messages
+				if (response.status === 401) {
+					errorMessage = "You are not logged in. Please log in and try again.";
+				} else if (response.status === 400) {
+					errorMessage = `Validation error: ${errorMessage}`;
+				}
+				
 				alert(errorMessage);
 				console.error("Failed to save sponsor:", responseData);
 				return;
