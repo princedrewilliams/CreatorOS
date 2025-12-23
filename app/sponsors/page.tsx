@@ -357,9 +357,14 @@ export default function SponsorsPage() {
 										Edit
 									</Button>
 									<Link href={`/sponsors/${sponsor.id}`} className="flex-1">
-										<Button variant="solid" size="2" color="blue" className="w-full">
-											View Details
-											<ArrowRightIcon className="ml-2" />
+										<Button 
+											variant="solid" 
+											size="2" 
+											color="blue" 
+											className="w-full flex items-center justify-center gap-1.5"
+										>
+											<span className="truncate">View Details</span>
+											<ArrowRightIcon className="w-4 h-4 flex-shrink-0" />
 										</Button>
 									</Link>
 								</div>

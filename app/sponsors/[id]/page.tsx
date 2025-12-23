@@ -1,12 +1,12 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Heading, Text, Card, Button, Badge, Separator } from "@whop/react/components";
 import { ArrowLeftIcon, ExternalLinkIcon, FileTextIcon, DownloadIcon, Share1Icon } from "@radix-ui/react-icons";
 import Link from "next/link";
-import { useAppStore, type SponsorDeal } from "@/lib/store";
 import { BackButton } from "@/components/BackButton";
+import type { Sponsor } from "@/lib/sponsor-data";
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
 	style: "currency",
@@ -46,25 +46,46 @@ interface SponsorPerformance {
 export default function SponsorDetailPage() {
 	const params = useParams();
 	const router = useRouter();
-	const { sponsors, removeSponsor } = useAppStore();
+	const [sponsor, setSponsor] = useState<Sponsor | null>(null);
 	const [performance, setPerformance] = useState<SponsorPerformance | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [aiSummary, setAiSummary] = useState<string | null>(null);
 	const [loadingSummary, setLoadingSummary] = useState(false);
 
-	const sponsor = useMemo(() => {
-		return sponsors.find((s) => s.id === params.id as string);
-	}, [sponsors, params.id]);
+	// Fetch sponsor data from API
+	useEffect(() => {
+		const fetchSponsor = async () => {
+			try {
+				const response = await fetch(`/api/sponsors/${params.id}`, {
+					credentials: "include",
+				});
+
+				if (response.ok) {
+					const data = await response.json();
+					setSponsor(data.sponsor);
+				} else if (response.status === 404) {
+					router.push("/sponsors");
+				}
+			} catch (error) {
+				console.error("Failed to fetch sponsor:", error);
+				router.push("/sponsors");
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		if (params.id) {
+			fetchSponsor();
+		}
+	}, [params.id, router]);
 
 	useEffect(() => {
 		if (!sponsor) {
-			router.push("/sponsors");
 			return;
 		}
 
 		const fetchPerformance = async () => {
 			if (!sponsor.youtubeVideoIds || sponsor.youtubeVideoIds.length === 0) {
-				setLoading(false);
 				return;
 			}
 
@@ -81,7 +102,7 @@ export default function SponsorDetailPage() {
 				if (response.ok) {
 					const data = await response.json();
 					// Calculate cost per view and cost per minute
-					const dealValue = getDealValue(sponsor);
+					const dealValue = sponsor.rate || 0;
 					const performanceWithCosts = {
 						...data,
 						costPerView: data.totalViews > 0 ? dealValue / data.totalViews : 0,
@@ -91,13 +112,11 @@ export default function SponsorDetailPage() {
 				}
 			} catch (error) {
 				console.error("Failed to fetch sponsor performance:", error);
-			} finally {
-				setLoading(false);
 			}
 		};
 
 		fetchPerformance();
-	}, [sponsor, router]);
+	}, [sponsor]);
 
 	useEffect(() => {
 		if (performance && sponsor) {
@@ -110,7 +129,7 @@ export default function SponsorDetailPage() {
 						body: JSON.stringify({
 							sponsorId: sponsor.id,
 							performance,
-							dealValue: sponsor.dealValue || sponsor.amount || 0,
+							dealValue: sponsor.rate || 0,
 						}),
 					});
 
@@ -129,12 +148,21 @@ export default function SponsorDetailPage() {
 		}
 	}, [performance, sponsor]);
 
+	if (loading) {
+		return (
+			<div className="space-y-6 sm:space-y-8">
+				<Card size="3" variant="surface" className="p-12 text-center">
+					<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11">
+						Loading sponsor details...
+					</Text>
+				</Card>
+			</div>
+		);
+	}
+
 	if (!sponsor) {
 		return null;
 	}
-
-	const getSponsorName = (deal: SponsorDeal) => deal.name || deal.brand || "Unknown Sponsor";
-	const getDealValue = (deal: SponsorDeal) => deal.dealValue || deal.amount || 0;
 
 	const handleExportReport = async () => {
 		try {
@@ -168,7 +196,7 @@ export default function SponsorDetailPage() {
 			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 				<div className="min-w-0 flex-1">
 					<Heading size="7" as="h1" className="mb-2 text-gray-12 dark:text-gray-12 sm:text-8">
-						{getSponsorName(sponsor)}
+						{sponsor.brandName}
 					</Heading>
 					<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11 sm:text-4">
 						Sponsor deal details and performance metrics
@@ -193,23 +221,23 @@ export default function SponsorDetailPage() {
 							Deal Value
 						</Text>
 						<Heading size="5" weight="bold" className="text-gray-12 dark:text-gray-12">
-							{currencyFormatter.format(getDealValue(sponsor))}
+							{currencyFormatter.format(sponsor.rate)} {sponsor.currency}
 						</Heading>
 					</div>
 					<div>
 						<Text size="2" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
 							Status
 						</Text>
-						<Badge color={sponsor.status === "active" ? "green" : sponsor.status === "completed" ? "gray" : "blue"} variant="soft" size="2">
-							{sponsor.status.charAt(0).toUpperCase() + sponsor.status.slice(1)}
+						<Badge color={sponsor.dealStatus === "active" ? "green" : sponsor.dealStatus === "completed" ? "gray" : "blue"} variant="soft" size="2">
+							{sponsor.dealStatus.charAt(0).toUpperCase() + sponsor.dealStatus.slice(1)}
 						</Badge>
 					</div>
 					<div>
 						<Text size="2" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
 							Payment Status
 						</Text>
-						<Badge color={sponsor.paymentStatus === "paid" ? "green" : sponsor.paymentStatus === "partially_paid" ? "amber" : "red"} variant="soft" size="2">
-							{sponsor.paymentStatus === "partially_paid" ? "Partially Paid" : sponsor.paymentStatus === "unpaid" ? "Unpaid" : "Paid"}
+						<Badge color={sponsor.paymentStatus === "paid" ? "green" : sponsor.paymentStatus === "invoiced" ? "amber" : "red"} variant="soft" size="2">
+							{sponsor.paymentStatus === "invoiced" ? "Invoiced" : sponsor.paymentStatus === "unpaid" ? "Unpaid" : "Paid"}
 						</Badge>
 					</div>
 					{sponsor.contactEmail && (
@@ -222,23 +250,33 @@ export default function SponsorDetailPage() {
 							</Text>
 						</div>
 					)}
-					{sponsor.deliverables && (
+					{sponsor.contactName && (
+						<div>
+							<Text size="2" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
+								Contact Name
+							</Text>
+							<Text size="3" className="text-gray-12 dark:text-gray-12">
+								{sponsor.contactName}
+							</Text>
+						</div>
+					)}
+					{sponsor.deliverables && sponsor.deliverables.length > 0 && (
 						<div>
 							<Text size="2" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
 								Deliverables
 							</Text>
 							<Text size="3" className="text-gray-12 dark:text-gray-12">
-								{sponsor.deliverables}
+								{sponsor.deliverables.join(", ")}
 							</Text>
 						</div>
 					)}
-					{sponsor.endDate && (
+					{sponsor.dueDate && (
 						<div>
 							<Text size="2" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
-								End Date
+								Due Date
 							</Text>
 							<Text size="3" className="text-gray-12 dark:text-gray-12">
-								{new Date(sponsor.endDate).toLocaleDateString()}
+								{new Date(sponsor.dueDate).toLocaleDateString()}
 							</Text>
 						</div>
 					)}
