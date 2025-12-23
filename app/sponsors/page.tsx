@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { Heading, Text, Card, Button, Badge } from "@whop/react/components";
-import { PlusIcon, FileTextIcon, ExternalLinkIcon, ArrowRightIcon } from "@radix-ui/react-icons";
+import { PlusIcon, FileTextIcon, ExternalLinkIcon, ArrowRightIcon, DownloadIcon, FileIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { BackButton } from "@/components/BackButton";
@@ -119,6 +119,75 @@ export default function SponsorsPage() {
 		setIsModalOpen(true);
 	};
 
+	const handleExportToGoogleSheets = async () => {
+		try {
+			// Convert sponsors to CSV format
+			const headers = ["Brand Name", "Contact Name", "Contact Email", "Deal Value", "Currency", "Status", "Payment Status", "Deliverables", "Due Date", "Platform", "Notes"];
+			const rows = sponsors.map((sponsor) => [
+				sponsor.brandName || "",
+				sponsor.contactName || "",
+				sponsor.contactEmail || "",
+				sponsor.rate.toString(),
+				sponsor.currency || "USD",
+				sponsor.dealStatus,
+				sponsor.paymentStatus,
+				sponsor.deliverables?.join("; ") || "",
+				sponsor.dueDate || "",
+				sponsor.platform,
+				sponsor.notes || "",
+			]);
+
+			const csvContent = [
+				headers.join(","),
+				...rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")),
+			].join("\n");
+
+			// Create blob and download
+			const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+			const link = document.createElement("a");
+			const url = URL.createObjectURL(blob);
+			link.setAttribute("href", url);
+			link.setAttribute("download", `sponsors-export-${new Date().toISOString().split("T")[0]}.csv`);
+			link.style.visibility = "hidden";
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			URL.revokeObjectURL(url);
+
+			alert("Sponsors exported successfully! You can now import this CSV file into Google Sheets.");
+		} catch (error) {
+			console.error("Failed to export to Google Sheets:", error);
+			alert("Failed to export sponsors. Please try again.");
+		}
+	};
+
+	const handleGenerateInvoice = async (sponsor: Sponsor) => {
+		try {
+			const response = await fetch(`/api/sponsors/${sponsor.id}/export`, {
+				credentials: "include",
+			});
+
+			if (response.ok) {
+				const blob = await response.blob();
+				const url = URL.createObjectURL(blob);
+				const a = document.createElement("a");
+				a.href = url;
+				a.download = `invoice-${sponsor.brandName}-${new Date().toISOString().split("T")[0]}.pdf`;
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
+				URL.revokeObjectURL(url);
+				alert("Invoice generated successfully!");
+			} else {
+				const errorData = await response.json().catch(() => ({}));
+				alert(errorData.error || "Failed to generate invoice. Please try again.");
+			}
+		} catch (error) {
+			console.error("Failed to generate invoice:", error);
+			alert("An error occurred while generating the invoice. Please try again.");
+		}
+	};
+
 	const handleSaveSponsor = async (sponsorData: Omit<Sponsor, "id" | "userId" | "createdAt" | "updatedAt" | "deletedAt">) => {
 		// Check if user is logged in
 		if (!user) {
@@ -207,6 +276,42 @@ export default function SponsorsPage() {
 					Add Sponsor
 				</Button>
 			</div>
+
+			{/* Action Cards */}
+			{sponsors.length > 0 && (
+				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+					<Card size="3" variant="surface" className="p-6 hover:border-blue-6 transition-colors cursor-pointer" onClick={handleExportToGoogleSheets}>
+						<div className="flex items-center gap-4">
+							<div className="w-12 h-12 rounded-lg bg-green-a2 dark:bg-green-a3 flex items-center justify-center flex-shrink-0">
+								<DownloadIcon className="w-6 h-6 text-green-11 dark:text-green-10" />
+							</div>
+							<div className="flex-1 min-w-0">
+								<Heading size="4" as="h3" className="mb-1 text-gray-12 dark:text-gray-12">
+									Export to Google Sheets
+								</Heading>
+								<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
+									Download all sponsors as CSV for Google Sheets
+								</Text>
+							</div>
+						</div>
+					</Card>
+					<Card size="3" variant="surface" className="p-6">
+						<div className="flex items-center gap-4">
+							<div className="w-12 h-12 rounded-lg bg-blue-a2 dark:bg-blue-a3 flex items-center justify-center flex-shrink-0">
+								<FileIcon className="w-6 h-6 text-blue-11 dark:text-blue-10" />
+							</div>
+							<div className="flex-1 min-w-0">
+								<Heading size="4" as="h3" className="mb-1 text-gray-12 dark:text-gray-12">
+									Generate Invoice
+								</Heading>
+								<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
+									Create invoices for unpaid sponsors
+								</Text>
+							</div>
+						</div>
+					</Card>
+				</div>
+			)}
 
 			{/* Stats Cards */}
 			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -346,27 +451,41 @@ export default function SponsorsPage() {
 									</div>
 								</div>
 
-								<div className="flex gap-2 pt-4 border-t border-gray-a4 dark:border-gray-a6">
-									<Button
-										variant="ghost"
-										size="2"
-										color="blue"
-										className="flex-1"
-										onClick={() => handleEditSponsor(sponsor)}
-									>
-										Edit
-									</Button>
-									<Link href={`/sponsors/${sponsor.id}`} className="flex-1">
-										<Button 
-											variant="solid" 
-											size="2" 
-											color="blue" 
-											className="w-full flex items-center justify-center gap-1.5"
+								<div className="flex flex-col gap-2 pt-4 border-t border-gray-a4 dark:border-gray-a6">
+									<div className="flex gap-2">
+										<Button
+											variant="ghost"
+											size="2"
+											color="blue"
+											className="flex-1"
+											onClick={() => handleEditSponsor(sponsor)}
 										>
-											<span className="truncate">View Details</span>
-											<ArrowRightIcon className="w-4 h-4 flex-shrink-0" />
+											Edit
 										</Button>
-									</Link>
+										<Link href={`/sponsors/${sponsor.id}`} className="flex-1">
+											<Button 
+												variant="solid" 
+												size="2" 
+												color="blue" 
+												className="w-full flex items-center justify-center gap-1.5"
+											>
+												<span className="truncate">View Details</span>
+												<ArrowRightIcon className="w-4 h-4 flex-shrink-0" />
+											</Button>
+										</Link>
+									</div>
+									{sponsor.paymentStatus === "unpaid" && (
+										<Button
+											variant="ghost"
+											size="2"
+											color="green"
+											className="w-full"
+											onClick={() => handleGenerateInvoice(sponsor)}
+										>
+											<FileIcon className="mr-2" />
+											Generate Invoice
+										</Button>
+									)}
 								</div>
 							</Card>
 						</motion.div>
