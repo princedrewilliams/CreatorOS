@@ -43,7 +43,7 @@ function SocialConnectionsContent() {
 
 		if (connected) {
 			// Update connection status based on OAuth callback (only YouTube supported now)
-			const platform = connected as "youtube" | "instagram" | "tiktok";
+			const platform = connected as "youtube";
 			// Only handle YouTube connections
 			if (platform === "youtube") {
 				const username = searchParams.get("username") || "YouTube User";
@@ -142,12 +142,12 @@ function SocialConnectionsContent() {
 		}
 	}, [socialConnections, setSocialConnection]);
 
-	const handleConnect = async (platform: "youtube" | "instagram" | "tiktok") => {
+	const handleConnect = async (platform: "youtube") => {
 		// For YouTube, use normal redirect
 		window.location.href = `/api/auth/${platform}`;
 	};
 
-	const handleDisconnect = (platform: "youtube" | "instagram" | "tiktok") => {
+	const handleDisconnect = (platform: "youtube") => {
 		if (confirm(`Are you sure you want to disconnect ${platform}?`)) {
 			removeSocialConnection(platform);
 		}

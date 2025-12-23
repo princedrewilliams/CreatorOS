@@ -45,7 +45,7 @@ const features = [
 	},
 	{
 		title: "Analytics Dashboard",
-		description: "View performance across YouTube, TikTok, and Instagram",
+		description: "View performance across YouTube",
 		icon: BarChartIcon,
 		href: "/analytics",
 		color: "cyan" as const,

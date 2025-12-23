@@ -371,7 +371,7 @@ async function fetchInstagramAnalytics(userId?: string): Promise<PlatformAnalyti
 }
 
 // Valid platform values
-const VALID_PLATFORMS: readonly AnalyticsPlatform[] = ["youtube", "tiktok", "instagram"] as const;
+const VALID_PLATFORMS: readonly AnalyticsPlatform[] = ["youtube"] as const;
 
 function isValidPlatform(platform: string): platform is AnalyticsPlatform {
 	return VALID_PLATFORMS.includes(platform as AnalyticsPlatform);
