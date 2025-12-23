@@ -4,6 +4,7 @@ import {
 	getSponsorById,
 	updateSponsor,
 	deleteSponsor,
+	type Sponsor,
 	type DealStatus,
 	type PaymentStatus,
 } from "@/lib/sponsor-data";
