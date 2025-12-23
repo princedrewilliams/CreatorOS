@@ -164,9 +164,6 @@ export function SponsorModal({ isOpen, onClose, onSave, sponsor }: SponsorModalP
 								required
 								className="w-full rounded-lg border border-gray-a4 dark:border-gray-a6 bg-surface-1 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-8"
 							/>
-							<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
-								Value increments in hundreds (e.g., 100, 200, 300...)
-							</Text>
 						</FormField>
 						<FormField label="Status *">
 							<select

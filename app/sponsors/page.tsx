@@ -92,52 +92,53 @@ export default function SponsorsPage() {
 
 	const handleSaveSponsor = async (sponsorData: Omit<Sponsor, "id" | "userId" | "createdAt" | "updatedAt" | "deletedAt">) => {
 		try {
+			let response: Response;
+			
 			if (editingSponsor) {
 				// Update existing sponsor
-				const response = await fetch(`/api/sponsors/${editingSponsor.id}`, {
+				response = await fetch(`/api/sponsors/${editingSponsor.id}`, {
 					method: "PUT",
 					headers: { "Content-Type": "application/json" },
 					credentials: "include",
 					body: JSON.stringify(sponsorData),
 				});
-
-				if (response.ok) {
-					// Refresh sponsors list
-					const refreshResponse = await fetch("/api/sponsors", {
-						credentials: "include",
-					});
-					if (refreshResponse.ok) {
-						const data = await refreshResponse.json();
-						setSponsors(data.sponsors || []);
-						setSummary(data.summary || null);
-					}
-				}
 			} else {
 				// Create new sponsor
-				const response = await fetch("/api/sponsors", {
+				response = await fetch("/api/sponsors", {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
 					credentials: "include",
 					body: JSON.stringify(sponsorData),
 				});
-
-				if (response.ok) {
-					// Refresh sponsors list
-					const refreshResponse = await fetch("/api/sponsors", {
-						credentials: "include",
-					});
-					if (refreshResponse.ok) {
-						const data = await refreshResponse.json();
-						setSponsors(data.sponsors || []);
-						setSummary(data.summary || null);
-					}
-				}
 			}
-		} catch (error) {
-			console.error("Failed to save sponsor:", error);
-		} finally {
+
+			const responseData = await response.json();
+
+			if (!response.ok) {
+				// Show error message
+				const errorMessage = responseData.error || responseData.errors?.join(", ") || "Failed to save sponsor";
+				alert(errorMessage);
+				console.error("Failed to save sponsor:", responseData);
+				return;
+			}
+
+			// Refresh sponsors list
+			const refreshResponse = await fetch("/api/sponsors", {
+				credentials: "include",
+			});
+			
+			if (refreshResponse.ok) {
+				const data = await refreshResponse.json();
+				setSponsors(data.sponsors || []);
+				setSummary(data.summary || null);
+			}
+
+			// Close modal only on success
 			setIsModalOpen(false);
 			setEditingSponsor(null);
+		} catch (error) {
+			console.error("Failed to save sponsor:", error);
+			alert("An error occurred while saving the sponsor. Please try again.");
 		}
 	};
 
