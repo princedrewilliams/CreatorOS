@@ -177,24 +177,36 @@ export default function SponsorsPage() {
 			});
 
 			if (response.ok) {
-				const blob = await response.blob();
-				const url = URL.createObjectURL(blob);
-				// Open in new tab for viewing
-				const newWindow = window.open(url, '_blank');
-				if (!newWindow) {
-					// If popup blocked, download instead
+				// Check if response is PDF
+				const contentType = response.headers.get("content-type");
+				if (contentType && contentType.includes("application/pdf")) {
+					const blob = await response.blob();
+					const url = URL.createObjectURL(blob);
+					
+					// Create download link
 					const a = document.createElement("a");
 					a.href = url;
-					a.download = `invoice-${sponsor.brandName}-${new Date().toISOString().split("T")[0]}.html`;
+					a.download = `invoice-${sponsor.brandName.replace(/[^a-z0-9]/gi, '_')}-${new Date().toISOString().split("T")[0]}.pdf`;
 					document.body.appendChild(a);
 					a.click();
 					document.body.removeChild(a);
+					
+					// Clean up URL after a delay
+					setTimeout(() => URL.revokeObjectURL(url), 1000);
+				} else {
+					// If not PDF, try to parse as JSON error
+					const errorData = await response.json().catch(() => ({}));
+					alert(errorData.error || "Failed to generate invoice. Invalid response format.");
 				}
-				// Don't revoke URL immediately if opened in new tab
-				setTimeout(() => URL.revokeObjectURL(url), 1000);
 			} else {
-				const errorData = await response.json().catch(() => ({}));
-				alert(errorData.error || "Failed to generate invoice. Please try again.");
+				// Handle error response
+				const contentType = response.headers.get("content-type");
+				if (contentType && contentType.includes("application/json")) {
+					const errorData = await response.json().catch(() => ({}));
+					alert(errorData.error || "Failed to generate invoice. Please try again.");
+				} else {
+					alert("Failed to generate invoice. Please try again.");
+				}
 			}
 		} catch (error) {
 			console.error("Failed to generate invoice:", error);
