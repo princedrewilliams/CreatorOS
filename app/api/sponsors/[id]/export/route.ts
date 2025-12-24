@@ -107,7 +107,10 @@ export async function GET(
 			doc.on('error', reject);
 		});
 
-		return new NextResponse(pdfBuffer, {
+		// Convert Buffer to Uint8Array for NextResponse
+		const pdfArray = new Uint8Array(pdfBuffer);
+
+		return new NextResponse(pdfArray, {
 			headers: {
 				"Content-Type": "application/pdf",
 				"Content-Disposition": `attachment; filename="invoice-${sponsor.brandName}-${new Date().toISOString().split("T")[0]}.pdf"`,
