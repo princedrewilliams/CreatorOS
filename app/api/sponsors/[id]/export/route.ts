@@ -31,7 +31,6 @@ export async function GET(
 		const chunks: Buffer[] = [];
 		
 		doc.on('data', (chunk) => chunks.push(chunk));
-		doc.on('end', () => {});
 
 		// Header
 		doc.fontSize(32).text('INVOICE', { align: 'left' });
@@ -73,6 +72,7 @@ export async function GET(
 			: 'Sponsorship services';
 		const amount = new Intl.NumberFormat('en-US', { style: 'currency', currency: sponsor.currency || 'USD' }).format(sponsor.rate);
 		
+		const descriptionY = doc.y;
 		doc.fontSize(12).fillColor('#000000').text('Sponsorship Deal', 50, doc.y);
 		doc.moveDown(0.3);
 		doc.fontSize(10).fillColor('#666666').text(deliverables, 50, doc.y);
@@ -80,8 +80,9 @@ export async function GET(
 			doc.moveDown(0.2);
 			doc.fontSize(9).fillColor('#666666').text(sponsor.notes, 50, doc.y);
 		}
-		const descriptionHeight = doc.y;
-		doc.fontSize(12).fillColor('#000000').text(amount, 450, descriptionHeight - 20, { align: 'right' });
+		const descriptionEndY = doc.y;
+		doc.fontSize(12).fillColor('#000000').text(amount, 450, descriptionY, { align: 'right' });
+		doc.y = descriptionEndY;
 		doc.moveDown(1);
 		doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
 		doc.moveDown(0.5);
@@ -99,11 +100,12 @@ export async function GET(
 		doc.end();
 
 		// Wait for PDF to be generated
-		await new Promise<void>((resolve) => {
-			doc.on('end', resolve);
+		const pdfBuffer = await new Promise<Buffer>((resolve, reject) => {
+			doc.on('end', () => {
+				resolve(Buffer.concat(chunks));
+			});
+			doc.on('error', reject);
 		});
-
-		const pdfBuffer = Buffer.concat(chunks);
 
 		return new NextResponse(pdfBuffer, {
 			headers: {
