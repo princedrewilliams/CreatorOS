@@ -137,24 +137,34 @@ export default function SponsorsPage() {
 				sponsor.notes || "",
 			]);
 
-			const csvContent = [
+			// Add BOM for Excel compatibility
+			const BOM = "\uFEFF";
+			const csvContent = BOM + [
 				headers.join(","),
 				...rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")),
 			].join("\n");
 
-			// Create blob and download
+			// Create blob with proper MIME type
 			const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-			const link = document.createElement("a");
 			const url = URL.createObjectURL(blob);
-			link.setAttribute("href", url);
-			link.setAttribute("download", `sponsors-export-${new Date().toISOString().split("T")[0]}.csv`);
-			link.style.visibility = "hidden";
-			document.body.appendChild(link);
-			link.click();
-			document.body.removeChild(link);
-			URL.revokeObjectURL(url);
-
-			alert("Sponsors exported successfully! You can now import this CSV file into Google Sheets.");
+			
+			// Try to open in new tab first, then download if that fails
+			const newWindow = window.open(url, '_blank');
+			if (!newWindow) {
+				// If popup blocked, download instead
+				const link = document.createElement("a");
+				link.setAttribute("href", url);
+				link.setAttribute("download", `sponsors-export-${new Date().toISOString().split("T")[0]}.csv`);
+				link.style.visibility = "hidden";
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+			}
+			
+			// Don't revoke URL immediately if opened in new tab
+			setTimeout(() => URL.revokeObjectURL(url), 1000);
+			
+			alert("Sponsors exported successfully! The file should open in a new tab. You can import this CSV file into Google Sheets.");
 		} catch (error) {
 			console.error("Failed to export to Google Sheets:", error);
 			alert("Failed to export sponsors. Please try again.");
@@ -170,14 +180,19 @@ export default function SponsorsPage() {
 			if (response.ok) {
 				const blob = await response.blob();
 				const url = URL.createObjectURL(blob);
-				const a = document.createElement("a");
-				a.href = url;
-				a.download = `invoice-${sponsor.brandName}-${new Date().toISOString().split("T")[0]}.pdf`;
-				document.body.appendChild(a);
-				a.click();
-				document.body.removeChild(a);
-				URL.revokeObjectURL(url);
-				alert("Invoice generated successfully!");
+				// Open in new tab for viewing
+				const newWindow = window.open(url, '_blank');
+				if (!newWindow) {
+					// If popup blocked, download instead
+					const a = document.createElement("a");
+					a.href = url;
+					a.download = `invoice-${sponsor.brandName}-${new Date().toISOString().split("T")[0]}.html`;
+					document.body.appendChild(a);
+					a.click();
+					document.body.removeChild(a);
+				}
+				// Don't revoke URL immediately if opened in new tab
+				setTimeout(() => URL.revokeObjectURL(url), 1000);
 			} else {
 				const errorData = await response.json().catch(() => ({}));
 				alert(errorData.error || "Failed to generate invoice. Please try again.");

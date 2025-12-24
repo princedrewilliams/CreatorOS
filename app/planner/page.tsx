@@ -24,7 +24,6 @@ function PlannerContent() {
 	const [filterStatus, setFilterStatus] = useState<"all" | "planned" | "scheduled" | "posted" | "cancelled">("all");
 	const [isPostVideoModalOpen, setIsPostVideoModalOpen] = useState(false);
 	const [isAutoGenerateModalOpen, setIsAutoGenerateModalOpen] = useState(false);
-	const [autoScheduleEnabled, setAutoScheduleEnabled] = useState(false);
 	const [generatingCalendar, setGeneratingCalendar] = useState(false);
 	const [niche, setNiche] = useState("");
 	const [calendarCount, setCalendarCount] = useState(7);
@@ -46,90 +45,6 @@ function PlannerContent() {
 		});
 	}, [tasks, updateTask]);
 
-	// Auto-scheduling: Auto-assign optimal times based on analytics
-	useEffect(() => {
-		if (!autoScheduleEnabled || !user) return;
-
-		// Calculate optimal posting times based on platform analytics
-		// Optimal times (in 24-hour format): YouTube: 14-16
-		const optimalTimes: Record<string, { start: number; end: number }> = {
-			youtube: { start: 14, end: 16 },
-		};
-
-		const getOptimalTime = (platform: string): string => {
-			const times = optimalTimes[platform.toLowerCase()] || optimalTimes.youtube;
-			// Pick a random time within the optimal window
-			const hour = times.start + Math.floor(Math.random() * (times.end - times.start));
-			const minute = Math.floor(Math.random() * 60);
-			return `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
-		};
-
-		// Auto-schedule tasks that are "planned" and don't have a time set
-		const plannedTasks = tasks.filter((task) => 
-			task.status === "planned" && 
-			!task.time &&
-			task.date &&
-			new Date(task.date) >= new Date(new Date().toISOString().split("T")[0])
-		);
-
-		if (plannedTasks.length > 0) {
-			plannedTasks.forEach((task) => {
-				// Get optimal time based on the first platform
-				const platform = task.platforms[0] || "youtube";
-				const optimalTime = getOptimalTime(platform);
-				
-				// Update task with optimal time and change status to scheduled
-				updateTask(task.id, { 
-					time: optimalTime,
-					status: "scheduled"
-				});
-			});
-		}
-	}, [autoScheduleEnabled, tasks, user, updateTask]);
-
-	// Auto-post scheduled tasks when their time arrives
-	useEffect(() => {
-		if (!autoScheduleEnabled || !user) return;
-
-		const checkScheduledTasks = () => {
-			const now = new Date();
-			
-			tasks.forEach((task) => {
-				if (task.status === "scheduled" && task.date && task.time) {
-					const scheduledDateTime = new Date(`${task.date}T${task.time}`);
-					
-					// If scheduled time has passed (within last 5 minutes to avoid multiple posts)
-					if (scheduledDateTime <= now && 
-						scheduledDateTime >= new Date(now.getTime() - 5 * 60 * 1000)) {
-						
-						// Auto-post the task
-						const connectedPlatforms = socialConnections.filter(
-							(conn: SocialConnection) => conn.connected
-						);
-						const taskPlatforms = task.platforms.filter((platform) =>
-							connectedPlatforms.some((conn: SocialConnection) => conn.platform === platform)
-						);
-
-						if (taskPlatforms.length > 0) {
-							// Update status to posted
-							updateTask(task.id, { status: "posted" });
-							
-							// In production, this would actually post to the platforms
-							console.log(`Auto-posted task "${task.title}" to ${taskPlatforms.join(", ")}`);
-						}
-					}
-				}
-			});
-		};
-
-		// Check every minute
-		const interval = setInterval(checkScheduledTasks, 60000);
-		
-		// Check immediately
-		checkScheduledTasks();
-
-		return () => clearInterval(interval);
-	}, [autoScheduleEnabled, tasks, user, socialConnections, updateTask]);
 
 	// Sync user data on mount (social connections)
 	useEffect(() => {
@@ -363,45 +278,6 @@ function PlannerContent() {
 					</Button>
 				</div>
 			</div>
-
-			{/* Automation Features */}
-			<Card size="3" variant="surface" className="p-6">
-				<div className="flex items-center gap-2 mb-4">
-					<LightningBoltIcon className="w-5 h-5 text-purple-9" />
-					<Heading size="5" as="h3" className="text-gray-12 dark:text-gray-12">
-						Automation Features
-					</Heading>
-				</div>
-				<div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-					<Card size="2" variant="surface" className="p-4">
-						<div className="flex items-start justify-between mb-3">
-							<div>
-								<Text size="3" weight="medium" className="text-gray-12 dark:text-gray-12 mb-1">
-									Auto-Scheduling
-								</Text>
-								<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
-									Auto-post at optimal times based on your analytics. Tasks without times will be automatically scheduled.
-								</Text>
-							</div>
-						</div>
-						<Button
-							variant={autoScheduleEnabled ? "soft" : "ghost"}
-							color={autoScheduleEnabled ? "green" : "purple"}
-							size="2"
-							onClick={() => setAutoScheduleEnabled(!autoScheduleEnabled)}
-							className="w-full"
-						>
-							<CalendarIcon className="mr-2" />
-							{autoScheduleEnabled ? "Enabled" : "Enable"}
-						</Button>
-						{autoScheduleEnabled && (
-							<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-2">
-								✓ Auto-scheduling is active. Planned tasks will be assigned optimal posting times and auto-posted when scheduled.
-							</Text>
-						)}
-					</Card>
-				</div>
-			</Card>
 
 			{/* Social Connections */}
 			<SocialConnections />
