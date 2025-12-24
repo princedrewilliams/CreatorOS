@@ -160,6 +160,90 @@ export default function DashboardPage() {
 		fetchAnalytics();
 	}, [connectedPlatforms]);
 
+	// Refetch analytics if we have connected platforms but no analytics data
+	// This handles the case where user returns to the app after leaving
+	useEffect(() => {
+		if (connectedPlatforms.length > 0 && Object.keys(analytics).length === 0 && !loading) {
+			const fetchAnalytics = async () => {
+				setLoading(true);
+				try {
+					const queryParams = new URLSearchParams();
+					connectedPlatforms.forEach((platform) => {
+						queryParams.append("platform", platform);
+					});
+
+					const response = await fetch(`/api/analytics?${queryParams.toString()}`, {
+						credentials: "include",
+						cache: "no-store",
+					});
+
+					if (response.ok) {
+						const payload = (await response.json()) as {
+							platforms: Array<{ platform: AnalyticsPlatform; data: PlatformAnalyticsSnapshot | null }>;
+						};
+						const map: Partial<Record<AnalyticsPlatform, PlatformAnalyticsSnapshot>> = {};
+						for (const entry of payload.platforms) {
+							if (entry.platform && entry.data) {
+								map[entry.platform] = entry.data;
+							}
+						}
+						setAnalytics(map);
+					}
+				} catch (error) {
+					console.error("Failed to fetch analytics:", error);
+				} finally {
+					setLoading(false);
+				}
+			};
+			fetchAnalytics();
+		}
+	}, [connectedPlatforms.length, analytics, loading]);
+
+	// Refetch analytics when user returns to the tab/window
+	useEffect(() => {
+		const handleVisibilityChange = () => {
+			if (document.visibilityState === "visible" && connectedPlatforms.length > 0) {
+				// Small delay to ensure any other state updates have completed
+				setTimeout(() => {
+					const fetchAnalytics = async () => {
+						try {
+							const queryParams = new URLSearchParams();
+							connectedPlatforms.forEach((platform) => {
+								queryParams.append("platform", platform);
+							});
+
+							const response = await fetch(`/api/analytics?${queryParams.toString()}`, {
+								credentials: "include",
+								cache: "no-store",
+							});
+
+							if (response.ok) {
+								const payload = (await response.json()) as {
+									platforms: Array<{ platform: AnalyticsPlatform; data: PlatformAnalyticsSnapshot | null }>;
+								};
+								const map: Partial<Record<AnalyticsPlatform, PlatformAnalyticsSnapshot>> = {};
+								for (const entry of payload.platforms) {
+									if (entry.platform && entry.data) {
+										map[entry.platform] = entry.data;
+									}
+								}
+								setAnalytics(map);
+							}
+						} catch (error) {
+							console.error("Failed to fetch analytics:", error);
+						}
+					};
+					fetchAnalytics();
+				}, 500);
+			}
+		};
+
+		document.addEventListener("visibilitychange", handleVisibilityChange);
+		return () => {
+			document.removeEventListener("visibilitychange", handleVisibilityChange);
+		};
+	}, [connectedPlatforms]);
+
 	// Calculate stats from real data
 	const stats = useMemo(() => {
 		// If no accounts are connected, return all zeros for analytics stats

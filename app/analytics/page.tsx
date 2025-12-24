@@ -115,7 +115,7 @@ export default function AnalyticsPage() {
 			for (const entry of payload.platforms) {
 				// Only add platforms with real data (not null)
 				if (entry.data !== null) {
-					map[entry.platform] = entry.data;
+				map[entry.platform] = entry.data;
 				}
 			}
 
@@ -128,9 +128,35 @@ export default function AnalyticsPage() {
 		}
 	}, [connectedPlatforms, socialConnections]);
 
+	// Fetch analytics on mount and when dependencies change
 	useEffect(() => {
 		void fetchAnalytics();
 	}, [fetchAnalytics]);
+
+	// Refetch analytics if we have connected platforms but no analytics data
+	// This handles the case where user returns to the app after leaving
+	useEffect(() => {
+		if (connectedPlatforms.length > 0 && Object.keys(analytics).length === 0 && !loading) {
+			void fetchAnalytics();
+		}
+	}, [connectedPlatforms.length, analytics, loading, fetchAnalytics]);
+
+	// Refetch analytics when user returns to the tab/window
+	useEffect(() => {
+		const handleVisibilityChange = () => {
+			if (document.visibilityState === "visible" && connectedPlatforms.length > 0) {
+				// Small delay to ensure any other state updates have completed
+				setTimeout(() => {
+					void fetchAnalytics();
+				}, 500);
+			}
+		};
+
+		document.addEventListener("visibilitychange", handleVisibilityChange);
+		return () => {
+			document.removeEventListener("visibilitychange", handleVisibilityChange);
+		};
+	}, [connectedPlatforms.length, fetchAnalytics]);
 
 	const totals = useMemo(() => {
 		const snapshots = Object.values(analytics).filter(Boolean) as PlatformAnalyticsSnapshot[];
@@ -293,7 +319,7 @@ export default function AnalyticsPage() {
 			</div>
 
 			<SocialConnections />
-			
+
 			{/* Metrics Guide */}
 			{connectedPlatforms.includes("youtube") && <MetricsGuide />}
 
