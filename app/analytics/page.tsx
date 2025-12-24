@@ -709,7 +709,7 @@ export default function AnalyticsPage() {
 											{totals.totalVideos}
 										</Heading>
 										<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
-											Across all platforms
+											Total videos
 										</Text>
 									</div>
 									<div>
@@ -739,13 +739,13 @@ export default function AnalyticsPage() {
 									<div>
 										<Text size="2" color="gray" className="mb-2 text-gray-11 dark:text-gray-11 flex items-center gap-1">
 											<BarChartIcon className="w-4 h-4" />
-											Connected Platforms
+											Connected Account
 										</Text>
 										<Heading size="6" weight="bold" className="text-gray-12 dark:text-gray-12">
-											{connectedPlatforms.length}
+											{connectedPlatforms.length > 0 ? "1" : "0"}
 										</Heading>
 										<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
-											Active accounts
+											YouTube account
 										</Text>
 									</div>
 								</div>
@@ -894,120 +894,6 @@ export default function AnalyticsPage() {
 							</Card>
 
 
-							{/* Best Performing Platform */}
-							{connectedPlatforms.length > 1 && (
-								<Card size="3" variant="surface" className="p-6">
-									<Heading size="5" as="h2" className="mb-4 text-gray-12 dark:text-gray-12">
-										Best Performing Platform
-									</Heading>
-									{(() => {
-										const platformStats = connectedPlatforms
-											.map((platform) => {
-												const snapshot = analytics[platform];
-												if (!snapshot) return null;
-												return {
-													platform,
-													views: snapshot.views,
-													followers: snapshot.followers,
-													watchTime: snapshot.views * 2.5,
-												ctr: snapshot.followers > 0 ? (snapshot.views / snapshot.followers) * 100 : 0,
-													meta: PLATFORM_META[platform],
-												};
-											})
-											.filter(Boolean) as Array<{
-												platform: AnalyticsPlatform;
-												views: number;
-												followers: number;
-												watchTime: number;
-											ctr: number;
-												meta: { label: string; color: "red" | "cyan" | "pink"; followerLabel: string };
-											}>;
-
-										if (platformStats.length === 0) return null;
-
-										const bestByViews = [...platformStats].sort((a, b) => b.views - a.views)[0];
-										const bestByFollowers = [...platformStats].sort((a, b) => b.followers - a.followers)[0];
-										const bestByWatchTime = [...platformStats].sort((a, b) => b.watchTime - a.watchTime)[0];
-
-										return (
-											<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-												<div className="p-4 rounded-lg border border-gray-a4 dark:border-gray-a6">
-													<Text size="1" color="gray" className="mb-2 text-gray-11 dark:text-gray-11">
-														Most Views
-													</Text>
-													<div className="flex items-center gap-2">
-														<div
-															className="w-8 h-8 rounded-lg flex items-center justify-center"
-															style={{
-																backgroundColor: `var(--${bestByViews.meta.color}-a2)`,
-																color: `var(--${bestByViews.meta.color}-11)`,
-															}}
-														>
-															<BarChartIcon className="w-4 h-4" />
-														</div>
-														<div>
-															<Text size="3" weight="bold" className="text-gray-12 dark:text-gray-12">
-																{bestByViews.meta.label}
-															</Text>
-															<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
-																{formatCompact(bestByViews.views)} views
-															</Text>
-														</div>
-													</div>
-												</div>
-												<div className="p-4 rounded-lg border border-gray-a4 dark:border-gray-a6">
-													<Text size="1" color="gray" className="mb-2 text-gray-11 dark:text-gray-11">
-														Most Followers
-													</Text>
-													<div className="flex items-center gap-2">
-														<div
-															className="w-8 h-8 rounded-lg flex items-center justify-center"
-															style={{
-																backgroundColor: `var(--${bestByFollowers.meta.color}-a2)`,
-																color: `var(--${bestByFollowers.meta.color}-11)`,
-															}}
-														>
-															<ArrowUpIcon className="w-4 h-4" />
-														</div>
-														<div>
-															<Text size="3" weight="bold" className="text-gray-12 dark:text-gray-12">
-																{bestByFollowers.meta.label}
-															</Text>
-															<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
-																{formatCompact(bestByFollowers.followers)} {bestByFollowers.meta.followerLabel.toLowerCase()}
-															</Text>
-														</div>
-													</div>
-												</div>
-												<div className="p-4 rounded-lg border border-gray-a4 dark:border-gray-a6">
-													<Text size="1" color="gray" className="mb-2 text-gray-11 dark:text-gray-11">
-														Highest Watch Time
-													</Text>
-													<div className="flex items-center gap-2">
-														<div
-															className="w-8 h-8 rounded-lg flex items-center justify-center"
-															style={{
-																backgroundColor: `var(--${bestByWatchTime.meta.color}-a2)`,
-																color: `var(--${bestByWatchTime.meta.color}-11)`,
-															}}
-														>
-															<VideoIcon className="w-4 h-4" />
-														</div>
-														<div>
-															<Text size="3" weight="bold" className="text-gray-12 dark:text-gray-12">
-																{bestByWatchTime.meta.label}
-															</Text>
-															<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
-																{formatCompact(bestByWatchTime.watchTime)} min
-															</Text>
-														</div>
-													</div>
-												</div>
-											</div>
-										);
-									})()}
-								</Card>
-							)}
 						</>
 					)}
 				</>

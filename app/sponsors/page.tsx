@@ -122,7 +122,7 @@ export default function SponsorsPage() {
 	const handleExportToGoogleSheets = async () => {
 		try {
 			// Convert sponsors to CSV format
-			const headers = ["Brand Name", "Contact Name", "Contact Email", "Deal Value", "Currency", "Status", "Payment Status", "Deliverables", "Due Date", "Platform", "Notes"];
+			const headers = ["Brand Name", "Contact Name", "Contact Email", "Deal Value", "Currency", "Status", "Payment Status", "Deliverables", "Due Date", "Notes"];
 			const rows = sponsors.map((sponsor) => [
 				sponsor.brandName || "",
 				sponsor.contactName || "",
@@ -133,7 +133,6 @@ export default function SponsorsPage() {
 				sponsor.paymentStatus,
 				sponsor.deliverables?.join("; ") || "",
 				sponsor.dueDate || "",
-				sponsor.platform,
 				sponsor.notes || "",
 			]);
 
@@ -445,14 +444,6 @@ export default function SponsorsPage() {
 												</Text>
 											</div>
 										)}
-										<div className="flex items-center justify-between">
-											<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
-												Platform
-											</Text>
-											<Badge color="red" variant="soft" size="1">
-												{sponsor.platform.charAt(0).toUpperCase() + sponsor.platform.slice(1)}
-											</Badge>
-										</div>
 										{sponsor.dueDate && (
 											<div className="flex items-center justify-between">
 												<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">

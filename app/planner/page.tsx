@@ -260,7 +260,7 @@ function PlannerContent() {
 						Content Planner
 					</Heading>
 					<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11 sm:text-4">
-						Plan and schedule your content across all platforms
+						Plan and schedule your YouTube content
 					</Text>
 				</div>
 				<div className="flex gap-2 sm:gap-3 flex-shrink-0 flex-wrap">
@@ -435,24 +435,6 @@ function PlannerContent() {
 			{/* Filters */}
 			<Card size="2" variant="surface" className="p-4">
 				<div className="flex items-center gap-4 flex-wrap">
-					<Text size="2" weight="medium" color="gray" className="text-gray-11 dark:text-gray-11">
-						Filter by Platform:
-					</Text>
-					<div className="flex gap-2">
-						{(["all", "youtube"] as const).map((platform) => (
-							<Button
-								key={platform}
-								variant={filterPlatform === platform ? "soft" : "ghost"}
-								color={filterPlatform === platform ? "blue" : "gray"}
-								size="2"
-								onClick={() => setFilterPlatform(platform)}
-								className="capitalize"
-							>
-								{platform}
-							</Button>
-						))}
-					</div>
-					<Separator orientation="vertical" className="h-6" />
 					<Text size="2" weight="medium" color="gray" className="text-gray-11 dark:text-gray-11">
 						Filter by Status:
 					</Text>
