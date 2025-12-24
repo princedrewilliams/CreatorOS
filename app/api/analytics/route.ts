@@ -644,6 +644,32 @@ export async function GET(request: NextRequest) {
 											});
 										}
 									}
+									
+									// Get views today and subscriber growth from Analytics API
+									try {
+										const today = new Date().toISOString().split("T")[0];
+										const todayResponse = await fetch(
+											`https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==${channelId}&startDate=${today}&endDate=${today}&metrics=views,subscribersGained`,
+											{
+												headers: {
+													Authorization: `Bearer ${youtubeAccessToken}`,
+												},
+											}
+										);
+										
+										if (todayResponse.ok) {
+											const todayData = await todayResponse.json();
+											if (todayData.rows && todayData.rows.length > 0) {
+												// Sum all views and subscribers gained for today
+												todayData.rows.forEach((row: any[]) => {
+													viewsToday += row[0] || 0;
+													subscriberGrowth += row[1] || 0;
+												});
+											}
+										}
+									} catch (error) {
+										console.warn("[analytics] Failed to fetch today's analytics:", error);
+									}
 								} catch (error) {
 									console.warn("[analytics] YouTube Analytics API not available:", error);
 								}
@@ -660,6 +686,7 @@ export async function GET(request: NextRequest) {
 								
 								let topContent: Array<{ title: string; views: number; engagement: number; publishedAt: string; thumbnail?: string; likes?: number; comments?: number; shares?: number }> = [];
 								let subscriberGrowth = 0;
+								let viewsToday = 0;
 								
 								if (videosResponse.ok) {
 									const videosData = await videosResponse.json();
@@ -704,9 +731,8 @@ export async function GET(request: NextRequest) {
 								// Calculate CTR
 								const ctr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
 								
-								// Calculate subscriber growth (estimate from recent videos)
-								// Note: Actual subscriber growth per video requires additional API calls
-								subscriberGrowth = subscribers > 0 ? (totalViews / subscribers) * 0.02 : 0; // Estimate 2% conversion
+								// subscriberGrowth and viewsToday are now fetched from API above
+								// If not available, set to 0 (don't estimate)
 								
 								// Calculate engagement rate
 								const engagement = subscribers > 0 && videoCount > 0 
@@ -747,8 +773,9 @@ export async function GET(request: NextRequest) {
 										avgViewDuration: avgViewDuration, // in seconds
 										ctr: ctr, // percentage
 										trafficSources: trafficSources,
-										subscriberGrowth: subscriberGrowth,
+										subscriberGrowth: subscriberGrowth, // from API, not estimated
 										impressions: totalImpressions,
+										viewsToday: viewsToday, // actual views today from API
 									},
 								};
 							}

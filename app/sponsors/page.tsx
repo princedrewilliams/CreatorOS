@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { Heading, Text, Card, Button, Badge } from "@whop/react/components";
-import { PlusIcon, FileTextIcon, ExternalLinkIcon, ArrowRightIcon, DownloadIcon, FileIcon } from "@radix-ui/react-icons";
+import { PlusIcon, FileTextIcon, ExternalLinkIcon, ArrowRightIcon, DownloadIcon, FileIcon, TrashIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { BackButton } from "@/components/BackButton";
@@ -489,18 +489,58 @@ export default function SponsorsPage() {
 											</Button>
 										</Link>
 									</div>
-									{sponsor.paymentStatus === "unpaid" && (
+									<div className="flex gap-2">
+										{sponsor.paymentStatus === "unpaid" && (
+											<Button
+												variant="ghost"
+												size="2"
+												color="green"
+												className="flex-1"
+												onClick={() => handleGenerateInvoice(sponsor)}
+											>
+												<FileIcon className="mr-2" />
+												Generate Invoice
+											</Button>
+										)}
 										<Button
 											variant="ghost"
 											size="2"
-											color="green"
-											className="w-full"
-											onClick={() => handleGenerateInvoice(sponsor)}
+											color="red"
+											className="flex-1"
+											onClick={async () => {
+												if (confirm(`Are you sure you want to delete ${sponsor.brandName}? This action cannot be undone.`)) {
+													try {
+														const response = await fetch(`/api/sponsors/${sponsor.id}`, {
+															method: "DELETE",
+															credentials: "include",
+														});
+														
+														if (response.ok) {
+															// Refresh sponsors list
+															const refreshResponse = await fetch("/api/sponsors", {
+																credentials: "include",
+															});
+															
+															if (refreshResponse.ok) {
+																const data = await refreshResponse.json();
+																setSponsors(data.sponsors || []);
+																setSummary(data.summary || null);
+															}
+														} else {
+															const errorData = await response.json().catch(() => ({}));
+															alert(errorData.error || "Failed to delete sponsor");
+														}
+													} catch (error) {
+														console.error("Failed to delete sponsor:", error);
+														alert("An error occurred while deleting the sponsor. Please try again.");
+													}
+												}
+											}}
 										>
-											<FileIcon className="mr-2" />
-											Generate Invoice
+											<TrashIcon className="mr-2" />
+											Delete
 										</Button>
-									)}
+									</div>
 								</div>
 							</Card>
 						</motion.div>

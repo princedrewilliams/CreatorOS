@@ -674,7 +674,7 @@ export default function AnalyticsPage() {
 											Watch Time
 										</Text>
 										<Heading size="7" weight="bold" className="text-gray-12 dark:text-gray-12">
-											{formatCompact(totals.watchTime || totals.views * 2.5)} min
+											{formatCompact(totals.watchTime || 0)} min
 										</Heading>
 										<Badge color="blue" size="1" variant="soft" className="mt-2">
 											Total
@@ -768,10 +768,14 @@ export default function AnalyticsPage() {
 											Total Views Today
 										</Text>
 										<Heading size="6" weight="bold" className="text-gray-12 dark:text-gray-12">
-											{formatCompact(totals.views / 30)}
+											{(() => {
+												const snapshots = Object.values(analytics).filter(Boolean) as PlatformAnalyticsSnapshot[];
+												const todayViews = snapshots.reduce((sum, snapshot) => sum + (snapshot.viewsToday || 0), 0);
+												return formatCompact(todayViews);
+											})()}
 										</Heading>
 										<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
-											Estimated daily
+											From API
 										</Text>
 									</Card>
 									<Card size="2" variant="surface" className="p-4">
@@ -779,10 +783,14 @@ export default function AnalyticsPage() {
 											Subscriber Growth
 										</Text>
 										<Heading size="6" weight="bold" className="text-gray-12 dark:text-gray-12">
-											{formatPercent(totals.trend.followers / totals.count)}
+											{(() => {
+												const snapshots = Object.values(analytics).filter(Boolean) as PlatformAnalyticsSnapshot[];
+												const totalGrowth = snapshots.reduce((sum, snapshot) => sum + (snapshot.subscriberGrowth || 0), 0);
+												return formatCompact(totalGrowth);
+											})()}
 										</Heading>
 										<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
-											This period
+											From API
 										</Text>
 									</Card>
 									<Card size="2" variant="surface" className="p-4">

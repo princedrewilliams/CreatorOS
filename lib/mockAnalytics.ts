@@ -27,9 +27,10 @@ export interface PlatformAnalyticsSnapshot {
 	avgViewDuration?: number; // in seconds
 	ctr?: number; // Click-Through Rate percentage
 	trafficSources?: Record<string, number>; // Traffic source breakdown
-	subscriberGrowth?: number; // Subscriber growth per video
+	subscriberGrowth?: number; // Subscriber growth per video (from API)
 	impressions?: number; // Total impressions
 	audienceRetention?: number; // Average retention percentage
+	viewsToday?: number; // Actual views today from API (not estimated)
 }
 
 const now = new Date();
