@@ -182,31 +182,33 @@ export async function GET(request: NextRequest) {
 		const videoAnalyticsMap: Record<string, any> = {};
 
 		if (analyticsData?.rows) {
-			const totalImpressions = analyticsData.rows.reduce((sum: number, row: any[]) => sum + (row[2] || 0), 0);
+			// Row format: [videoId, views, watchTime, impressions, ctr, avgViewDuration]
+			const totalImpressions = analyticsData.rows.reduce((sum: number, row: any[]) => sum + (row[3] || 0), 0);
 			const totalClicks = analyticsData.rows.reduce((sum: number, row: any[]) => {
-				const impressions = row[2] || 0;
-				const ctr = row[3] || 0;
+				const impressions = row[3] || 0;
+				const ctr = row[4] || 0;
 				return sum + (impressions * ctr / 100);
 			}, 0);
 			channelAvgCTR = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
 
-			const totalWatchTime = analyticsData.rows.reduce((sum: number, row: any[]) => sum + (row[1] || 0), 0);
+			const totalWatchTime = analyticsData.rows.reduce((sum: number, row: any[]) => sum + (row[2] || 0), 0);
 			channelAvgWatchTimePerImpression = totalImpressions > 0 ? totalWatchTime / totalImpressions : 0;
 
 			// Calculate median impressions
-			const impressionsArray = analyticsData.rows.map((row: any[]) => row[2] || 0).sort((a: number, b: number) => a - b);
+			const impressionsArray = analyticsData.rows.map((row: any[]) => row[3] || 0).sort((a: number, b: number) => a - b);
 			channelMedianImpressions = impressionsArray.length > 0 
 				? impressionsArray[Math.floor(impressionsArray.length / 2)]
 				: 0;
 
 			// Map analytics to videos and calculate additional metrics
+			// Row format: [videoId, views, watchTime, impressions, ctr, avgViewDuration]
 			analyticsData.rows.forEach((row: any[]) => {
 				const videoId = row[0];
-				const views = row[0] || 0;
-				const watchTime = row[1] || 0;
-				const impressions = row[2] || 0;
-				const ctr = row[3] || 0;
-				const avgViewDuration = row[4] || 0;
+				const views = row[1] || 0;
+				const watchTime = row[2] || 0;
+				const impressions = row[3] || 0;
+				const ctr = row[4] || 0;
+				const avgViewDuration = row[5] || 0;
 				
 				videoAnalyticsMap[videoId] = {
 					views,
@@ -214,12 +216,13 @@ export async function GET(request: NextRequest) {
 					impressions,
 					ctr,
 					avgViewDuration,
+					subscribersGained: 0, // Will be estimated if not available
 				};
 			});
 
 			// Calculate average subscriber conversion (estimated from views)
 			// Note: Actual subscriber data requires additional API calls
-			const totalViews = analyticsData.rows.reduce((sum: number, row: any[]) => sum + (row[0] || 0), 0);
+			const totalViews = analyticsData.rows.reduce((sum: number, row: any[]) => sum + (row[1] || 0), 0);
 			channelAvgSubscriberConversion = totalViews > 0 ? 0.02 : 0; // Estimate 2% conversion
 		}
 
@@ -235,9 +238,33 @@ export async function GET(request: NextRequest) {
 
 		// Calculate Growth Score for each video
 		// Growth Score = (Watch Time per Impression * 0.4) + (CTR vs Channel Avg * 0.3) + (Subscriber Conversion * 0.2) + (Revenue per View * 0.1)
+		// Include videos even if they don't have analytics data (use viewCount as fallback)
 		const videosWithScores = videos.map((video: any) => {
 			const analytics = videoAnalyticsMap[video.id];
-			if (!analytics || analytics.impressions === 0) return null;
+			
+			// If no analytics data, use basic video stats as fallback
+			if (!analytics) {
+				// Use viewCount from video statistics as a basic metric
+				const basicScore = video.viewCount > 0 ? Math.log10(video.viewCount + 1) * 0.1 : 0;
+				return {
+					video,
+					analytics: {
+						views: video.viewCount || 0,
+						watchTime: 0,
+						impressions: 0,
+						ctr: 0,
+						avgViewDuration: 0,
+					},
+					growthScore: basicScore,
+					watchTimePerImpression: 0,
+					subscriberConversion: 0,
+				};
+			}
+
+			// Skip videos with no impressions (they haven't been shown to users yet)
+			if (analytics.impressions === 0) {
+				return null;
+			}
 
 			const watchTimePerImpression = analytics.watchTime / analytics.impressions;
 			const watchTimeScore = channelAvgWatchTimePerImpression > 0
