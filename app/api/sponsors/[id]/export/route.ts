@@ -80,10 +80,11 @@ export async function GET(
 				lookingFor: sponsorId
 			});
 			
-			// Try case-insensitive match
+			// Try case-insensitive match (sponsorId is guaranteed to be defined here due to the if condition)
+			const lowerSponsorId = sponsorId.toLowerCase();
 			sponsor = allSponsors.find(s => 
 				s.id === sponsorId || 
-				s.id.toLowerCase() === sponsorId.toLowerCase()
+				s.id.toLowerCase() === lowerSponsorId
 			) || null;
 		}
 		
