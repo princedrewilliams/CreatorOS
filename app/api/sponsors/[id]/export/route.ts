@@ -10,20 +10,42 @@ export async function GET(
 	try {
 		const user = await getCurrentUser();
 		if (!user) {
+			console.error("[Sponsor Export] User not authenticated");
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
 		const resolvedParams = await params;
 		sponsorId = resolvedParams.id;
 		
+		console.log("[Sponsor Export] Request details:", { 
+			userId: user.whop_user_id, 
+			sponsorId,
+			username: user.whop_username 
+		});
+		
 		// Fetch sponsor data
-		const { getSponsorById } = await import("@/lib/sponsor-data");
+		const { getSponsorById, getUserSponsors } = await import("@/lib/sponsor-data");
+		
+		// Debug: Check all sponsors for this user
+		const allSponsors = getUserSponsors(user.whop_user_id);
+		console.log("[Sponsor Export] All sponsors for user:", {
+			userId: user.whop_user_id,
+			totalSponsors: allSponsors.length,
+			sponsorIds: allSponsors.map(s => s.id),
+			lookingFor: sponsorId
+		});
+		
 		const sponsor = getSponsorById(user.whop_user_id, sponsorId);
 		
 		if (!sponsor) {
-			console.error("[Sponsor Export] Sponsor not found:", { userId: user.whop_user_id, sponsorId });
+			console.error("[Sponsor Export] Sponsor not found:", { 
+				userId: user.whop_user_id, 
+				sponsorId,
+				availableSponsorIds: allSponsors.map(s => s.id),
+				allSponsorsCount: allSponsors.length
+			});
 			return NextResponse.json(
-				{ error: "Sponsor not found" },
+				{ error: `Sponsor not found. Available sponsors: ${allSponsors.length}` },
 				{ status: 404 }
 			);
 		}
