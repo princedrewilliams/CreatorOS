@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import PDFDocument from "pdfkit";
-import { Readable } from "stream";
+import jsPDF from "jspdf";
 
 export async function GET(
 	request: NextRequest,
@@ -31,51 +30,84 @@ export async function GET(
 
 		console.log("[Sponsor Export] Generating invoice for sponsor:", sponsor.brandName);
 
-		// Generate PDF invoice
-		const doc = new PDFDocument({ 
-			margin: 50,
-			// Use standard fonts that don't require external files
-			font: 'Helvetica'
+		// Generate PDF invoice using jsPDF
+		const doc = new jsPDF({
+			orientation: 'portrait',
+			unit: 'mm',
+			format: 'a4'
 		});
-		const chunks: Buffer[] = [];
-		
-		doc.on('data', (chunk) => {
-			chunks.push(chunk);
-		});
+
+		// Set margins
+		const margin = 20;
+		let yPos = margin;
 
 		// Header
-		doc.fontSize(32).text('INVOICE', { align: 'left' });
-		doc.fontSize(12).fillColor('#666666').text(`Invoice #${sponsor.id.slice(0, 8).toUpperCase()}`, { align: 'left' });
-		doc.moveDown(2);
+		doc.setFontSize(24);
+		doc.setFont('helvetica', 'bold');
+		doc.text('INVOICE', margin, yPos);
+		yPos += 8;
+		
+		doc.setFontSize(10);
+		doc.setFont('helvetica', 'normal');
+		doc.setTextColor(100, 100, 100);
+		doc.text(`Invoice #${sponsor.id.slice(0, 8).toUpperCase()}`, margin, yPos);
+		yPos += 15;
 
 		// Bill To section
-		doc.fontSize(14).fillColor('#666666').text('BILL TO:', { align: 'left' });
-		doc.fontSize(14).fillColor('#000000').text(sponsor.brandName, { align: 'left' });
+		doc.setFontSize(12);
+		doc.setFont('helvetica', 'bold');
+		doc.setTextColor(100, 100, 100);
+		doc.text('BILL TO:', margin, yPos);
+		yPos += 7;
+		
+		doc.setFontSize(12);
+		doc.setFont('helvetica', 'normal');
+		doc.setTextColor(0, 0, 0);
+		doc.text(sponsor.brandName, margin, yPos);
+		yPos += 6;
+		
 		if (sponsor.contactName) {
-			doc.fontSize(12).fillColor('#000000').text(sponsor.contactName, { align: 'left' });
+			doc.text(sponsor.contactName, margin, yPos);
+			yPos += 6;
 		}
 		if (sponsor.contactEmail) {
-			doc.fontSize(12).fillColor('#000000').text(sponsor.contactEmail, { align: 'left' });
+			doc.text(sponsor.contactEmail, margin, yPos);
+			yPos += 6;
 		}
-		doc.moveDown(1);
+		yPos += 5;
 
 		// Invoice Details (right aligned)
 		const invoiceDate = new Date().toLocaleDateString();
 		const dueDate = sponsor.dueDate ? new Date(sponsor.dueDate).toLocaleDateString() : 'N/A';
 		const paymentStatus = sponsor.paymentStatus.charAt(0).toUpperCase() + sponsor.paymentStatus.slice(1);
 		
-		doc.fontSize(14).fillColor('#666666').text('INVOICE DETAILS:', { align: 'right' });
-		doc.fontSize(12).fillColor('#000000').text(`Date: ${invoiceDate}`, { align: 'right' });
-		doc.fontSize(12).fillColor('#000000').text(`Due Date: ${dueDate}`, { align: 'right' });
-		doc.fontSize(12).fillColor('#000000').text(`Status: ${paymentStatus}`, { align: 'right' });
-		doc.moveDown(2);
+		const pageWidth = doc.internal.pageSize.getWidth();
+		const rightMargin = pageWidth - margin;
+		
+		doc.setFontSize(12);
+		doc.setFont('helvetica', 'bold');
+		doc.setTextColor(100, 100, 100);
+		doc.text('INVOICE DETAILS:', rightMargin, yPos - 20, { align: 'right' });
+		
+		doc.setFontSize(10);
+		doc.setFont('helvetica', 'normal');
+		doc.setTextColor(0, 0, 0);
+		doc.text(`Date: ${invoiceDate}`, rightMargin, yPos - 13, { align: 'right' });
+		doc.text(`Due Date: ${dueDate}`, rightMargin, yPos - 7, { align: 'right' });
+		doc.text(`Status: ${paymentStatus}`, rightMargin, yPos - 1, { align: 'right' });
+		yPos += 10;
 
 		// Table header
-		doc.fontSize(12).fillColor('#000000').text('Description', 50, doc.y);
-		doc.text('Amount', 450, doc.y, { align: 'right' });
-		doc.moveDown(0.5);
-		doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
-		doc.moveDown(0.5);
+		doc.setFontSize(10);
+		doc.setFont('helvetica', 'bold');
+		doc.text('Description', margin, yPos);
+		doc.text('Amount', rightMargin, yPos, { align: 'right' });
+		yPos += 5;
+		
+		// Draw line
+		doc.setDrawColor(200, 200, 200);
+		doc.line(margin, yPos, rightMargin, yPos);
+		yPos += 5;
 
 		// Table row
 		const deliverables = sponsor.deliverables && sponsor.deliverables.length > 0 
@@ -83,79 +115,52 @@ export async function GET(
 			: 'Sponsorship services';
 		const amount = new Intl.NumberFormat('en-US', { style: 'currency', currency: sponsor.currency || 'USD' }).format(sponsor.rate);
 		
-		const descriptionY = doc.y;
-		doc.fontSize(12).fillColor('#000000').text('Sponsorship Deal', 50, doc.y);
-		doc.moveDown(0.3);
-		doc.fontSize(10).fillColor('#666666').text(deliverables, 50, doc.y);
+		doc.setFontSize(10);
+		doc.setFont('helvetica', 'normal');
+		doc.text('Sponsorship Deal', margin, yPos);
+		yPos += 5;
+		
+		doc.setFontSize(9);
+		doc.setTextColor(100, 100, 100);
+		const deliverablesLines = doc.splitTextToSize(deliverables, rightMargin - margin - 10);
+		doc.text(deliverablesLines, margin + 5, yPos);
+		yPos += deliverablesLines.length * 5;
+		
 		if (sponsor.notes) {
-			doc.moveDown(0.2);
-			doc.fontSize(9).fillColor('#666666').text(sponsor.notes, 50, doc.y);
+			const notesLines = doc.splitTextToSize(sponsor.notes, rightMargin - margin - 10);
+			doc.text(notesLines, margin + 5, yPos);
+			yPos += notesLines.length * 4;
 		}
-		const descriptionEndY = doc.y;
-		doc.fontSize(12).fillColor('#000000').text(amount, 450, descriptionY, { align: 'right' });
-		doc.y = descriptionEndY;
-		doc.moveDown(1);
-		doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
-		doc.moveDown(0.5);
+		
+		doc.setFontSize(10);
+		doc.setFont('helvetica', 'normal');
+		doc.setTextColor(0, 0, 0);
+		doc.text(amount, rightMargin, yPos - (deliverablesLines.length * 5) - 5, { align: 'right' });
+		yPos += 5;
+		
+		// Draw line
+		doc.setDrawColor(200, 200, 200);
+		doc.line(margin, yPos, rightMargin, yPos);
+		yPos += 8;
 
 		// Total row
-		doc.fontSize(14).fillColor('#000000').text('Total:', 450, doc.y, { align: 'right' });
-		doc.fontSize(14).fillColor('#000000').text(amount, 450, doc.y, { align: 'right' });
-		doc.moveDown(3);
+		doc.setFontSize(12);
+		doc.setFont('helvetica', 'bold');
+		doc.text('Total:', rightMargin - 20, yPos, { align: 'right' });
+		doc.text(amount, rightMargin, yPos, { align: 'right' });
+		yPos += 20;
 
 		// Footer
-		doc.fontSize(10).fillColor('#666666').text('Thank you for your business!', { align: 'center' });
-		doc.moveDown(0.5);
-		doc.fontSize(9).fillColor('#666666').text(`Generated by CreatorOS on ${new Date().toLocaleString()}`, { align: 'center' });
+		doc.setFontSize(9);
+		doc.setFont('helvetica', 'normal');
+		doc.setTextColor(100, 100, 100);
+		doc.text('Thank you for your business!', pageWidth / 2, yPos, { align: 'center' });
+		yPos += 5;
+		doc.text(`Generated by CreatorOS on ${new Date().toLocaleString()}`, pageWidth / 2, yPos, { align: 'center' });
 
-		// Wait for PDF to be generated before ending
-		const pdfBuffer = await new Promise<Buffer>((resolve, reject) => {
-			let hasResolved = false;
-			
-			const timeout = setTimeout(() => {
-				if (!hasResolved) {
-					hasResolved = true;
-					reject(new Error("PDF generation timeout"));
-				}
-			}, 30000); // 30 second timeout
-			
-			doc.on('end', () => {
-				if (hasResolved) return;
-				hasResolved = true;
-				clearTimeout(timeout);
-				try {
-					const buffer = Buffer.concat(chunks);
-					if (buffer.length === 0) {
-						reject(new Error("Generated PDF is empty"));
-						return;
-					}
-					resolve(buffer);
-				} catch (error) {
-					reject(error);
-				}
-			});
-			
-			doc.on('error', (error) => {
-				if (hasResolved) return;
-				hasResolved = true;
-				clearTimeout(timeout);
-				console.error("[PDF Generation] PDFKit error:", error);
-				reject(error);
-			});
-			
-			// End the document to trigger generation
-			try {
-				doc.end();
-			} catch (error) {
-				if (hasResolved) return;
-				hasResolved = true;
-				clearTimeout(timeout);
-				reject(error);
-			}
-		});
-
-		// Convert Buffer to Uint8Array for NextResponse
-		const pdfArray = new Uint8Array(pdfBuffer);
+		// Generate PDF as array buffer
+		const pdfOutput = doc.output('arraybuffer');
+		const pdfArray = new Uint8Array(pdfOutput);
 		
 		// Sanitize filename
 		const sanitizedBrandName = sponsor.brandName.replace(/[^a-z0-9]/gi, '_').substring(0, 50);
