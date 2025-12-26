@@ -20,14 +20,21 @@ export async function GET(
 		const sponsor = getSponsorById(user.whop_user_id, sponsorId);
 		
 		if (!sponsor) {
+			console.error("[Sponsor Export] Sponsor not found:", { userId: user.whop_user_id, sponsorId });
 			return NextResponse.json(
 				{ error: "Sponsor not found" },
 				{ status: 404 }
 			);
 		}
 
+		console.log("[Sponsor Export] Generating invoice for sponsor:", sponsor.brandName);
+
 		// Generate PDF invoice
-		const doc = new PDFDocument({ margin: 50 });
+		const doc = new PDFDocument({ 
+			margin: 50,
+			// Use standard fonts that don't require external files
+			font: 'Helvetica'
+		});
 		const chunks: Buffer[] = [];
 		
 		doc.on('data', (chunk) => {
@@ -101,36 +108,75 @@ export async function GET(
 
 		// Wait for PDF to be generated before ending
 		const pdfBuffer = await new Promise<Buffer>((resolve, reject) => {
+			let hasResolved = false;
+			
+			const timeout = setTimeout(() => {
+				if (!hasResolved) {
+					hasResolved = true;
+					reject(new Error("PDF generation timeout"));
+				}
+			}, 30000); // 30 second timeout
+			
 			doc.on('end', () => {
+				if (hasResolved) return;
+				hasResolved = true;
+				clearTimeout(timeout);
 				try {
 					const buffer = Buffer.concat(chunks);
+					if (buffer.length === 0) {
+						reject(new Error("Generated PDF is empty"));
+						return;
+					}
 					resolve(buffer);
 				} catch (error) {
 					reject(error);
 				}
 			});
+			
 			doc.on('error', (error) => {
+				if (hasResolved) return;
+				hasResolved = true;
+				clearTimeout(timeout);
 				console.error("[PDF Generation] PDFKit error:", error);
 				reject(error);
 			});
 			
 			// End the document to trigger generation
-			doc.end();
+			try {
+				doc.end();
+			} catch (error) {
+				if (hasResolved) return;
+				hasResolved = true;
+				clearTimeout(timeout);
+				reject(error);
+			}
 		});
 
 		// Convert Buffer to Uint8Array for NextResponse
 		const pdfArray = new Uint8Array(pdfBuffer);
+		
+		// Sanitize filename
+		const sanitizedBrandName = sponsor.brandName.replace(/[^a-z0-9]/gi, '_').substring(0, 50);
+		const filename = `invoice-${sanitizedBrandName}-${new Date().toISOString().split("T")[0]}.pdf`;
+
+		console.log("[Sponsor Export] PDF generated successfully, size:", pdfArray.length, "bytes");
 
 		return new NextResponse(pdfArray, {
 			headers: {
 				"Content-Type": "application/pdf",
-				"Content-Disposition": `attachment; filename="invoice-${sponsor.brandName}-${new Date().toISOString().split("T")[0]}.pdf"`,
+				"Content-Disposition": `attachment; filename="${filename}"`,
 			},
 		});
 	} catch (error) {
 		console.error("[Sponsor Export] Error:", error);
+		const errorMessage = error instanceof Error ? error.message : "Unknown error";
+		console.error("[Sponsor Export] Error details:", {
+			message: errorMessage,
+			stack: error instanceof Error ? error.stack : undefined,
+			sponsorId,
+		});
 		return NextResponse.json(
-			{ error: "Failed to export report" },
+			{ error: `Failed to export report: ${errorMessage}` },
 			{ status: 500 }
 		);
 	}
