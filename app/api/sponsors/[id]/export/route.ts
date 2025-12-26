@@ -7,13 +7,15 @@ export async function GET(
 	request: NextRequest,
 	{ params }: { params: Promise<{ id: string }> }
 ) {
+	let sponsorId: string | undefined;
 	try {
 		const user = await getCurrentUser();
 		if (!user) {
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
-		const { id: sponsorId } = await params;
+		const resolvedParams = await params;
+		sponsorId = resolvedParams.id;
 		
 		// Fetch sponsor data
 		const { getSponsorById } = await import("@/lib/sponsor-data");
@@ -173,7 +175,7 @@ export async function GET(
 		console.error("[Sponsor Export] Error details:", {
 			message: errorMessage,
 			stack: error instanceof Error ? error.stack : undefined,
-			sponsorId,
+			sponsorId: sponsorId || "unknown",
 		});
 		return NextResponse.json(
 			{ error: `Failed to export report: ${errorMessage}` },
