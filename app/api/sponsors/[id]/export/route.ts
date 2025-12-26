@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import jsPDF from "jspdf";
 
+// Helper to get base URL for internal API calls
+function getBaseUrl(request: NextRequest): string {
+	const host = request.headers.get("host");
+	const protocol = request.headers.get("x-forwarded-proto") || "https";
+	return `${protocol}://${host}`;
+}
+
 export async function GET(
 	request: NextRequest,
 	{ params }: { params: Promise<{ id: string }> }
