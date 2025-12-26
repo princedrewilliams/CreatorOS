@@ -173,8 +173,10 @@ export default function SponsorsPage() {
 
 	const handleGenerateInvoice = async (sponsor: Sponsor) => {
 		try {
+			console.log("[Invoice] Generating invoice for sponsor:", sponsor.id, sponsor.brandName);
 			const response = await fetch(`/api/sponsors/${sponsor.id}/export`, {
 				credentials: "include",
+				method: "GET",
 			});
 
 			if (response.ok) {

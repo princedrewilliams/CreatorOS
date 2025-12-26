@@ -35,13 +35,14 @@ export async function GET(
 		if (!sponsor) {
 			try {
 				// Make an internal API call to get the sponsor
-				const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL 
-					? `https://${process.env.VERCEL_URL || process.env.NEXT_PUBLIC_APP_URL}` 
-					: 'http://localhost:3000';
+				const baseUrl = getBaseUrl(request);
+				const cookieHeader = request.headers.get('cookie') || '';
+				
+				console.log("[Sponsor Export] Attempting to fetch sponsor via API route:", `${baseUrl}/api/sponsors/${sponsorId}`);
 				
 				const apiResponse = await fetch(`${baseUrl}/api/sponsors/${sponsorId}`, {
 					headers: {
-						'Cookie': request.headers.get('cookie') || '',
+						'Cookie': cookieHeader,
 					},
 				});
 				
@@ -50,7 +51,12 @@ export async function GET(
 					if (apiData.success && apiData.sponsor) {
 						console.log("[Sponsor Export] Found sponsor via API route");
 						sponsor = apiData.sponsor;
+					} else {
+						console.warn("[Sponsor Export] API route returned but no sponsor in response:", apiData);
 					}
+				} else {
+					const errorData = await apiResponse.json().catch(() => ({}));
+					console.warn("[Sponsor Export] API route failed:", apiResponse.status, errorData);
 				}
 			} catch (apiError) {
 				console.warn("[Sponsor Export] Failed to fetch sponsor via API route:", apiError);
