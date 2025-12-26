@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { Heading, Text, Card, Button, Badge } from "@whop/react/components";
-import { PlusIcon, FileTextIcon, ExternalLinkIcon, ArrowRightIcon, DownloadIcon, FileIcon, TrashIcon } from "@radix-ui/react-icons";
+import { Heading, Text, Card, Button, Badge, Dialog, Separator } from "@whop/react/components";
+import { PlusIcon, FileTextIcon, ExternalLinkIcon, ArrowRightIcon, DownloadIcon, FileIcon, TrashIcon, Cross2Icon } from "@radix-ui/react-icons";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { BackButton } from "@/components/BackButton";
 import { SponsorModal } from "@/components/SponsorModal";
 import { useAppStore } from "@/lib/store";
@@ -40,6 +40,7 @@ export default function SponsorsPage() {
 	const [summary, setSummary] = useState<any>(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
+	const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
 
 	// Sync user data and fetch sponsors on mount
 	useEffect(() => {
@@ -321,7 +322,18 @@ export default function SponsorsPage() {
 							</div>
 						</div>
 					</Card>
-					<Card size="3" variant="surface" className="p-6">
+					<Card 
+						size="3" 
+						variant="surface" 
+						className={`p-6 transition-colors ${sponsors.length > 0 ? 'hover:border-blue-6 cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}
+						onClick={() => {
+							if (sponsors.length > 0) {
+								setIsInvoiceModalOpen(true);
+							} else {
+								alert("Please add a sponsor first before generating an invoice.");
+							}
+						}}
+					>
 						<div className="flex items-center gap-4">
 							<div className="w-12 h-12 rounded-lg bg-blue-a2 dark:bg-blue-a3 flex items-center justify-center flex-shrink-0">
 								<FileIcon className="w-6 h-6 text-blue-11 dark:text-blue-10" />
@@ -331,7 +343,7 @@ export default function SponsorsPage() {
 									Generate Invoice
 								</Heading>
 								<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
-									Create invoices for unpaid sponsors
+									{sponsors.length > 0 ? "Select a sponsor to generate invoice" : "Add a sponsor first"}
 								</Text>
 							</div>
 						</div>
@@ -575,6 +587,78 @@ export default function SponsorsPage() {
 				onSave={handleSaveSponsor}
 				sponsor={editingSponsor}
 			/>
+
+			{/* Invoice Generation Modal */}
+			<Dialog open={isInvoiceModalOpen} onOpenChange={setIsInvoiceModalOpen}>
+				<Card size="3" variant="surface" className="p-6 max-w-2xl w-full">
+					<div className="flex items-center justify-between mb-6">
+						<Heading size="5" as="h2" className="text-gray-12 dark:text-gray-12">
+							Generate Invoice
+						</Heading>
+						<Button
+							variant="ghost"
+							size="2"
+							onClick={() => setIsInvoiceModalOpen(false)}
+						>
+							<Cross2Icon className="w-4 h-4" />
+						</Button>
+					</div>
+
+					<Text size="2" color="gray" className="mb-6 text-gray-11 dark:text-gray-11">
+						Select a sponsor to generate an invoice for:
+					</Text>
+
+					{sponsors.length === 0 ? (
+						<Card size="2" variant="surface" className="p-8 text-center">
+							<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11 mb-4">
+								No sponsors available. Please add a sponsor first.
+							</Text>
+							<Button color="green" size="3" variant="solid" onClick={() => {
+								setIsInvoiceModalOpen(false);
+								handleAddSponsor();
+							}}>
+								<PlusIcon className="mr-2" />
+								Add Sponsor
+							</Button>
+						</Card>
+					) : (
+						<div className="space-y-3 max-h-96 overflow-y-auto">
+							{sponsors.map((sponsor) => (
+								<Card
+									key={sponsor.id}
+									size="2"
+									variant="surface"
+									className="p-4 hover:border-blue-6 transition-colors cursor-pointer"
+									onClick={() => {
+										setIsInvoiceModalOpen(false);
+										handleGenerateInvoice(sponsor);
+									}}
+								>
+									<div className="flex items-center justify-between">
+										<div className="flex-1 min-w-0">
+											<Heading size="4" as="h3" className="mb-2 text-gray-12 dark:text-gray-12 truncate">
+												{sponsor.brandName}
+											</Heading>
+											<div className="flex items-center gap-2 mb-2">
+												<Badge color={statusColors[sponsor.dealStatus]} variant="soft" size="1">
+													{sponsor.dealStatus.charAt(0).toUpperCase() + sponsor.dealStatus.slice(1)}
+												</Badge>
+												<Badge color={paymentStatusColors[sponsor.paymentStatus]} variant="soft" size="1">
+													{sponsor.paymentStatus === "invoiced" ? "Invoiced" : sponsor.paymentStatus === "unpaid" ? "Unpaid" : "Paid"}
+												</Badge>
+											</div>
+											<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
+												{currencyFormatter.format(sponsor.rate)} {sponsor.currency}
+											</Text>
+										</div>
+										<FileIcon className="w-5 h-5 text-blue-11 dark:text-blue-10 flex-shrink-0 ml-4" />
+									</div>
+								</Card>
+							))}
+						</div>
+					)}
+				</Card>
+			</Dialog>
 		</div>
 	);
 }
