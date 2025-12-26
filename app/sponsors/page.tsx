@@ -496,7 +496,7 @@ export default function SponsorsPage() {
 										</Button>
 										<Link href={`/sponsors/${sponsor.id}`} className="flex-1">
 											<Button 
-												variant="solid" 
+												variant="ghost" 
 												size="2" 
 												color="blue" 
 												className="w-full flex items-center justify-center gap-1.5"
@@ -515,8 +515,8 @@ export default function SponsorsPage() {
 												className="flex-1"
 												onClick={() => handleGenerateInvoice(sponsor)}
 											>
-												<FileIcon className="mr-2" />
-												Generate Invoice
+												<FileIcon className="w-4 h-4 mr-1.5" />
+												Generate
 											</Button>
 										)}
 										<Button
@@ -554,7 +554,7 @@ export default function SponsorsPage() {
 												}
 											}}
 										>
-											<TrashIcon className="mr-2" />
+											<TrashIcon className="w-4 h-4 mr-1.5" />
 											Delete
 										</Button>
 									</div>
