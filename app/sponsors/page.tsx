@@ -342,7 +342,7 @@ export default function SponsorsPage() {
 							</div>
 							<div className="flex-1 min-w-0">
 								<Heading size="4" as="h3" className="mb-1 text-gray-12 dark:text-gray-12">
-									Generate Invoice
+									Generate
 								</Heading>
 								<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
 									{sponsors.length > 0 ? "Select a sponsor to generate invoice" : "Add a sponsor first"}
@@ -595,7 +595,7 @@ export default function SponsorsPage() {
 				<Dialog.Content className="max-w-2xl max-h-[90vh] overflow-y-auto">
 					<div className="flex items-center justify-between mb-6">
 						<Heading size="5" as="h2" className="text-gray-12 dark:text-gray-12">
-							Generate Invoice
+							Generate
 						</Heading>
 						<Button
 							variant="ghost"
