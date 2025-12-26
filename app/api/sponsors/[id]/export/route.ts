@@ -24,24 +24,50 @@ export async function GET(
 		});
 		
 		// Fetch sponsor data
-		// Note: In serverless environments, in-memory storage may not persist across instances
-		// So we fetch fresh from the data store each time
+		// In serverless environments, in-memory storage may not persist across instances
+		// So we try to fetch from the main API route first as a fallback
 		const { getSponsorById, getUserSponsors } = await import("@/lib/sponsor-data");
 		
-		// Get all sponsors for this user to check what's available
-		const allSponsors = getUserSponsors(user.whop_user_id);
-		console.log("[Sponsor Export] Available sponsors:", {
-			userId: user.whop_user_id,
-			totalSponsors: allSponsors.length,
-			sponsorIds: allSponsors.map(s => s.id),
-			lookingFor: sponsorId
-		});
-		
-		// Try to get sponsor by ID
+		// First, try direct lookup
 		let sponsor = getSponsorById(user.whop_user_id, sponsorId);
 		
-		// If not found, try alternative matching (in case of ID format issues)
+		// If not found, try fetching from the main API route (which might have the data in a different instance)
 		if (!sponsor) {
+			try {
+				// Make an internal API call to get the sponsor
+				const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL 
+					? `https://${process.env.VERCEL_URL || process.env.NEXT_PUBLIC_APP_URL}` 
+					: 'http://localhost:3000';
+				
+				const apiResponse = await fetch(`${baseUrl}/api/sponsors/${sponsorId}`, {
+					headers: {
+						'Cookie': request.headers.get('cookie') || '',
+					},
+				});
+				
+				if (apiResponse.ok) {
+					const apiData = await apiResponse.json();
+					if (apiData.success && apiData.sponsor) {
+						console.log("[Sponsor Export] Found sponsor via API route");
+						sponsor = apiData.sponsor;
+					}
+				}
+			} catch (apiError) {
+				console.warn("[Sponsor Export] Failed to fetch sponsor via API route:", apiError);
+			}
+		}
+		
+		// If still not found, check all available sponsors
+		if (!sponsor) {
+			const allSponsors = getUserSponsors(user.whop_user_id);
+			console.log("[Sponsor Export] Sponsor not found. Available sponsors:", {
+				userId: user.whop_user_id,
+				totalSponsors: allSponsors.length,
+				sponsorIds: allSponsors.map(s => s.id),
+				lookingFor: sponsorId
+			});
+			
+			// Try case-insensitive match
 			sponsor = allSponsors.find(s => 
 				s.id === sponsorId || 
 				s.id.toLowerCase() === sponsorId.toLowerCase()
@@ -49,7 +75,8 @@ export async function GET(
 		}
 		
 		if (!sponsor) {
-			console.error("[Sponsor Export] Sponsor not found:", { 
+			const allSponsors = getUserSponsors(user.whop_user_id);
+			console.error("[Sponsor Export] Sponsor not found after all attempts:", { 
 				userId: user.whop_user_id, 
 				sponsorId,
 				availableIds: allSponsors.map(s => s.id),
