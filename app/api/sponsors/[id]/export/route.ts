@@ -23,29 +23,44 @@ export async function GET(
 			username: user.whop_username 
 		});
 		
-		// Fetch sponsor data
+		// Fetch sponsor data - try both direct lookup and via API pattern
 		const { getSponsorById, getUserSponsors } = await import("@/lib/sponsor-data");
 		
-		// Debug: Check all sponsors for this user
-		const allSponsors = getUserSponsors(user.whop_user_id);
-		console.log("[Sponsor Export] All sponsors for user:", {
-			userId: user.whop_user_id,
-			totalSponsors: allSponsors.length,
-			sponsorIds: allSponsors.map(s => s.id),
-			lookingFor: sponsorId
-		});
+		// First, try to get sponsor directly
+		let sponsor = getSponsorById(user.whop_user_id, sponsorId);
 		
-		const sponsor = getSponsorById(user.whop_user_id, sponsorId);
+		// If not found, check all sponsors to see what's available
+		if (!sponsor) {
+			const allSponsors = getUserSponsors(user.whop_user_id);
+			console.log("[Sponsor Export] Sponsor not found in direct lookup. All sponsors for user:", {
+				userId: user.whop_user_id,
+				totalSponsors: allSponsors.length,
+				sponsorIds: allSponsors.map(s => ({ id: s.id, brandName: s.brandName })),
+				lookingFor: sponsorId
+			});
+			
+			// Try to find by case-insensitive match or partial match
+			const foundSponsor = allSponsors.find(s => 
+				s.id === sponsorId || 
+				s.id.toLowerCase() === sponsorId.toLowerCase() ||
+				s.id.includes(sponsorId) ||
+				sponsorId.includes(s.id)
+			);
+			
+			if (foundSponsor) {
+				console.log("[Sponsor Export] Found sponsor with alternative matching:", foundSponsor.id);
+				sponsor = foundSponsor;
+			}
+		}
 		
 		if (!sponsor) {
-			console.error("[Sponsor Export] Sponsor not found:", { 
+			console.error("[Sponsor Export] Sponsor not found after all attempts:", { 
 				userId: user.whop_user_id, 
 				sponsorId,
-				availableSponsorIds: allSponsors.map(s => s.id),
-				allSponsorsCount: allSponsors.length
+				allSponsors: getUserSponsors(user.whop_user_id).map(s => s.id)
 			});
 			return NextResponse.json(
-				{ error: `Sponsor not found. Available sponsors: ${allSponsors.length}` },
+				{ error: "Sponsor not found. Please ensure the sponsor exists and try again." },
 				{ status: 404 }
 			);
 		}
