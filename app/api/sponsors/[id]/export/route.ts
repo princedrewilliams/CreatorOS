@@ -23,44 +23,43 @@ export async function GET(
 			username: user.whop_username 
 		});
 		
-		// Fetch sponsor data - try both direct lookup and via API pattern
+		// Fetch sponsor data
+		// Note: In serverless environments, in-memory storage may not persist across instances
+		// So we fetch fresh from the data store each time
 		const { getSponsorById, getUserSponsors } = await import("@/lib/sponsor-data");
 		
-		// First, try to get sponsor directly
+		// Get all sponsors for this user to check what's available
+		const allSponsors = getUserSponsors(user.whop_user_id);
+		console.log("[Sponsor Export] Available sponsors:", {
+			userId: user.whop_user_id,
+			totalSponsors: allSponsors.length,
+			sponsorIds: allSponsors.map(s => s.id),
+			lookingFor: sponsorId
+		});
+		
+		// Try to get sponsor by ID
 		let sponsor = getSponsorById(user.whop_user_id, sponsorId);
 		
-		// If not found, check all sponsors to see what's available
+		// If not found, try alternative matching (in case of ID format issues)
 		if (!sponsor) {
-			const allSponsors = getUserSponsors(user.whop_user_id);
-			console.log("[Sponsor Export] Sponsor not found in direct lookup. All sponsors for user:", {
-				userId: user.whop_user_id,
-				totalSponsors: allSponsors.length,
-				sponsorIds: allSponsors.map(s => ({ id: s.id, brandName: s.brandName })),
-				lookingFor: sponsorId
-			});
-			
-			// Try to find by case-insensitive match or partial match
-			const foundSponsor = allSponsors.find(s => 
+			sponsor = allSponsors.find(s => 
 				s.id === sponsorId || 
-				s.id.toLowerCase() === sponsorId.toLowerCase() ||
-				s.id.includes(sponsorId) ||
-				sponsorId.includes(s.id)
-			);
-			
-			if (foundSponsor) {
-				console.log("[Sponsor Export] Found sponsor with alternative matching:", foundSponsor.id);
-				sponsor = foundSponsor;
-			}
+				s.id.toLowerCase() === sponsorId.toLowerCase()
+			) || null;
 		}
 		
 		if (!sponsor) {
-			console.error("[Sponsor Export] Sponsor not found after all attempts:", { 
+			console.error("[Sponsor Export] Sponsor not found:", { 
 				userId: user.whop_user_id, 
 				sponsorId,
-				allSponsors: getUserSponsors(user.whop_user_id).map(s => s.id)
+				availableIds: allSponsors.map(s => s.id),
+				availableBrands: allSponsors.map(s => s.brandName)
 			});
 			return NextResponse.json(
-				{ error: "Sponsor not found. Please ensure the sponsor exists and try again." },
+				{ 
+					error: "Sponsor not found", 
+					details: `Looking for ID: ${sponsorId}. Available sponsors: ${allSponsors.length}` 
+				},
 				{ status: 404 }
 			);
 		}
