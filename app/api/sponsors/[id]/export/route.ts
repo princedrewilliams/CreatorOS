@@ -71,7 +71,7 @@ export async function GET(
 		}
 		
 		// If still not found, check all available sponsors
-		if (!sponsor) {
+		if (!sponsor && sponsorId) {
 			const allSponsors = getUserSponsors(user.whop_user_id);
 			console.log("[Sponsor Export] Sponsor not found. Available sponsors:", {
 				userId: user.whop_user_id,
@@ -91,14 +91,14 @@ export async function GET(
 			const allSponsors = getUserSponsors(user.whop_user_id);
 			console.error("[Sponsor Export] Sponsor not found after all attempts:", { 
 				userId: user.whop_user_id, 
-				sponsorId,
+				sponsorId: sponsorId || "undefined",
 				availableIds: allSponsors.map(s => s.id),
 				availableBrands: allSponsors.map(s => s.brandName)
 			});
 			return NextResponse.json(
 				{ 
 					error: "Sponsor not found", 
-					details: `Looking for ID: ${sponsorId}. Available sponsors: ${allSponsors.length}` 
+					details: `Looking for ID: ${sponsorId || "undefined"}. Available sponsors: ${allSponsors.length}` 
 				},
 				{ status: 404 }
 			);
