@@ -1,7 +1,8 @@
 "use client";
 
-import { Heading, Text, Card, Table } from "@whop/react/components";
-import { InfoCircledIcon } from "@radix-ui/react-icons";
+import { useState } from "react";
+import { Heading, Text, Card, Button } from "@whop/react/components";
+import { InfoCircledIcon, ChevronDownIcon, ChevronUpIcon } from "@radix-ui/react-icons";
 
 interface Metric {
 	metric: string;
@@ -53,36 +54,64 @@ const metrics: Metric[] = [
 ];
 
 export function MetricsGuide() {
+	const [isExpanded, setIsExpanded] = useState(false);
+
 	return (
 		<Card size="3" variant="surface" className="p-6">
-			<div className="flex items-center gap-2 mb-4">
-				<InfoCircledIcon className="w-5 h-5 text-blue-11" />
-				<Heading size="5">YouTube Analytics Metrics Guide</Heading>
+			<div className="flex items-center justify-between mb-4">
+				<div className="flex items-center gap-2">
+					<InfoCircledIcon className="w-5 h-5 text-blue-11" />
+					<Heading size="5">YouTube Analytics Metrics Guide</Heading>
+				</div>
+				<Button
+					variant="ghost"
+					size="2"
+					color="blue"
+					onClick={() => setIsExpanded(!isExpanded)}
+					className="flex items-center gap-1.5"
+				>
+					{isExpanded ? (
+						<>
+							<ChevronUpIcon className="w-4 h-4" />
+							Hide Guide
+						</>
+					) : (
+						<>
+							<ChevronDownIcon className="w-4 h-4" />
+							Show Guide
+						</>
+					)}
+				</Button>
 			</div>
-			<Text size="2" color="gray" className="mb-6">
-				Understanding what each metric means and why it matters for your channel growth
-			</Text>
 			
-			<div className="overflow-x-auto">
-				<table className="w-full border-collapse">
-					<thead>
-						<tr className="border-b border-gray-a6">
-							<th className="text-left p-3 font-semibold text-gray-12">Metric</th>
-							<th className="text-left p-3 font-semibold text-gray-12">What It Measures</th>
-							<th className="text-left p-3 font-semibold text-gray-12">Why It's Important</th>
-						</tr>
-					</thead>
-					<tbody>
-						{metrics.map((metric, index) => (
-							<tr key={index} className="border-b border-gray-a4 hover:bg-gray-a2 transition-colors">
-								<td className="p-3 font-medium text-gray-12">{metric.metric}</td>
-								<td className="p-3 text-gray-11">{metric.whatItMeasures}</td>
-								<td className="p-3 text-gray-11">{metric.whyImportant}</td>
-							</tr>
-						))}
-					</tbody>
-				</table>
-			</div>
+			{isExpanded && (
+				<>
+					<Text size="2" color="gray" className="mb-6">
+						Understanding what each metric means and why it matters for your channel growth
+					</Text>
+					
+					<div className="overflow-x-auto">
+						<table className="w-full border-collapse">
+							<thead>
+								<tr className="border-b border-gray-a6">
+									<th className="text-left p-3 font-semibold text-gray-12">Metric</th>
+									<th className="text-left p-3 font-semibold text-gray-12">What It Measures</th>
+									<th className="text-left p-3 font-semibold text-gray-12">Why It's Important</th>
+								</tr>
+							</thead>
+							<tbody>
+								{metrics.map((metric, index) => (
+									<tr key={index} className="border-b border-gray-a4 hover:bg-gray-a2 transition-colors">
+										<td className="p-3 font-medium text-gray-12">{metric.metric}</td>
+										<td className="p-3 text-gray-11">{metric.whatItMeasures}</td>
+										<td className="p-3 text-gray-11">{metric.whyImportant}</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
+				</>
+			)}
 		</Card>
 	);
 }
