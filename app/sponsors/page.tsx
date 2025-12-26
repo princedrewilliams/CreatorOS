@@ -589,8 +589,8 @@ export default function SponsorsPage() {
 			/>
 
 			{/* Invoice Generation Modal */}
-			<Dialog open={isInvoiceModalOpen} onOpenChange={setIsInvoiceModalOpen}>
-				<Card size="3" variant="surface" className="p-6 max-w-2xl w-full">
+			<Dialog.Root open={isInvoiceModalOpen} onOpenChange={(open) => setIsInvoiceModalOpen(open)}>
+				<Dialog.Content className="max-w-2xl max-h-[90vh] overflow-y-auto">
 					<div className="flex items-center justify-between mb-6">
 						<Heading size="5" as="h2" className="text-gray-12 dark:text-gray-12">
 							Generate Invoice
@@ -657,8 +657,8 @@ export default function SponsorsPage() {
 							))}
 						</div>
 					)}
-				</Card>
-			</Dialog>
+				</Dialog.Content>
+			</Dialog.Root>
 		</div>
 	);
 }
