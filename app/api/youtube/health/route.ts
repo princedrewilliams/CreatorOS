@@ -217,6 +217,61 @@ export async function GET(request: NextRequest) {
 			healthData.algorithmSignals.uploadConsistencyScore = Math.min(100, consistency);
 		}
 
+		// Enhance with AI insights if OpenAI is available
+		const openai = getOpenAIClient();
+		if (openai) {
+			try {
+				const aiPrompt = `You are a YouTube growth advisor. Analyze this channel health data and provide insights:
+
+Videos Killing Growth: ${healthData.videosKillingGrowth.length} videos with high impressions but low CTR
+Retention Drop-offs: ${healthData.retentionDropOffs.length} videos with significant drop-offs
+Upload Consistency: ${healthData.algorithmSignals.uploadConsistencyScore.toFixed(0)}/100
+CTR vs Channel Average: ${healthData.algorithmSignals.ctrVsChannelAverage.toFixed(2)}%
+Watch Time per Impression: ${healthData.algorithmSignals.watchTimePerImpression.toFixed(1)} minutes
+
+Provide a brief summary (2-3 sentences) of the channel's health and top priority action item.
+
+Format as JSON:
+{
+  "summary": "Brief health summary",
+  "priorityAction": "Top action item"
+}`;
+
+				const completion = await openai.chat.completions.create({
+					model: "gpt-4o-mini",
+					messages: [
+						{
+							role: "system",
+							content: "You are a YouTube growth advisor. Analyze channel health data and provide actionable insights. Return only valid JSON.",
+						},
+						{
+							role: "user",
+							content: aiPrompt,
+						},
+					],
+					max_tokens: 200,
+					temperature: 0.7,
+					response_format: { type: "json_object" },
+				});
+
+				const aiResponse = completion.choices[0]?.message?.content;
+				if (aiResponse) {
+					try {
+						const parsed = JSON.parse(aiResponse);
+						// Add AI insights to response
+						(healthData as any).aiInsights = {
+							summary: parsed.summary || "",
+							priorityAction: parsed.priorityAction || "",
+						};
+					} catch (parseError) {
+						console.warn("[YouTube Health] Failed to parse AI response:", parseError);
+					}
+				}
+			} catch (aiError) {
+				console.warn("[YouTube Health] AI analysis failed:", aiError);
+			}
+		}
+
 		return NextResponse.json({
 			success: true,
 			data: healthData,

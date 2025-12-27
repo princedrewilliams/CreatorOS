@@ -203,6 +203,85 @@ export async function GET(request: NextRequest) {
 			return b.watchTimeMultiplier - a.watchTimeMultiplier;
 		});
 
+		// Enhance with AI analysis if OpenAI is available
+		const openai = getOpenAIClient();
+		if (openai && recommendations.length > 0) {
+			try {
+				const topVideos = videos
+					.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
+					.slice(0, 5)
+					.map((v) => ({
+						title: v.title,
+						views: v.viewCount || 0,
+						watchTime: analyticsMap[v.id]?.watchTime || 0,
+						ctr: analyticsMap[v.id]?.ctr || 0,
+					}));
+
+				const aiPrompt = `You are a YouTube growth advisor. Analyze the following channel data and suggest 3 specific video topics.
+
+Top 5 Videos:
+${topVideos.map((v, i) => `${i + 1}. "${v.title}" - ${v.views.toLocaleString()} views, ${v.ctr.toFixed(2)}% CTR`).join("\n")}
+
+Current Recommendations: ${recommendations.slice(0, 3).map(r => r.topic).join(", ")}
+
+Based on this data, suggest 3 SPECIFIC video topics that would likely perform well. Consider what's working and what gaps exist.
+
+Format as JSON:
+{
+  "recommendations": [
+    {
+      "topic": "Specific video topic",
+      "reason": "Why this will work",
+      "priority": "high" | "medium" | "low",
+      "estimatedPerformance": "Expected outcome"
+    }
+  ]
+}`;
+
+				const completion = await openai.chat.completions.create({
+					model: "gpt-4o-mini",
+					messages: [
+						{
+							role: "system",
+							content: "You are a YouTube growth advisor. Suggest specific video topics based on analytics. Return only valid JSON.",
+						},
+						{
+							role: "user",
+							content: aiPrompt,
+						},
+					],
+					max_tokens: 400,
+					temperature: 0.7,
+					response_format: { type: "json_object" },
+				});
+
+				const aiResponse = completion.choices[0]?.message?.content;
+				if (aiResponse) {
+					try {
+						const parsed = JSON.parse(aiResponse);
+						if (parsed.recommendations && Array.isArray(parsed.recommendations)) {
+							// Merge AI recommendations with existing ones
+							recommendations = [
+								...parsed.recommendations.slice(0, 3).map((r: any) => ({
+									topic: r.topic,
+									reason: r.reason,
+									priority: r.priority || "medium" as "high" | "medium" | "low",
+									watchTimeMultiplier: r.priority === "high" ? 1.5 : r.priority === "medium" ? 1.2 : 1.0,
+									daysSinceLastPost: 0,
+									estimatedPerformance: r.estimatedPerformance || "Good potential",
+								})),
+								...recommendations.slice(0, 2),
+							].slice(0, 3);
+						}
+					} catch (parseError) {
+						console.warn("[YouTube Recommendations] Failed to parse AI response:", parseError);
+					}
+				}
+			} catch (aiError) {
+				console.warn("[YouTube Recommendations] AI analysis failed:", aiError);
+			}
+		}
+
 		// Return top 3 recommendations
 		return NextResponse.json({
 			success: true,
