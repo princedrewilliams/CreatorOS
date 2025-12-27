@@ -474,7 +474,7 @@ Channel Performance:
 - Average Watch Time per Impression: ${channelStats.avgWatchTimePerImpression.toFixed(1)} minutes
 
 Top 5 Performing Videos:
-${topVideos.map((v, i) => `${i + 1}. "${v.title}" - ${v.views.toLocaleString()} views, ${(v.watchTime / 60).toFixed(0)} min watch time, ${v.ctr.toFixed(2)}% CTR`).join("\n")}
+${topVideos.map((v: { title: string; views: number; watchTime: number; ctr: number }, i: number) => `${i + 1}. "${v.title}" - ${v.views.toLocaleString()} views, ${(v.watchTime / 60).toFixed(0)} min watch time, ${v.ctr.toFixed(2)}% CTR`).join("\n")}
 
 Current Recommended Topics: ${channelStats.topTopics.join(", ")}
 
