@@ -668,7 +668,25 @@ function PlannerContent() {
 											min="1"
 											max="7"
 											value={calendarCount}
-											onChange={(e) => setCalendarCount(Math.min(7, Math.max(1, parseInt(e.target.value) || 1)))}
+											onChange={(e) => {
+												const value = e.target.value;
+												if (value === "") {
+													setCalendarCount(1);
+													return;
+												}
+												const numValue = parseInt(value, 10);
+												if (!isNaN(numValue)) {
+													setCalendarCount(Math.min(7, Math.max(1, numValue)));
+												}
+											}}
+											onBlur={(e) => {
+												const value = parseInt(e.target.value, 10);
+												if (isNaN(value) || value < 1) {
+													setCalendarCount(1);
+												} else if (value > 7) {
+													setCalendarCount(7);
+												}
+											}}
 											className="w-full px-3 py-2 border border-gray-a6 rounded-md bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12"
 										/>
 									</div>

@@ -89,9 +89,23 @@ export default function GrowthDecisionsPage() {
 
 				const data = await response.json();
 				if (data.success) {
-					setPostThisNext(data.data?.postThisNext || data.postThisNext || []);
-					setFixTheseVideos(data.data?.fixTheseVideos || data.fixTheseVideos || []);
-					setDoubleDown(data.data?.doubleDown || data.doubleDown || []);
+					const postThisNextData = data.data?.postThisNext || data.postThisNext || [];
+					const fixTheseVideosData = data.data?.fixTheseVideos || data.fixTheseVideos || [];
+					const doubleDownData = data.data?.doubleDown || data.doubleDown || [];
+					
+					setPostThisNext(Array.isArray(postThisNextData) ? postThisNextData : []);
+					setFixTheseVideos(Array.isArray(fixTheseVideosData) ? fixTheseVideosData : []);
+					setDoubleDown(Array.isArray(doubleDownData) ? doubleDownData : []);
+					
+					// Log for debugging
+					console.log("[Growth Decisions] Data received:", {
+						postThisNext: postThisNextData.length,
+						fixTheseVideos: fixTheseVideosData.length,
+						doubleDown: doubleDownData.length,
+					});
+				} else {
+					console.error("[Growth Decisions] API returned error:", data.error || data.message);
+					setError(data.error || data.message || "Failed to load growth decisions");
 				}
 			} catch (err) {
 				setError(err instanceof Error ? err.message : "Failed to load growth decisions");
@@ -535,55 +549,6 @@ export default function GrowthDecisionsPage() {
 							)}
 						</section>
 
-						<Separator />
-
-						{/* Supporting Metrics - Collapsible */}
-						<section>
-							<button
-								onClick={() => setShowMetrics(!showMetrics)}
-								className="flex items-center justify-between w-full mb-4"
-							>
-								<Heading size="5">Supporting Metrics</Heading>
-								{showMetrics ? (
-									<ChevronUpIcon className="w-5 h-5 text-gray-11" />
-								) : (
-									<ChevronDownIcon className="w-5 h-5 text-gray-11" />
-								)}
-							</button>
-
-							<AnimatePresence>
-								{showMetrics && (
-									<motion.div
-										initial={{ opacity: 0, height: 0 }}
-										animate={{ opacity: 1, height: "auto" }}
-										exit={{ opacity: 0, height: 0 }}
-										className="space-y-4"
-									>
-										<Card size="3" variant="surface" className="p-6">
-											<Text size="2" color="gray" className="mb-4">
-												Channel performance metrics that support the decisions above.
-											</Text>
-											<div className="space-y-3">
-												{fixTheseVideos.length > 0 && (
-													<div>
-														<Text size="1" color="gray" className="mb-1">
-															Videos requiring attention: {fixTheseVideos.length}
-														</Text>
-													</div>
-												)}
-												{postThisNext.length > 0 && (
-													<div>
-														<Text size="1" color="gray" className="mb-1">
-															Recommended topics: {postThisNext.length}
-														</Text>
-													</div>
-												)}
-											</div>
-										</Card>
-									</motion.div>
-								)}
-							</AnimatePresence>
-						</section>
 					</div>
 				)}
 			</div>

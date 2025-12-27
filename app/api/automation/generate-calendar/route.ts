@@ -44,7 +44,9 @@ export async function POST(request: NextRequest) {
 		const start = startDate ? new Date(startDate) : new Date();
 		const end = endDate ? new Date(endDate) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Default to 30 days
 		const daysDiff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-		const totalPosts = Math.ceil((daysDiff / 7) * (postsPerWeek || 1));
+		// Ensure we generate at least the requested number of posts per week
+		const weeks = daysDiff / 7;
+		const totalPosts = Math.max(Math.ceil(weeks * (postsPerWeek || 1)), postsPerWeek || 1);
 
 		// Create system prompt for calendar generation
 		const systemPrompt = `You are an expert content calendar generator. Generate a structured content calendar based on user requirements. 
