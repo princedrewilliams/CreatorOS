@@ -44,20 +44,6 @@ const features = [
 		color: "green" as const,
 	},
 	{
-		title: "Analytics Dashboard",
-		description: "View performance across YouTube",
-		icon: BarChartIcon,
-		href: "/analytics",
-		color: "cyan" as const,
-	},
-	{
-		title: "YouTube Insights",
-		description: "Advanced analytics and recommendations",
-		icon: LightningBoltIcon,
-		href: "/youtube-insights",
-		color: "red" as const,
-	},
-	{
 		title: "Growth Decisions",
 		description: "Data-driven decisions on what to post and fix",
 		icon: TargetIcon,

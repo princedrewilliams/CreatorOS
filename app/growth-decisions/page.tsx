@@ -70,18 +70,21 @@ export default function GrowthDecisionsPage() {
 	const youtubeConnected = socialConnections.find((c) => c.platform === "youtube" && c.connected);
 
 	useEffect(() => {
-		if (!youtubeConnected) {
-			setError("Please connect your YouTube account first");
-			setLoading(false);
-			return;
-		}
-
 		const fetchGrowthDecisions = async () => {
+			if (!youtubeConnected) {
+				setError("Please connect your YouTube account first");
+				setLoading(false);
+				return;
+			}
+
 			setLoading(true);
 			setError(null);
 
 			try {
-				const response = await fetch("/api/youtube/growth-decisions", { credentials: "include" });
+				const response = await fetch("/api/youtube/growth-decisions", { 
+					credentials: "include",
+					cache: "no-store" 
+				});
 
 				if (!response.ok) {
 					throw new Error("Failed to load growth decisions");

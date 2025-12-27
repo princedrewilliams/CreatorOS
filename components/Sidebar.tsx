@@ -19,8 +19,6 @@ const navItems = [
 	{ href: "/dashboard", label: "Dashboard", icon: HomeIcon },
 	{ href: "/planner", label: "Content Planner", icon: CalendarIcon },
 	{ href: "/sponsors", label: "Sponsors", icon: FileTextIcon },
-	{ href: "/analytics", label: "Analytics", icon: BarChartIcon },
-	{ href: "/youtube-insights", label: "YouTube Insights", icon: LightningBoltIcon },
 	{ href: "/growth-decisions", label: "Growth Decisions", icon: TargetIcon },
 ];
 
