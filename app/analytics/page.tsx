@@ -369,71 +369,68 @@ export default function AnalyticsPage() {
 										<Heading size="5" weight="bold" className="text-gray-12 dark:text-gray-12">
 											Top performing content
 										</Heading>
-										<Button
-											variant="ghost"
-											size="2"
-											asChild
-										>
-											<Link href={`/analytics/posts?platform=${platform}`}>
-												View All
-											</Link>
-										</Button>
+										{analyticsSnapshot.topContent.length > 3 && (
+											<Button
+												variant="ghost"
+												size="2"
+												asChild
+											>
+												<Link href={`/analytics/posts?platform=${platform}`}>
+													View All
+												</Link>
+											</Button>
+										)}
 									</div>
 									<div className="space-y-3">
 										{analyticsSnapshot.topContent.slice(0, 3).map((piece) => (
-																<div
-																	key={`${platform}-${piece.title}`}
-																	className="rounded-lg border border-gray-a4 dark:border-gray-a6 p-3 flex gap-3"
-																>
-																	{piece.thumbnail && (
-																		<img
-																			src={piece.thumbnail}
-																			alt={piece.title}
-																			className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
-																		/>
-																	)}
-																	<div className="flex-1 min-w-0">
-																		<Text size="2" weight="medium" className="text-gray-12 dark:text-gray-12 line-clamp-2">
-																			{piece.title}
-																		</Text>
-																		<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
-																			{formatCompact(piece.views)} views · {piece.engagement.toFixed(1)}% engagement
-																		</Text>
-																		{(piece.likes !== undefined || piece.comments !== undefined || piece.shares !== undefined) && (
-																			<div className="flex gap-2 mt-1">
-																				{piece.likes !== undefined && (
-																					<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
-																						❤️ {formatCompact(piece.likes)}
-																					</Text>
-																				)}
-																				{piece.comments !== undefined && (
-																					<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
-																						💬 {formatCompact(piece.comments)}
-																					</Text>
-																				)}
-																				{piece.shares !== undefined && (
-																					<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
-																						🔁 {formatCompact(piece.shares)}
-																					</Text>
-																				)}
-																			</div>
-																		)}
-																		<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
-																			{new Date(piece.publishedAt).toLocaleDateString()}
-																		</Text>
-																	</div>
-																</div>
-															))}
+											<div
+												key={`${platform}-${piece.title}`}
+												className="rounded-lg border border-gray-a4 dark:border-gray-a6 p-3 flex gap-3"
+											>
+												{piece.thumbnail && (
+													<img
+														src={piece.thumbnail}
+														alt={piece.title}
+														className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
+													/>
+												)}
+												<div className="flex-1 min-w-0">
+													<Text size="2" weight="medium" className="text-gray-12 dark:text-gray-12 line-clamp-2">
+														{piece.title}
+													</Text>
+													<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
+														{formatCompact(piece.views)} views · {piece.engagement.toFixed(1)}% engagement
+													</Text>
+													{(piece.likes !== undefined || piece.comments !== undefined || piece.shares !== undefined) && (
+														<div className="flex gap-2 mt-1">
+															{piece.likes !== undefined && (
+																<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
+																	❤️ {formatCompact(piece.likes)}
+																</Text>
+															)}
+															{piece.comments !== undefined && (
+																<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
+																	💬 {formatCompact(piece.comments)}
+																</Text>
+															)}
+															{piece.shares !== undefined && (
+																<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
+																	🔁 {formatCompact(piece.shares)}
+																</Text>
+															)}
 														</div>
-													</div>
+													)}
+													<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
+														{new Date(piece.publishedAt).toLocaleDateString()}
+													</Text>
 												</div>
-											)}
-										</div>
-									</Card>
-								</motion.div>
-							);
-						})}
-					</div>
+											</div>
+										))}
+									</div>
+								</div>
+							</motion.div>
+						);
+					})}
 
 
 					{totals && (
