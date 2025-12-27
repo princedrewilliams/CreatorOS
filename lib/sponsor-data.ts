@@ -17,6 +17,7 @@ export interface Sponsor {
 	currency: string; // e.g., "USD"
 	dueDate?: string; // YYYY-MM-DD format
 	paymentStatus: PaymentStatus;
+	paymentLink?: string; // PayPal or Stripe payment link
 	notes?: string;
 	youtubeVideoIds?: string[]; // Array of YouTube video IDs linked to this sponsor
 	createdAt: string;

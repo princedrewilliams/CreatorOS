@@ -1,4 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import OpenAI from "openai";
+
+// Lazy initialization - only create client when needed
+function getOpenAIClient() {
+	if (!process.env.OPENAI_API_KEY) {
+		return null;
+	}
+	return new OpenAI({
+		apiKey: process.env.OPENAI_API_KEY,
+	});
+}
 
 interface PostRecommendation {
 	topic: string;

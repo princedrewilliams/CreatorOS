@@ -225,7 +225,23 @@ export async function GET(
 		doc.setFont('helvetica', 'bold');
 		doc.text('Total:', rightMargin - 20, yPos, { align: 'right' });
 		doc.text(amount, rightMargin, yPos, { align: 'right' });
-		yPos += 20;
+		yPos += 15;
+
+		// Payment Link section (if provided)
+		if (sponsor.paymentLink) {
+			doc.setFontSize(10);
+			doc.setFont('helvetica', 'bold');
+			doc.setTextColor(0, 0, 0);
+			doc.text('Payment Link:', margin, yPos);
+			yPos += 6;
+			
+			doc.setFontSize(9);
+			doc.setFont('helvetica', 'normal');
+			doc.setTextColor(0, 0, 255); // Blue color for link
+			const paymentLinkLines = doc.splitTextToSize(sponsor.paymentLink, rightMargin - margin);
+			doc.text(paymentLinkLines, margin, yPos);
+			yPos += paymentLinkLines.length * 4 + 5;
+		}
 
 		// Footer
 		doc.setFontSize(9);

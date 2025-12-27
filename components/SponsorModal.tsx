@@ -35,6 +35,7 @@ export function SponsorModal({ isOpen, onClose, onSave, sponsor }: SponsorModalP
 	const [status, setStatus] = useState<DealStatus>("lead");
 	const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("unpaid");
 	const [dueDate, setDueDate] = useState("");
+	const [paymentLink, setPaymentLink] = useState("");
 	const [notes, setNotes] = useState("");
 	const [error, setError] = useState<string | null>(null);
 
@@ -48,6 +49,7 @@ export function SponsorModal({ isOpen, onClose, onSave, sponsor }: SponsorModalP
 			setStatus(sponsor.dealStatus);
 			setPaymentStatus(sponsor.paymentStatus);
 			setDueDate(sponsor.dueDate || "");
+			setPaymentLink(sponsor.paymentLink || "");
 			setNotes(sponsor.notes || "");
 		} else {
 			// Reset form
@@ -59,6 +61,7 @@ export function SponsorModal({ isOpen, onClose, onSave, sponsor }: SponsorModalP
 			setStatus("lead");
 			setPaymentStatus("unpaid");
 			setDueDate("");
+			setPaymentLink("");
 			setNotes("");
 		}
 		setError(null);
@@ -90,6 +93,7 @@ export function SponsorModal({ isOpen, onClose, onSave, sponsor }: SponsorModalP
 			currency: "USD", // Default to USD, can be made configurable later
 			dueDate: dueDate || undefined,
 			paymentStatus,
+			paymentLink: paymentLink.trim() || undefined,
 			notes: notes.trim() || undefined,
 		};
 
@@ -213,6 +217,19 @@ export function SponsorModal({ isOpen, onClose, onSave, sponsor }: SponsorModalP
 						/>
 						<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
 							Enter deliverables separated by commas
+						</Text>
+					</FormField>
+
+					<FormField label="Payment Link (PayPal or Stripe)">
+						<input
+							type="url"
+							placeholder="https://paypal.me/yourname or https://buy.stripe.com/..."
+							value={paymentLink}
+							onChange={(e) => setPaymentLink(e.target.value)}
+							className="w-full rounded-lg border border-gray-a4 dark:border-gray-a6 bg-surface-1 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-8"
+						/>
+						<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11 mt-1">
+							Optional: Add a payment link to include on the invoice
 						</Text>
 					</FormField>
 

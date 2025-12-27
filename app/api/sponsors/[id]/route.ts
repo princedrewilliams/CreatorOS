@@ -89,6 +89,7 @@ export async function PUT(
 		if (body.currency !== undefined) updates.currency = body.currency;
 		if (body.dueDate !== undefined) updates.dueDate = body.dueDate || undefined;
 		if (body.paymentStatus !== undefined) updates.paymentStatus = body.paymentStatus;
+		if (body.paymentLink !== undefined) updates.paymentLink = body.paymentLink?.trim() || undefined;
 		if (body.notes !== undefined) updates.notes = body.notes?.trim();
 		if (body.youtubeVideoIds !== undefined) updates.youtubeVideoIds = Array.isArray(body.youtubeVideoIds) ? body.youtubeVideoIds : undefined;
 

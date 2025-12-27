@@ -77,6 +77,7 @@ export async function POST(request: NextRequest) {
 			currency: body.currency || "USD",
 			dueDate: body.dueDate || undefined,
 			paymentStatus: body.paymentStatus || "unpaid",
+			paymentLink: body.paymentLink?.trim() || undefined,
 			notes: body.notes?.trim(),
 			youtubeVideoIds: Array.isArray(body.youtubeVideoIds) ? body.youtubeVideoIds : undefined,
 		};
