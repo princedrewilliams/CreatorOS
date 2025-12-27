@@ -343,248 +343,44 @@ export default function AnalyticsPage() {
 						</Card>
 					)}
 
-					<div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
-						{connectedPlatforms.map((platform, index) => {
-							const analyticsSnapshot = analytics[platform];
-							const meta = PLATFORM_META[platform];
+					{connectedPlatforms.map((platform, index) => {
+						const analyticsSnapshot = analytics[platform];
+						const meta = PLATFORM_META[platform];
 
+						if (!analyticsSnapshot) {
 							return (
-								<motion.div
-									key={platform}
-									initial={{ opacity: 0, y: 20 }}
-									animate={{ opacity: 1, y: 0 }}
-									transition={{ delay: index * 0.1 }}
-								>
-									<Card size="3" variant="surface" className="p-4 sm:p-6">
-										<div className="flex flex-col gap-3 sm:gap-4">
-											<div className="flex items-center gap-3">
-												{(() => {
-													const connection = socialConnections.find((c) => c.platform === platform && c.connected);
-													return connection?.profilePicture ? (
-														<img
-															src={connection.profilePicture}
-															alt={`${connection.username || meta.label} profile`}
-															className="w-12 h-12 rounded-lg object-cover border-2"
-															style={{ borderColor: `var(--${meta.color}-a6)` }}
-														/>
-													) : (
-														<div
-															className="w-12 h-12 rounded-lg flex items-center justify-center"
-															style={{
-																backgroundColor: `var(--${meta.color}-a2)`,
-																color: `var(--${meta.color}-11)`,
-															}}
-														>
-															<BarChartIcon className="w-6 h-6" />
-														</div>
-													);
-												})()}
-												<div>
-													<Heading size="5" weight="bold" className="text-gray-12 dark:text-gray-12">
-														{meta.label}
-													</Heading>
-													<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
-														{(() => {
-															const connection = socialConnections.find((c) => c.platform === platform && c.connected);
-															return connection?.username ? `@${connection.username}` : "Updated " + (analyticsSnapshot ? new Date(analyticsSnapshot.updatedAt).toLocaleString() : "—");
-														})()}
-													</Text>
-												</div>
-											</div>
-											<Separator />
-											{!analyticsSnapshot && (
-												<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
-													{loading ? "Fetching analytics..." : "No analytics available yet."}
-												</Text>
-											)}
-											{analyticsSnapshot && (
-												<div className="space-y-4">
-													<div className="grid grid-cols-2 gap-4">
-														<div>
-															<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
-																Views
-															</Text>
-															<Text size="4" weight="bold" className="text-gray-12 dark:text-gray-12">
-																{formatCompact(analyticsSnapshot.views || 0)}
-															</Text>
-															<Badge color="green" size="1" variant="soft" className="mt-1">
-																{formatPercent(analyticsSnapshot.trend?.views || 0)}
-															</Badge>
-														</div>
-														<div>
-															<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
-																{meta.followerLabel}
-															</Text>
-															<Text size="4" weight="bold" className="text-gray-12 dark:text-gray-12">
-																{formatCompact(analyticsSnapshot.followers || 0)}
-															</Text>
-															<Badge color="green" size="1" variant="soft" className="mt-1">
-																{formatPercent(analyticsSnapshot.trend?.followers || 0)}
-															</Badge>
-														</div>
-														<div>
-															<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
-																Watch Time
-															</Text>
-															<Text size="4" weight="bold" className="text-gray-12 dark:text-gray-12">
-																{formatCompact((analyticsSnapshot.watchTime ?? (analyticsSnapshot.views || 0) * 2.5) || 0)} min
-															</Text>
-															<Badge color="green" size="1" variant="soft" className="mt-1">
-																{formatPercent(analyticsSnapshot.trend?.views || 0)}
-															</Badge>
-														</div>
-														<div>
-															<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
-																Revenue
-															</Text>
-															<Text size="4" weight="bold" className="text-gray-12 dark:text-gray-12">
-																{formatCompact(analyticsSnapshot.revenue, "currency")}
-															</Text>
-															<Badge color="green" size="1" variant="soft" className="mt-1">
-																{formatPercent(analyticsSnapshot.trend.revenue)}
-															</Badge>
-														</div>
-													</div>
-													
-													{/* Additional YouTube Metrics */}
-													{platform === "youtube" && analyticsSnapshot && (
-														<>
-															<Separator />
-															<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-																{analyticsSnapshot.avgViewDuration !== undefined && (
-																	<div>
-																		<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
-																			Avg View Duration
-																		</Text>
-																		<Text size="3" weight="bold" className="text-gray-12 dark:text-gray-12">
-																			{Math.round(analyticsSnapshot.avgViewDuration)}s
-																		</Text>
-																	</div>
-																)}
-																{analyticsSnapshot.ctr !== undefined && (
-																	<div>
-																		<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
-																			CTR
-																		</Text>
-																		<Text size="3" weight="bold" className="text-gray-12 dark:text-gray-12">
-																			{analyticsSnapshot.ctr.toFixed(2)}%
-																		</Text>
-																	</div>
-																)}
-																{analyticsSnapshot.audienceRetention !== undefined && (
-																	<div>
-																		<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
-																			Audience Retention
-																		</Text>
-																		<Text size="3" weight="bold" className="text-gray-12 dark:text-gray-12">
-																			{analyticsSnapshot.audienceRetention.toFixed(1)}%
-																		</Text>
-																	</div>
-																)}
-																{analyticsSnapshot.subscriberGrowth !== undefined && (
-																	<div>
-																		<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
-																			Subscriber Growth
-																		</Text>
-																		<Text size="3" weight="bold" className="text-gray-12 dark:text-gray-12">
-																			{formatCompact(analyticsSnapshot.subscriberGrowth)}
-																		</Text>
-																	</div>
-																)}
-																{analyticsSnapshot.impressions !== undefined && (
-																	<div>
-																		<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11">
-																			Impressions
-																		</Text>
-																		<Text size="3" weight="bold" className="text-gray-12 dark:text-gray-12">
-																			{formatCompact(analyticsSnapshot.impressions)}
-																		</Text>
-																	</div>
-																)}
-															</div>
-															{analyticsSnapshot.trafficSources && Object.keys(analyticsSnapshot.trafficSources).length > 0 && (
-																<div className="mt-4">
-																	<Text size="2" weight="medium" className="mb-2 text-gray-12 dark:text-gray-12">
-																		Traffic Sources
-																	</Text>
-																	<div className="space-y-2">
-																		{Object.entries(analyticsSnapshot.trafficSources)
-																			.sort(([, a], [, b]) => b - a)
-																			.slice(0, 5)
-																			.map(([source, views]) => (
-																				<div key={source} className="flex items-center justify-between p-2 rounded bg-gray-a2">
-																					<Text size="1" className="text-gray-11 capitalize">
-																						{source.replace(/_/g, " ").toLowerCase()}
-																					</Text>
-																					<Text size="2" weight="medium" className="text-gray-12">
-																						{formatCompact(views as number)}
-																					</Text>
-																				</div>
-																			))}
-																	</div>
-																</div>
-															)}
-														</>
-													)}
-													
-													{/* Additional KPIs */}
-													<Separator />
-													<div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-														<div>
-															<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11 flex items-center gap-1">
-																<VideoIcon className="w-3 h-3" />
-																Posts
-															</Text>
-															<Text size="3" weight="bold" className="text-gray-12 dark:text-gray-12">
-																{analyticsSnapshot.topContent.length}
-															</Text>
-														</div>
-														<div>
-															<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11 flex items-center gap-1">
-																<ArrowUpIcon className="w-3 h-3" />
-																Avg Views/Post
-															</Text>
-															<Text size="3" weight="bold" className="text-gray-12 dark:text-gray-12">
-																{analyticsSnapshot.topContent.length > 0
-																	? formatCompact(
-																			analyticsSnapshot.topContent.reduce((sum, c) => sum + c.views, 0) /
-																				analyticsSnapshot.topContent.length
-																	  )
-																	: "0"}
-															</Text>
-														</div>
-														<div>
-															<Text size="1" color="gray" className="mb-1 text-gray-11 dark:text-gray-11 flex items-center gap-1">
-																<HeartIcon className="w-3 h-3" />
-																Total Interactions
-															</Text>
-															<Text size="3" weight="bold" className="text-gray-12 dark:text-gray-12">
-																{formatCompact(
-																	analyticsSnapshot.topContent.reduce(
-																		(sum, c) => sum + (c.likes || 0) + (c.comments || 0) + (c.shares || 0),
-																		0
-																	)
-																)}
-															</Text>
-														</div>
-													</div>
-													<div>
-														<div className="flex items-center justify-between mb-2">
-															<Text size="2" weight="medium" className="text-gray-12 dark:text-gray-12">
-																Top performing content
-															</Text>
-															<Button
-																variant="ghost"
-																size="1"
-																asChild
-															>
-																<Link href={`/analytics/posts?platform=${platform}`}>
-																	View All
-																</Link>
-															</Button>
-														</div>
-														<div className="space-y-2">
-															{analyticsSnapshot.topContent.map((piece) => (
+								<Card key={platform} size="3" variant="surface" className="p-8">
+									<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
+										{loading ? "Fetching analytics..." : "No analytics available yet."}
+									</Text>
+								</Card>
+							);
+						}
+
+						return (
+							<motion.div
+								key={platform}
+								initial={{ opacity: 0, y: 20 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ delay: index * 0.1 }}
+							>
+								<div>
+									<div className="flex items-center justify-between mb-4">
+										<Heading size="5" weight="bold" className="text-gray-12 dark:text-gray-12">
+											Top performing content
+										</Heading>
+										<Button
+											variant="ghost"
+											size="2"
+											asChild
+										>
+											<Link href={`/analytics/posts?platform=${platform}`}>
+												View All
+											</Link>
+										</Button>
+									</div>
+									<div className="space-y-3">
+										{analyticsSnapshot.topContent.slice(0, 3).map((piece) => (
 																<div
 																	key={`${platform}-${piece.title}`}
 																	className="rounded-lg border border-gray-a4 dark:border-gray-a6 p-3 flex gap-3"
