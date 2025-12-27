@@ -11,12 +11,15 @@ export async function GET(
 	const path = slug.join("/");
 	const filename = slug[slug.length - 1] || "";
 	
-	// Handle TikTok and Google verification files - return 404 for everything else
-	// This prevents interference with other routes
+	// Handle TikTok and Google verification files only
+	// Don't interfere with Next.js file-based routing - let Next.js handle other routes
 	const isTiktokVerification = filename.includes("tiktok") || path.includes("tiktok");
 	const isGoogleVerification = filename.startsWith("google") && (filename.endsWith(".html") || filename.endsWith(".txt"));
 	
+	// Only handle verification files - let Next.js handle everything else
 	if (!isTiktokVerification && !isGoogleVerification) {
+		// Return 404 only for verification-like paths, otherwise let Next.js handle it
+		// This prevents the catch-all from interfering with normal routing
 		return new NextResponse("Not Found", { status: 404 });
 	}
 	
