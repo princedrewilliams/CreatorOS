@@ -85,15 +85,15 @@ export async function POST(request: NextRequest) {
 			throw new Error("Failed to fetch channel data");
 		}
 
-		const channelData = await channelResponse.json();
-		if (!channelData.items || channelData.items.length === 0) {
+		const channelResponseData = await channelResponse.json();
+		if (!channelResponseData.items || channelResponseData.items.length === 0) {
 			return NextResponse.json(
 				{ error: "Channel not found" },
 				{ status: 404 }
 			);
 		}
 
-		const channel = channelData.items[0];
+		const channel = channelResponseData.items[0];
 		const uploadsPlaylistId = channel.contentDetails?.relatedPlaylists?.uploads;
 
 		// Fetch recent videos
