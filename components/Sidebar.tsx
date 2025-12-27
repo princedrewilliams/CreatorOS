@@ -16,10 +16,8 @@ import { useAppStore } from "@/lib/store";
 import { motion, AnimatePresence } from "framer-motion";
 
 const navItems = [
-	{ href: "/dashboard", label: "Dashboard", icon: HomeIcon },
+	{ href: "/dashboard", label: "Channel Deconstruction Engine", icon: HomeIcon },
 	{ href: "/planner", label: "Content Planner", icon: CalendarIcon },
-	{ href: "/sponsors", label: "Sponsors", icon: FileTextIcon },
-	{ href: "/growth-decisions", label: "Growth Decisions", icon: TargetIcon },
 ];
 
 export function Sidebar() {
