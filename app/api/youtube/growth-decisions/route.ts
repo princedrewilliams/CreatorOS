@@ -310,7 +310,7 @@ export async function GET(request: NextRequest) {
 		}).filter(Boolean);
 
 		// 1. POST THIS NEXT - Content Direction Engine (Pattern Matching + Ranking)
-		const postRecommendations: PostRecommendation[] = [];
+		let postRecommendations: PostRecommendation[] = [];
 
 		// Use Growth Score to identify top performers (top 20%, or at least top 3 if fewer videos)
 		const topPerformersCount = Math.max(3, Math.ceil(videosWithScores.length * 0.2));

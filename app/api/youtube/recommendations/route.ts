@@ -175,7 +175,7 @@ export async function GET(request: NextRequest) {
 		const overallAvgWatchTime = Object.values(topicPerformance).reduce((sum, topic) => sum + topic.avgWatchTime, 0) / Object.keys(topicPerformance).length || 1;
 
 		// Generate recommendations
-		const recommendations: VideoRecommendation[] = [];
+		let recommendations: VideoRecommendation[] = [];
 
 		Object.entries(topicPerformance).forEach(([topic, data]) => {
 			const watchTimeMultiplier = data.avgWatchTime / overallAvgWatchTime;
