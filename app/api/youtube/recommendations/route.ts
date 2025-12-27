@@ -234,7 +234,7 @@ export async function GET(request: NextRequest) {
 				const aiPrompt = `You are a YouTube growth advisor. Analyze the following channel data and suggest 3 specific video topics.
 
 Top 5 Videos:
-${topVideos.map((v, i) => `${i + 1}. "${v.title}" - ${v.views.toLocaleString()} views, ${v.ctr.toFixed(2)}% CTR`).join("\n")}
+${topVideos.map((v: { title: string; views: number; watchTime: number; ctr: number }, i: number) => `${i + 1}. "${v.title}" - ${v.views.toLocaleString()} views, ${v.ctr.toFixed(2)}% CTR`).join("\n")}
 
 Current Recommendations: ${recommendations.slice(0, 3).map(r => r.topic).join(", ")}
 
