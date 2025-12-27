@@ -440,6 +440,109 @@ export async function GET(request: NextRequest) {
 			return (b.retentionBoost || 0) - (a.retentionBoost || 0);
 		});
 
+		// Enhance recommendations with AI analysis if OpenAI is available
+		const openai = getOpenAIClient();
+		if (openai && postRecommendations.length > 0) {
+			try {
+				// Prepare analytics summary for AI
+				const topVideos = videosWithScores
+					.sort((a: any, b: any) => b.growthScore - a.growthScore)
+					.slice(0, 5)
+					.map((v: any) => ({
+						title: v.video.title,
+						views: videoAnalyticsMap[v.video.id]?.views || v.video.viewCount,
+						watchTime: videoAnalyticsMap[v.video.id]?.watchTime || 0,
+						ctr: videoAnalyticsMap[v.video.id]?.ctr || 0,
+						avgViewDuration: videoAnalyticsMap[v.video.id]?.avgViewDuration || 0,
+						subscribersGained: videoAnalyticsMap[v.video.id]?.subscribersGained || 0,
+					}));
+
+				const channelStats = {
+					totalViews: videos.reduce((sum: number, v: any) => sum + (videoAnalyticsMap[v.id]?.views || v.viewCount || 0), 0),
+					totalWatchTime: videos.reduce((sum: number, v: any) => sum + (videoAnalyticsMap[v.id]?.watchTime || 0), 0),
+					avgCTR: channelAvgCTR,
+					avgWatchTimePerImpression: channelAvgWatchTimePerImpression,
+					topTopics: postRecommendations.slice(0, 3).map(r => r.topic),
+				};
+
+				const aiPrompt = `You are a YouTube growth advisor. Analyze the following channel analytics and suggest the top 3 specific video topics the creator should post next.
+
+Channel Performance:
+- Total Views: ${channelStats.totalViews.toLocaleString()}
+- Total Watch Time: ${(channelStats.totalWatchTime / 60).toFixed(0)} hours
+- Average CTR: ${channelStats.avgCTR.toFixed(2)}%
+- Average Watch Time per Impression: ${channelStats.avgWatchTimePerImpression.toFixed(1)} minutes
+
+Top 5 Performing Videos:
+${topVideos.map((v, i) => `${i + 1}. "${v.title}" - ${v.views.toLocaleString()} views, ${(v.watchTime / 60).toFixed(0)} min watch time, ${v.ctr.toFixed(2)}% CTR`).join("\n")}
+
+Current Recommended Topics: ${channelStats.topTopics.join(", ")}
+
+Based on this data, suggest 3 SPECIFIC video topics (not generic categories) that would likely perform well. Consider:
+1. What topics/formats are working best
+2. What gaps exist in the content
+3. What the audience is responding to
+4. What would build on successful patterns
+
+Format your response as a JSON object with a "recommendations" key containing an array:
+{
+  "recommendations": [
+    {
+      "topic": "Specific video topic/title idea",
+      "reason": "Why this topic will work based on the data",
+      "expectedImpact": "What improvement to expect (e.g., 'Higher retention', 'More subscribers', 'Better CTR')",
+      "confidence": "high"
+    }
+  ]
+}
+
+Only return the JSON object, no other text.`;
+
+				const completion = await openai.chat.completions.create({
+					model: "gpt-4o-mini",
+					messages: [
+						{
+							role: "system",
+							content: "You are a YouTube growth advisor. Analyze analytics data and suggest specific video topics. Return only valid JSON objects. Never make up metrics or predict virality.",
+						},
+						{
+							role: "user",
+							content: aiPrompt,
+						},
+					],
+					max_tokens: 500,
+					temperature: 0.7,
+					response_format: { type: "json_object" },
+				});
+
+				const aiResponse = completion.choices[0]?.message?.content;
+				if (aiResponse) {
+					try {
+						const parsed = JSON.parse(aiResponse);
+						// If AI returns recommendations, merge them with existing ones
+						if (parsed.recommendations && Array.isArray(parsed.recommendations)) {
+							// Add AI recommendations at the top, but keep deterministic ones as fallback
+							postRecommendations = [
+								...parsed.recommendations.slice(0, 3).map((r: any) => ({
+									topic: r.topic,
+									reason: r.reason,
+									expectedImpact: r.expectedImpact || "Improved performance",
+									confidence: r.confidence || "medium" as "low" | "medium" | "high",
+								})),
+								...postRecommendations.slice(0, 2), // Keep top 2 deterministic recommendations
+							].slice(0, 5); // Limit to top 5 total
+						}
+					} catch (parseError) {
+						console.warn("[Growth Decisions] Failed to parse AI response:", parseError);
+						// Continue with deterministic recommendations
+					}
+				}
+			} catch (aiError) {
+				console.warn("[Growth Decisions] AI analysis failed, using deterministic recommendations:", aiError);
+				// Continue with deterministic recommendations
+			}
+		}
+
 		// Helper function for formatting
 		const formatCompact = (value: number) => {
 			return new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(value);

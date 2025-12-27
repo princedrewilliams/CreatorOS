@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
-const baseURL = "https://api.aimlapi.com/v1";
-const apiKey = process.env.AIML_API_KEY;
+// Lazy initialization - only create client when needed
+function getOpenAIClient() {
+	if (!process.env.OPENAI_API_KEY) {
+		return null;
+	}
+	return new OpenAI({
+		apiKey: process.env.OPENAI_API_KEY,
+	});
+}
 
 interface KeyMoment {
 	startTime: number; // in seconds
@@ -14,9 +21,10 @@ interface KeyMoment {
 
 export async function POST(request: NextRequest) {
 	try {
-		if (!apiKey) {
+		const openai = getOpenAIClient();
+		if (!openai) {
 			return NextResponse.json(
-				{ error: "AIML API key is not configured. Please add AIML_API_KEY to your environment variables." },
+				{ error: "OpenAI API key is not configured. Please add OPENAI_API_KEY to your environment variables." },
 				{ status: 500 }
 			);
 		}
@@ -33,12 +41,6 @@ export async function POST(request: NextRequest) {
 
 		const duration = videoDuration || 300; // Default to 5 minutes if not provided
 		const count = Math.min(7, Math.max(3, clipCount || 5));
-
-		// Initialize OpenAI client with AIML API
-		const openai = new OpenAI({
-			apiKey: apiKey,
-			baseURL: baseURL,
-		});
 
 		// Create system prompt for key moment detection
 		const systemPrompt = `You are an expert video content analyzer. Analyze video content and identify key moments that would make engaging short-form clips.
@@ -63,9 +65,9 @@ Video URL: ${videoUrl}
 
 Return a JSON object with a "moments" array containing ${count} key moments. Each moment should be 10-20 seconds long and represent the most engaging parts of the video.`;
 
-		// Call AIML API
+		// Call OpenAI API
 		const completion = await openai.chat.completions.create({
-			model: "gpt-4o",
+			model: "gpt-4o-mini",
 			messages: [
 				{ role: "system", content: systemPrompt },
 				{ role: "user", content: userPrompt },

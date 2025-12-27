@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
-const baseURL = "https://api.aimlapi.com/v1";
-const apiKey = process.env.AIML_API_KEY;
+// Lazy initialization - only create client when needed
+function getOpenAIClient() {
+	if (!process.env.OPENAI_API_KEY) {
+		return null;
+	}
+	return new OpenAI({
+		apiKey: process.env.OPENAI_API_KEY,
+	});
+}
 
 interface GeneratedTask {
 	title: string;
@@ -15,9 +22,10 @@ interface GeneratedTask {
 
 export async function POST(request: NextRequest) {
 	try {
-		if (!apiKey) {
+		const openai = getOpenAIClient();
+		if (!openai) {
 			return NextResponse.json(
-				{ error: "AIML API key is not configured. Please add AIML_API_KEY to your environment variables." },
+				{ error: "OpenAI API key is not configured. Please add OPENAI_API_KEY to your environment variables." },
 				{ status: 500 }
 			);
 		}
@@ -31,12 +39,6 @@ export async function POST(request: NextRequest) {
 				{ status: 400 }
 			);
 		}
-
-		// Initialize OpenAI client with AIML API
-		const openai = new OpenAI({
-			apiKey: apiKey,
-			baseURL: baseURL,
-		});
 
 		// Calculate date range
 		const start = startDate ? new Date(startDate) : new Date();
@@ -62,9 +64,9 @@ User request: ${prompt}
 
 Return a JSON array of tasks. Distribute dates evenly. Make each post unique and engaging.`;
 
-		// Call AIML API
+		// Call OpenAI API
 		const completion = await openai.chat.completions.create({
-			model: "gpt-4o",
+			model: "gpt-4o-mini",
 			messages: [
 				{ role: "system", content: systemPrompt },
 				{ role: "user", content: userPrompt },
