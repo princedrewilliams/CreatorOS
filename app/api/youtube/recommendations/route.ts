@@ -208,9 +208,9 @@ export async function GET(request: NextRequest) {
 		if (openai && recommendations.length > 0) {
 			try {
 				const topVideos = videos
-					.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
+					.sort((a: any, b: any) => (b.viewCount || 0) - (a.viewCount || 0))
 					.slice(0, 5)
-					.map((v) => ({
+					.map((v: any) => ({
 						title: v.title,
 						views: v.viewCount || 0,
 						watchTime: analyticsMap[v.id]?.watchTime || 0,
