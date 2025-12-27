@@ -207,15 +207,29 @@ export async function GET(request: NextRequest) {
 		const openai = getOpenAIClient();
 		if (openai && recommendations.length > 0) {
 			try {
+				// Create analytics map from analyticsData
+				const analyticsMap: Record<string, { watchTime: number; views: number }> = {};
+				if (analyticsData?.rows) {
+					analyticsData.rows.forEach((row: any[]) => {
+						const videoId = row[0];
+						const watchTime = row[1] || 0; // estimatedMinutesWatched
+						const views = row[2] || 0; // views (if available)
+						analyticsMap[videoId] = { watchTime, views };
+					});
+				}
+
 				const topVideos = videos
 					.sort((a: any, b: any) => (b.viewCount || 0) - (a.viewCount || 0))
 					.slice(0, 5)
-					.map((v: any) => ({
-						title: v.title,
-						views: v.viewCount || 0,
-						watchTime: analyticsMap[v.id]?.watchTime || 0,
-						ctr: analyticsMap[v.id]?.ctr || 0,
-					}));
+					.map((v: any) => {
+						const videoAnalytics = analyticsMap[v.id];
+						return {
+							title: v.title,
+							views: v.viewCount || 0,
+							watchTime: videoAnalytics?.watchTime || 0,
+							ctr: 0, // CTR not available in this analytics query
+						};
+					});
 
 				const aiPrompt = `You are a YouTube growth advisor. Analyze the following channel data and suggest 3 specific video topics.
 
