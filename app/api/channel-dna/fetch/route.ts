@@ -113,12 +113,13 @@ export async function POST(request: NextRequest) {
 
 				if (videoIds) {
 					const videoDetailsResponse = await fetch(
-					`https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${videoIds}&key=${apiKey}`
-				);
+						`https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${videoIds}&key=${apiKey}`
+					);
 
-				if (videoDetailsResponse.ok) {
-					const videoDetails = await videoDetailsResponse.json();
-					videos = videoDetails.items || [];
+					if (videoDetailsResponse.ok) {
+						const videoDetails = await videoDetailsResponse.json();
+						videos = videoDetails.items || [];
+					}
 				}
 			}
 		}
