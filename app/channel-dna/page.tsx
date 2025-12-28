@@ -108,13 +108,21 @@ export default function ChannelDNAPage() {
 	};
 
 	return (
-		<div className="min-h-screen bg-gray-1 dark:bg-gray-12 p-4 sm:p-6 lg:p-8">
-			<div className="max-w-4xl mx-auto">
-				<BackButton />
-				<Heading size="7" className="mb-2 mt-6">Channel Deconstruction Engine</Heading>
-				<Text size="3" color="gray" className="mb-8">
-					Analyze any YouTube channel and extract repeatable success patterns
-				</Text>
+		<div className="relative min-h-screen">
+			{/* Gradient Background */}
+			<div className="fixed inset-0 bg-gradient-to-br from-gray-12 via-blue-12 to-purple-12 -z-10">
+				<div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(59,130,246,0.3),transparent_50%)]"></div>
+				<div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(147,51,234,0.2),transparent_50%)]"></div>
+				<div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_20%,rgba(37,99,235,0.25),transparent_50%)]"></div>
+			</div>
+
+			<div className="relative p-4 sm:p-6 lg:p-8">
+				<div className="max-w-4xl mx-auto">
+					<BackButton />
+					<Heading size="7" className="mb-2 mt-6 text-white">Channel Deconstruction Engine</Heading>
+					<Text size="3" className="mb-8 text-gray-300">
+						Analyze any YouTube channel and extract repeatable success patterns
+					</Text>
 
 				{/* Input Section */}
 				<Card size="3" variant="surface" className="p-6 mb-6">
@@ -154,7 +162,7 @@ export default function ChannelDNAPage() {
 						</Button>
 					</div>
 					{error && (
-						<Text size="2" color="red" className="mt-4 text-red-11">
+						<Text size="2" className="mt-4 text-red-400">
 							{error}
 						</Text>
 					)}
@@ -201,7 +209,7 @@ export default function ChannelDNAPage() {
 							</Card>
 
 							{/* Channel Positioning */}
-							<Card size="3" variant="surface" className="p-6">
+							<Card size="3" variant="surface" className="p-6 bg-white/95 dark:bg-gray-a2/95 backdrop-blur-sm">
 								<Heading size="5" className="mb-4">Channel Positioning & Niche</Heading>
 								<div className="space-y-3">
 									<div>
@@ -220,7 +228,7 @@ export default function ChannelDNAPage() {
 							</Card>
 
 							{/* Top Performing Content */}
-							<Card size="3" variant="surface" className="p-6">
+							<Card size="3" variant="surface" className="p-6 bg-white/95 dark:bg-gray-a2/95 backdrop-blur-sm">
 								<Heading size="5" className="mb-4">What Types of Videos Perform Best</Heading>
 								<div className="space-y-3">
 									<div>
@@ -245,7 +253,7 @@ export default function ChannelDNAPage() {
 							</Card>
 
 							{/* Title Strategy */}
-							<Card size="3" variant="surface" className="p-6">
+							<Card size="3" variant="surface" className="p-6 bg-white/95 dark:bg-gray-a2/95 backdrop-blur-sm">
 								<Heading size="5" className="mb-4">Title & Thumbnail Strategy</Heading>
 								<div className="space-y-3">
 									<div>
@@ -277,7 +285,7 @@ export default function ChannelDNAPage() {
 							</Card>
 
 							{/* Posting Strategy */}
-							<Card size="3" variant="surface" className="p-6">
+							<Card size="3" variant="surface" className="p-6 bg-white/95 dark:bg-gray-a2/95 backdrop-blur-sm">
 								<Heading size="5" className="mb-4">Posting Consistency Strategy</Heading>
 								<div className="space-y-3">
 									<div>
@@ -296,7 +304,7 @@ export default function ChannelDNAPage() {
 							</Card>
 
 							{/* Content Length Strategy */}
-							<Card size="3" variant="surface" className="p-6">
+							<Card size="3" variant="surface" className="p-6 bg-white/95 dark:bg-gray-a2/95 backdrop-blur-sm">
 								<Heading size="5" className="mb-4">Content Length Strategy</Heading>
 								<div className="space-y-3">
 									<div>
@@ -315,7 +323,7 @@ export default function ChannelDNAPage() {
 							</Card>
 
 							{/* Audience Targeting */}
-							<Card size="3" variant="surface" className="p-6">
+							<Card size="3" variant="surface" className="p-6 bg-white/95 dark:bg-gray-a2/95 backdrop-blur-sm">
 								<Heading size="5" className="mb-4">Audience Targeting Signals</Heading>
 								<div className="space-y-3">
 									<div>
@@ -336,7 +344,7 @@ export default function ChannelDNAPage() {
 							</Card>
 
 							{/* What Makes It Work */}
-							<Card size="3" variant="surface" className="p-6">
+							<Card size="3" variant="surface" className="p-6 bg-white/95 dark:bg-gray-a2/95 backdrop-blur-sm">
 								<Heading size="5" className="mb-4">What Makes This Channel Work</Heading>
 								<ul className="space-y-2">
 									{analysis.whatMakesItWork.map((insight, i) => (
@@ -349,7 +357,7 @@ export default function ChannelDNAPage() {
 							</Card>
 
 							{/* Takeaways */}
-							<Card size="3" variant="surface" className="p-6 border-blue-a6 bg-blue-a2">
+							<Card size="3" variant="surface" className="p-6 border-blue-a6 bg-blue-a2/95 backdrop-blur-sm">
 								<Heading size="5" className="mb-4">Key Takeaways</Heading>
 								<ul className="space-y-3">
 									{analysis.takeaways.map((takeaway, i) => (
