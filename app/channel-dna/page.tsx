@@ -111,7 +111,7 @@ export default function ChannelDNAPage() {
 		<div className="min-h-screen bg-gray-1 dark:bg-gray-12 p-4 sm:p-6 lg:p-8">
 			<div className="max-w-4xl mx-auto">
 				<BackButton />
-				<Heading size="7" className="mb-2 mt-6">Channel DNA</Heading>
+				<Heading size="7" className="mb-2 mt-6">Channel Deconstruction Engine</Heading>
 				<Text size="3" color="gray" className="mb-8">
 					Analyze any YouTube channel and extract repeatable success patterns
 				</Text>
@@ -119,14 +119,19 @@ export default function ChannelDNAPage() {
 				{/* Input Section */}
 				<Card size="3" variant="surface" className="p-6 mb-6">
 					<div className="flex flex-col sm:flex-row gap-4">
-						<input
-							type="url"
-							placeholder="Paste YouTube channel URL (e.g., https://youtube.com/@channelname)"
-							value={channelUrl}
-							onChange={(e) => setChannelUrl(e.target.value)}
-							className="flex-1 px-4 py-2 rounded-lg border border-gray-a6 dark:border-gray-a6 bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12 focus:outline-none focus:ring-2 focus:ring-blue-8"
-							disabled={loading}
-						/>
+						<div className="flex-1">
+							<input
+								type="url"
+								placeholder="Paste a YouTube channel link"
+								value={channelUrl}
+								onChange={(e) => setChannelUrl(e.target.value)}
+								className="w-full px-4 py-2 rounded-lg border border-gray-a6 dark:border-gray-a6 bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12 focus:outline-none focus:ring-2 focus:ring-blue-8"
+								disabled={loading}
+							/>
+							<Text size="1" color="gray" className="mt-2 text-gray-11 dark:text-gray-11">
+								Example: youtube.com/@channelname
+							</Text>
+						</div>
 						<Button
 							variant="solid"
 							color="blue"

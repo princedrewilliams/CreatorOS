@@ -19,55 +19,31 @@ export default function DashboardPage() {
 				{/* Header */}
 				<div className="text-center pt-8 pb-12">
 					<Heading size="7" as="h1" className="mb-4 text-white sm:text-8">
-						Channel Deconstruction Engine
+						Reverse-Engineer What Makes YouTube Channels Win
 					</Heading>
 					<Text size="4" className="text-gray-300 sm:text-5 max-w-2xl mx-auto">
-						Analyze any YouTube channel and extract repeatable success patterns to skyrocket your reach and engagement
+						Analyze posting patterns, titles, thumbnails, and content strategy — instantly.
 					</Text>
 				</div>
 
 				{/* Tools Section */}
 				<div className="max-w-4xl mx-auto">
-					<div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
-						<motion.div
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							whileHover={{ y: -4 }}
-						>
-							<Card size="3" variant="surface" className="h-full p-6 hover:border-blue-6 transition-colors bg-white/95 dark:bg-gray-a2/95 backdrop-blur-sm">
-								<Link href="/channel-dna">
-									<div className="flex flex-col gap-4 h-full">
-										<div 
-											className="w-12 h-12 rounded-lg flex items-center justify-center"
-											style={{ 
-												backgroundColor: `var(--purple-a2)`,
-												color: `var(--purple-11)` 
-											}}
-										>
-											<MagnifyingGlassIcon className="w-6 h-6" />
-										</div>
-										<div className="flex-1">
-											<Heading size="5" as="h3" className="mb-2 text-gray-12 dark:text-gray-12">
-												Channel DNA
-											</Heading>
-											<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11">
-												Analyze any YouTube channel and extract repeatable success patterns
-											</Text>
-										</div>
-										<Button
-											variant="ghost"
-											color="purple"
-											size="2"
-											className="w-full justify-between"
-										>
-											Analyze Channel
-											<ArrowRightIcon />
-										</Button>
-									</div>
-								</Link>
-							</Card>
-						</motion.div>
-					</div>
+					<motion.div
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+					>
+						<Link href="/channel-dna">
+							<Button
+								variant="solid"
+								color="blue"
+								size="4"
+								className="w-full py-6 text-lg"
+							>
+								Channel Deconstruction Engine
+								<ArrowRightIcon className="ml-2 w-5 h-5" />
+							</Button>
+						</Link>
+					</motion.div>
 				</div>
 
 				{/* Content Planner - At Bottom */}
@@ -77,40 +53,18 @@ export default function DashboardPage() {
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ delay: 0.2 }}
 					>
-						<Card size="3" variant="surface" className="p-6 hover:border-blue-6 transition-colors bg-white/95 dark:bg-gray-a2/95 backdrop-blur-sm">
-							<Link href="/planner">
-								<div className="flex items-center justify-between">
-									<div className="flex items-center gap-4 flex-1">
-										<div 
-											className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
-											style={{ 
-												backgroundColor: `var(--blue-a2)`,
-												color: `var(--blue-11)` 
-											}}
-										>
-											<CalendarIcon className="w-6 h-6" />
-										</div>
-										<div className="flex-1 min-w-0">
-											<Heading size="5" as="h3" className="mb-2 text-gray-12 dark:text-gray-12">
-												Content Planner
-											</Heading>
-											<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11">
-												Plan and schedule your content with an intuitive calendar
-											</Text>
-										</div>
-									</div>
-									<Button
-										variant="ghost"
-										color="blue"
-										size="2"
-										className="flex-shrink-0"
-									>
-										Open
-										<ArrowRightIcon />
-									</Button>
-								</div>
-							</Link>
-						</Card>
+						<Link href="/planner">
+							<Button
+								variant="ghost"
+								color="blue"
+								size="4"
+								className="w-full py-6 text-lg border-2 border-blue-8/50 hover:border-blue-8"
+							>
+								<CalendarIcon className="mr-2 w-5 h-5" />
+								Content Planner
+								<ArrowRightIcon className="ml-2 w-5 h-5" />
+							</Button>
+						</Link>
 					</motion.div>
 				</div>
 
