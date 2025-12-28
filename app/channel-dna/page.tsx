@@ -125,7 +125,7 @@ export default function ChannelDNAPage() {
 					</Text>
 
 				{/* Input Section */}
-				<Card size="3" variant="surface" className="p-6 mb-6">
+				<Card size="3" variant="surface" className="p-6 mb-6 bg-white/95 dark:bg-gray-a2/95 backdrop-blur-sm">
 					<div className="flex flex-col sm:flex-row gap-4">
 						<div className="flex-1">
 							<input

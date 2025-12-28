@@ -15,7 +15,7 @@ export default function DashboardPage() {
 				<div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_20%,rgba(37,99,235,0.25),transparent_50%)]"></div>
 			</div>
 
-			<div className="relative space-y-6 sm:space-y-8">
+			<div className="relative space-y-6 sm:space-y-8 max-w-7xl mx-auto px-3 py-4 sm:px-4 sm:py-6 lg:px-8 lg:py-8">
 				{/* Header */}
 				<div className="text-center pt-8 pb-12">
 					<Heading size="7" as="h1" className="mb-4 text-white sm:text-8">
