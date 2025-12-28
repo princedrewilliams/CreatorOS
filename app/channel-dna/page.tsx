@@ -63,52 +63,39 @@ function ChannelDNAContent() {
 	useEffect(() => {
 		const urlParam = searchParams.get("url");
 		if (urlParam) {
-			setChannelUrl(decodeURIComponent(urlParam));
+			const decoded = decodeURIComponent(urlParam);
+			setChannelUrl(decoded);
+			void handleAnalyze(decoded);
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [searchParams]);
 
-	const handleAnalyze = async () => {
-		if (!channelUrl.trim()) {
+	const handleAnalyze = async (overrideUrl?: string) => {
+		const target = (overrideUrl ?? channelUrl).trim();
+		if (!target) {
 			setError("Please enter a YouTube channel URL");
 			return;
 		}
 
 		setLoading(true);
+		setAnalyzing(true);
 		setError(null);
 		setAnalysis(null);
 		setChannelData(null);
 
 		try {
-			// Step 1: Fetch channel data
-			const fetchResponse = await fetch("/api/channel-dna/fetch", {
+			const res = await fetch("/api/channel-analyze", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ channelUrl: channelUrl.trim() }),
+				body: JSON.stringify({ channelUrl: target }),
 			});
-
-			if (!fetchResponse.ok) {
-				const errorData = await fetchResponse.json();
-				throw new Error(errorData.error || "Failed to fetch channel data");
+			if (!res.ok) {
+				const errData = await res.json().catch(() => ({}));
+				throw new Error(errData.error || "Failed to analyze channel");
 			}
-
-			const fetchData = await fetchResponse.json();
-			setChannelData(fetchData.data);
-
-			// Step 2: Analyze with AI
-			setAnalyzing(true);
-			const analyzeResponse = await fetch("/api/channel-dna/analyze", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ channelData: fetchData.data }),
-			});
-
-			if (!analyzeResponse.ok) {
-				const errorData = await analyzeResponse.json();
-				throw new Error(errorData.error || "Failed to analyze channel");
-			}
-
-			const analyzeData = await analyzeResponse.json();
-			setAnalysis(analyzeData.analysis);
+			const data = await res.json();
+			setAnalysis(data.analysis || null);
+			setChannelData(data.data || null);
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "An error occurred");
 		} finally {
@@ -135,48 +122,47 @@ function ChannelDNAContent() {
 					</Text>
 
 				{/* Input Section */}
-				<Card size="3" variant="surface" className="p-6 mb-6 bg-white/95 dark:bg-gray-a2/95 backdrop-blur-sm">
-					<div className="flex flex-col sm:flex-row gap-4">
-						<div className="flex-1">
-							<input
-								type="url"
-								placeholder="Paste a YouTube channel link"
-								value={channelUrl}
-								onChange={(e) => setChannelUrl(e.target.value)}
-								className="w-full px-4 py-2 rounded-lg border border-gray-a6 dark:border-gray-a6 bg-white dark:bg-gray-a2 text-gray-12 dark:text-gray-12 focus:outline-none focus:ring-2 focus:ring-blue-8"
-								disabled={loading}
-							/>
-							<Text size="1" color="gray" className="mt-2 text-gray-11 dark:text-gray-11">
-								Example: youtube.com/@channelname
-							</Text>
+				<div className="relative p-[2px] mb-6 rounded-2xl bg-gradient-to-r from-pink-500/50 via-pink-400/20 to-pink-500/50 shadow-[0_0_30px_rgba(255,60,160,0.25)] backdrop-blur-md">
+					<div className="relative rounded-[14px] bg-[#0a0013]/90 px-4 py-5 pl-12 pr-44 shadow-[inset_0_0_18px_rgba(0,0,0,0.65)] border border-pink-500/10">
+						{/* Icon on far left */}
+						<div className="absolute left-4 top-1/2 -translate-y-1/2 text-pink-200">
+							<MagnifyingGlassIcon className="w-5 h-5" />
 						</div>
-						<Button
-							variant="solid"
-							color="blue"
-							size="3"
-							onClick={handleAnalyze}
-							disabled={loading || !channelUrl.trim()}
-							className="flex-shrink-0"
-						>
-							{loading ? (
-								<>
-									<ReloadIcon className="mr-2 w-4 h-4 animate-spin" />
-									{analyzing ? "Analyzing..." : "Fetching..."}
-								</>
-							) : (
-								<>
-									<MagnifyingGlassIcon className="mr-2 w-4 h-4" />
-									Analyze Channel
-								</>
-							)}
-						</Button>
-					</div>
-					{error && (
-						<Text size="2" className="mt-4 text-red-400">
-							{error}
+
+						{/* Example text */}
+						<Text size="1" className="absolute left-12 bottom-2 text-white text-[10px] sm:text-[11px]">
+							Example: youtube.com/@channelname
 						</Text>
-					)}
-				</Card>
+
+						<input
+							type="url"
+							placeholder="Paste your YouTube URL here... (e.g., https://www.youtube.com/watch?v=PcZ2funGjYM)"
+							value={channelUrl}
+							onChange={(e) => setChannelUrl(e.target.value)}
+							onKeyDown={(e) => {
+								if (e.key === "Enter") handleAnalyze();
+							}}
+							className="w-full bg-transparent appearance-none border-0 text-sm sm:text-base text-white placeholder:text-gray-400 focus:outline-none focus:text-white focus:bg-transparent transition-colors pr-48 pt-3 pb-5 leading-snug"
+							style={{ backgroundColor: "transparent", color: "#ffffff", WebkitTextFillColor: "#ffffff", caretColor: "#ffffff" }}
+							autoComplete="off"
+							disabled={loading}
+						/>
+
+						<button
+							onClick={() => handleAnalyze()}
+							disabled={loading}
+							className="absolute right-3 top-1/2 -translate-y-1/2 px-5 py-2 rounded-lg bg-gradient-to-r from-pink-500 to-rose-500 text-white text-sm font-semibold shadow-[0_10px_25px_rgba(255,60,160,0.35)] hover:scale-[1.02] active:scale-[0.98] transition-transform disabled:opacity-60 disabled:cursor-not-allowed"
+						>
+							{loading ? "Analyzing..." : "Analyze Channel"}
+							<span className="ml-1 text-lg">›</span>
+						</button>
+					</div>
+				</div>
+				{error && (
+					<Text size="2" className="mt-2 text-red-400">
+						{error}
+					</Text>
+				)}
 
 				{/* Channel Data Preview */}
 				{channelData && (
