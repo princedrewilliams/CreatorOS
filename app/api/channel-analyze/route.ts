@@ -118,7 +118,7 @@ Raw data follows:
 - mainStats: ${JSON.stringify(mainStats)}
 `;
 
-		const completion = await client.responses.create({
+		const completion = await client.chat.completions.create({
 			model: "gpt-4.1-mini",
 			messages: [
 				{ role: "system", content: "You are a precise YouTube channel analyst." },
@@ -127,8 +127,7 @@ Raw data follows:
 			response_format: { type: "json_object" },
 		});
 
-		// The SDK returns the response content in messages; extract text
-		const content = completion.output_text || completion.content?.[0]?.text || "";
+		const content = completion.choices?.[0]?.message?.content || "";
 		let analysis = {};
 		try {
 			analysis = JSON.parse(content);
