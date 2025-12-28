@@ -110,7 +110,7 @@ export default function HomePage() {
 						transition={{ delay: 0.3, duration: 0.6 }}
 						className="mb-6"
 					>
-						<h1 className="text-7xl sm:text-8xl lg:text-9xl font-bold mb-4 text-white leading-tight tracking-tight">
+						<h1 className="text-[3rem] sm:text-[3.6rem] lg:text-[4.4rem] font-bold mb-4 text-white leading-tight tracking-tight">
 							Reverse-Engineer What Makes{" "}
 								<span
 									className="inline-block"
@@ -134,7 +134,7 @@ export default function HomePage() {
 						transition={{ delay: 0.4, duration: 0.6 }}
 						className="mb-12"
 					>
-						<Text size="2" className="text-white max-w-3xl mx-auto">
+						<Text size="3" className="text-white max-w-3xl mx-auto">
 							Analyze posting patterns, titles, thumbnails, and content strategy — instantly.
 						</Text>
 					</motion.div>
@@ -147,52 +147,51 @@ export default function HomePage() {
 						className="max-w-3xl mx-auto"
 					>
 						<div className="relative p-[2px] mb-2 rounded-2xl bg-gradient-to-r from-pink-500/50 via-pink-400/20 to-pink-500/50 shadow-[0_0_35px_rgba(255,60,160,0.3)] backdrop-blur-md">
-							<div className="relative rounded-[14px] bg-[#0a0013]/90 px-4 py-3 pl-12 pr-48 shadow-[inset_0_0_18px_rgba(0,0,0,0.65)] border border-pink-500/10 flex items-center h-12 sm:h-14">
+							<div className="relative rounded-[14px] bg-[#0a0013]/90 px-4 py-4 pl-12 pr-4 shadow-[inset_0_0_18px_rgba(0,0,0,0.65)] border border-pink-500/10 flex flex-col gap-2">
 								{/* Icon on far left */}
-								<div className="absolute left-4 top-1/2 -translate-y-1/2 text-pink-200">
+								<div className="absolute left-4 top-4 text-pink-200">
 									<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
 									</svg>
 								</div>
-								
-								{/* Example text - left bottom */}
+
+								<div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+									<input
+										type="url"
+										value={channelUrl}
+										onChange={(e) => setChannelUrl(e.target.value)}
+										onKeyDown={(e) => {
+											if (e.key === "Enter") {
+												handleAnalyze();
+											}
+										}}
+										placeholder="Paste your YouTube URL here... (e.g., youtube.com/@channelname)"
+										className="w-full bg-transparent !bg-transparent appearance-none border-0 text-sm sm:text-base text-white placeholder:text-white/70 focus:outline-none focus:text-white focus:bg-transparent transition-colors pl-8 sm:pl-10"
+										style={{
+											backgroundColor: "transparent",
+											color: "#ffffff",
+											WebkitTextFillColor: "#ffffff",
+											caretColor: "#ffffff",
+										}}
+										autoComplete="off"
+									/>
+
+									<button
+										onClick={handleAnalyze}
+										className="px-5 py-2 rounded-lg text-white text-sm font-semibold hover:scale-[1.02] active:scale-[0.98] transition-transform disabled:opacity-60 disabled:cursor-not-allowed bg-transparent"
+										disabled={loading}
+									>
+										{loading ? "Analyzing..." : "Start Analyzing"}
+										<span className="ml-1 text-lg">›</span>
+									</button>
+								</div>
+
 								<Text
 									size="1"
-									className="absolute left-12 -bottom-3 text-white text-[10px] sm:text-[11px]"
+									className="text-white text-[10px] sm:text-[11px] pl-8 sm:pl-10"
 								>
 									Example: youtube.com/@channelname
 								</Text>
-								
-								{/* Input Field with placeholder */}
-								<input
-									type="url"
-									value={channelUrl}
-									onChange={(e) => setChannelUrl(e.target.value)}
-									onKeyDown={(e) => {
-										if (e.key === "Enter") {
-											handleAnalyze();
-										}
-									}}
-									placeholder="Paste your YouTube URL here... (e.g., https://www.youtube.com/watch?v=PcZ2funGjYM)"
-									className="w-full bg-transparent !bg-transparent appearance-none border-0 text-[11px] sm:text-sm text-white placeholder:text-white/70 focus:outline-none focus:text-white focus:bg-transparent transition-colors pr-48 leading-snug"
-									style={{
-										backgroundColor: "transparent",
-										color: "#ffffff",
-										WebkitTextFillColor: "#ffffff",
-										caretColor: "#ffffff",
-									}}
-									autoComplete="off"
-								/>
-
-								{/* Start Analyzing button at bottom right */}
-								<button
-									onClick={handleAnalyze}
-								className="absolute right-3 top-1/2 -translate-y-1/2 px-5 py-2 rounded-lg bg-gradient-to-r from-pink-500 to-rose-500 text-white text-sm font-semibold shadow-[0_10px_25px_rgba(255,60,160,0.35)] hover:scale-[1.02] active:scale-[0.98] transition-transform disabled:opacity-60 disabled:cursor-not-allowed"
-								disabled={loading}
-								>
-								{loading ? "Analyzing..." : "Start Analyzing"}
-									<span className="ml-1 text-lg">›</span>
-								</button>
 							</div>
 						</div>
 						{error && (
@@ -210,7 +209,7 @@ export default function HomePage() {
 									<Text size="3" className="text-white font-semibold">Analysis ready</Text>
 									<Link
 										href={`/channel-dna?url=${encodeURIComponent(channelUrl.trim())}`}
-										className="px-4 py-2 rounded-lg bg-gradient-to-r from-pink-500 to-rose-500 text-white text-sm font-semibold shadow-[0_10px_20px_rgba(255,60,160,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-transform"
+										className="px-4 py-2 rounded-lg border border-pink-400 text-white text-sm font-semibold shadow-[0_8px_18px_rgba(255,60,160,0.25)] hover:scale-[1.02] active:scale-[0.98] transition-transform"
 									>
 										View full report
 									</Link>
@@ -237,11 +236,16 @@ export default function HomePage() {
 				</motion.div>
 
 				{/* Bottom brand mark */}
-				<div className="mt-10 text-center">
+				<motion.div
+					initial={{ opacity: 0, y: 10 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ delay: 0.6, duration: 0.6 }}
+					className="mt-10 text-center"
+				>
 					<Text size="5" className="text-white font-bold tracking-tight">
 						CreatorOS
 					</Text>
-				</div>
+				</motion.div>
 
 			</div>
 		</div>
