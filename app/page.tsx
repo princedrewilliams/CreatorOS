@@ -87,7 +87,7 @@ export default function HomePage() {
 					>
 						<Heading size="7" as="h1" className="mb-4 text-white sm:text-8">
 							Reverse-Engineer What Makes{" "}
-							<span className="text-pink-400">
+							<span className="text-pink-500">
 								YouTube Channels Win
 							</span>
 						</Heading>
@@ -112,68 +112,53 @@ export default function HomePage() {
 						transition={{ delay: 0.5, duration: 0.6 }}
 						className="max-w-3xl mx-auto"
 					>
-						<Card size="3" variant="surface" className="p-6 mb-4 bg-gray-900/50 backdrop-blur-sm border-pink-500/30">
-							<div className="flex flex-col sm:flex-row gap-4">
-								{/* Input Field */}
-								<div className="flex-1 relative">
-									<div className="absolute left-4 top-1/2 -translate-y-1/2 text-pink-400">
-										<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-											<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-										</svg>
-									</div>
-									<Text size="2" weight="medium" className="mb-2 ml-1 text-white">
-										Paste a YouTube channel link
-									</Text>
-									<input
-										type="url"
-										value={channelUrl}
-										onChange={(e) => setChannelUrl(e.target.value)}
-										onKeyDown={(e) => {
-											if (e.key === "Enter") {
-												handleAnalyze();
-											}
-										}}
-										placeholder="Example: youtube.com/@channelname"
-										className="w-full pl-12 pr-4 py-4 rounded-xl bg-gray-700 border-0 text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition-all duration-200"
-									/>
+						<div className="relative p-6 mb-4 bg-gray-800 rounded-2xl shadow-2xl border border-gray-700/50" style={{ boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05) inset' }}>
+							{/* Example text at top left */}
+							<Text size="1" className="absolute top-2 left-4 text-gray-400 text-xs">
+								Example: youtube.com/@channelname
+							</Text>
+							
+							{/* Input Field */}
+							<div className="relative mt-6">
+								<div className="absolute left-4 top-1/2 -translate-y-1/2 text-pink-400">
+									<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+									</svg>
 								</div>
-
-								{/* CTA Button */}
-								<div className="flex items-end">
-									<Button
-										onClick={handleAnalyze}
-										variant="solid"
-										color="purple"
-										size="4"
-										className="px-8 py-4 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 border-0 shadow-lg shadow-pink-500/20 hover:shadow-pink-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 whitespace-nowrap text-white"
-									>
-										Analyze Channel
-										<ArrowRightIcon className="ml-2 w-5 h-5" />
-									</Button>
-								</div>
+								<Text size="2" weight="medium" className="mb-2 ml-1 text-white">
+									Paste a YouTube channel link
+								</Text>
+								<input
+									type="url"
+									value={channelUrl}
+									onChange={(e) => setChannelUrl(e.target.value)}
+									onKeyDown={(e) => {
+										if (e.key === "Enter") {
+											handleAnalyze();
+										}
+									}}
+									placeholder="Paste channel URL here"
+									className="w-full pl-12 pr-4 py-4 rounded-xl bg-gray-700 border-0 text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition-all duration-200"
+								/>
 							</div>
-						</Card>
 
-						{/* Helper Text */}
-						<Text size="1" className="text-center text-gray-300">
-							Try these example formats:{" "}
-							<span className="text-gray-400">youtube.com/@channelname</span>{" "}
-							<span className="text-gray-400">youtube.com/c/channelname</span>
-						</Text>
+							{/* CTA Button at bottom right */}
+							<div className="absolute bottom-4 right-4">
+								<Button
+									onClick={handleAnalyze}
+									variant="solid"
+									color="purple"
+									size="2"
+									className="px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 border-0 shadow-lg shadow-pink-500/20 hover:shadow-pink-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-white"
+								>
+									Analyze Channel
+									<ArrowRightIcon className="ml-2 w-4 h-4" />
+								</Button>
+							</div>
+						</div>
 					</motion.div>
 				</motion.div>
 
-				{/* Compatibility Statement */}
-				<motion.div
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-					transition={{ delay: 0.6, duration: 0.5 }}
-					className="mt-8"
-				>
-					<Text size="2" className="text-center text-gray-400">
-						Works on any public YouTube channel
-					</Text>
-				</motion.div>
 			</div>
 		</div>
 	);
