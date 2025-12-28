@@ -69,7 +69,7 @@ export default function HomePage() {
 							color="purple" 
 							variant="soft" 
 							size="2"
-							className="inline-flex items-center gap-2 bg-pink-500/20 border-pink-500/30"
+							className="inline-flex items-center gap-2 bg-pink-500/20 border-pink-500/30 !bg-pink-500/20"
 						>
 							<svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
@@ -87,7 +87,7 @@ export default function HomePage() {
 					>
 						<Heading size="7" as="h1" className="mb-4 text-white sm:text-8">
 							Reverse-Engineer What Makes{" "}
-							<span className="text-pink-500">
+							<span className="text-pink-500 !text-pink-500" style={{ color: '#ec4899' }}>
 								YouTube Channels Win
 							</span>
 						</Heading>
@@ -149,7 +149,7 @@ export default function HomePage() {
 									variant="solid"
 									color="purple"
 									size="2"
-									className="px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 border-0 shadow-lg shadow-pink-500/20 hover:shadow-pink-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-white"
+									className="px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 border-0 shadow-lg shadow-pink-500/20 hover:shadow-pink-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-white !bg-gradient-to-r !from-pink-500 !to-rose-500"
 								>
 									Analyze Channel
 									<ArrowRightIcon className="ml-2 w-4 h-4" />
