@@ -28,6 +28,10 @@ async function callRapidApi(endpoint: RapidEndpoint, username: string) {
 		next: { revalidate: 60 },
 	});
 
+	if (res.status === 429) {
+		throw new Error("Rate limited by RapidAPI (429). Please try again shortly.");
+	}
+
 	if (!res.ok) {
 		const text = await res.text();
 		throw new Error(`RapidAPI ${endpoint} failed: ${res.status} ${text}`);

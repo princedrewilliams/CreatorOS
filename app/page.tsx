@@ -161,7 +161,7 @@ export default function HomePage() {
 										}
 									}}
 									placeholder="Paste your YouTube URL here... (e.g., https://www.youtube.com/watch?v=PcZ2funGjYM)"
-									className="w-full bg-transparent !bg-transparent appearance-none border-0 text-sm sm:text-base text-white placeholder:text-gray-400 focus:outline-none focus:text-white focus:bg-transparent transition-colors pr-48 leading-snug"
+									className="w-full bg-transparent !bg-transparent appearance-none border-0 text-xs sm:text-sm text-white placeholder:text-gray-400 focus:outline-none focus:text-white focus:bg-transparent transition-colors pr-48 leading-snug"
 									style={{
 										backgroundColor: "transparent",
 										color: "#ffffff",
