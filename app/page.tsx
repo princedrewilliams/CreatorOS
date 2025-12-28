@@ -10,15 +10,29 @@ import {
 
 export default function HomePage() {
 	const [channelUrl, setChannelUrl] = useState("");
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState<string | null>(null);
 	const router = useRouter();
 
-	const handleAnalyze = () => {
-		if (channelUrl.trim()) {
-			// Navigate to channel-dna page with the URL
+	const handleAnalyze = async () => {
+		if (!channelUrl.trim()) {
+			setError("Please enter a channel URL or username.");
+			return;
+		}
+		setError(null);
+		setLoading(true);
+		try {
+			await fetch("/api/channel-analyze", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ channelUrl: channelUrl.trim() }),
+			});
+			// Navigate to channel-dna (or results page) with URL
 			router.push(`/channel-dna?url=${encodeURIComponent(channelUrl.trim())}`);
-		} else {
-			// Navigate to channel-dna page without URL
-			router.push("/channel-dna");
+		} catch (err) {
+			setError("Analysis failed. Please try again.");
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -155,9 +169,10 @@ export default function HomePage() {
 								{/* Start Analyzing button at bottom right */}
 								<button
 									onClick={handleAnalyze}
-									className="absolute right-3 top-1/2 -translate-y-1/2 px-5 py-2 rounded-lg bg-gradient-to-r from-pink-500 to-rose-500 text-white text-sm font-semibold shadow-[0_10px_25px_rgba(255,60,160,0.35)] hover:scale-[1.02] active:scale-[0.98] transition-transform"
+								className="absolute right-3 top-1/2 -translate-y-1/2 px-5 py-2 rounded-lg bg-gradient-to-r from-pink-500 to-rose-500 text-white text-sm font-semibold shadow-[0_10px_25px_rgba(255,60,160,0.35)] hover:scale-[1.02] active:scale-[0.98] transition-transform disabled:opacity-60 disabled:cursor-not-allowed"
+								disabled={loading}
 								>
-									Start Analyzing
+								{loading ? "Analyzing..." : "Start Analyzing"}
 									<span className="ml-1 text-lg">›</span>
 								</button>
 							</div>
