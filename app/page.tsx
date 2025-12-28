@@ -83,7 +83,7 @@ export default function HomePage() {
 						transition={{ delay: 0.3, duration: 0.6 }}
 						className="mb-6"
 					>
-						<h1 className="text-5xl sm:text-6xl lg:text-8xl font-bold mb-4 text-white leading-tight tracking-tight">
+						<h1 className="text-6xl sm:text-7xl lg:text-9xl font-bold mb-4 text-white leading-tight tracking-tight">
 							Reverse-Engineer What Makes{" "}
 							<span
 								className="inline-block"
@@ -119,7 +119,7 @@ export default function HomePage() {
 						transition={{ delay: 0.5, duration: 0.6 }}
 						className="max-w-3xl mx-auto"
 					>
-						<div className="relative p-[2px] mb-4 rounded-2xl bg-gradient-to-r from-pink-500/50 via-pink-400/20 to-pink-500/50 shadow-[0_0_35px_rgba(255,60,160,0.3)] backdrop-blur-md">
+						<div className="relative p-[2px] mb-4 rounded-2xl bg-gradient-to-r from-pink-500/50 via-pink-400/20 to-pink-500/50 shadow-[0_0_35px_rgba(255,60,160,0.3)] backdrop-blur-md overflow-hidden">
 							<div className="relative rounded-[14px] bg-[#0a0013]/90 px-4 py-4 pl-12 pr-40 shadow-[inset_0_0_18px_rgba(0,0,0,0.65)] border border-pink-500/10">
 								{/* Icon on far left */}
 								<div className="absolute left-4 top-1/2 -translate-y-1/2 text-pink-200">
@@ -139,7 +139,7 @@ export default function HomePage() {
 										}
 									}}
 									placeholder="Paste your YouTube URL here... (e.g., https://www.youtube.com/watch?v=PcZ2funGjYM)"
-									className="w-full bg-transparent border-0 text-gray-100 placeholder:text-gray-400 focus:outline-none focus:text-white transition-colors"
+									className="w-full bg-transparent border-0 text-sm sm:text-base text-gray-100 placeholder:text-gray-400 focus:outline-none focus:text-white transition-colors"
 								/>
 
 								{/* Start Analyzing button at bottom right */}
