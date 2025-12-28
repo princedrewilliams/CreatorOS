@@ -397,6 +397,7 @@ export default function ChannelDNAPage() {
 						</motion.div>
 					)}
 				</AnimatePresence>
+				</div>
 			</div>
 		</div>
 	);
