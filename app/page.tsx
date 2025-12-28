@@ -83,7 +83,7 @@ export default function HomePage() {
 						transition={{ delay: 0.3, duration: 0.6 }}
 						className="mb-6"
 					>
-						<h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold mb-4 text-white leading-tight tracking-tight">
+						<h1 className="text-5xl sm:text-6xl lg:text-8xl font-bold mb-4 text-white leading-tight tracking-tight">
 							Reverse-Engineer What Makes{" "}
 							<span
 								className="inline-block"
