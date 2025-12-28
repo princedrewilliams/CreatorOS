@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Heading, Text, Badge } from "@whop/react/components";
+import { Text, Badge } from "@whop/react/components";
 import { 
 	ArrowRightIcon
 } from "@radix-ui/react-icons";
@@ -24,29 +24,27 @@ export default function HomePage() {
 
 
 	return (
-		<div className="relative min-h-screen overflow-hidden bg-black">
-			{/* Black Background with Pink Accent Lines */}
-			<div className="fixed inset-0 -z-10 bg-black">
-				{/* Pink accent lines */}
-				<div className="absolute top-0 left-0 w-full h-full">
-					{/* Diagonal line top-left to bottom-right */}
-					<div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-pink-500 to-transparent opacity-30"></div>
-					<div className="absolute top-20 left-0 w-px h-64 bg-gradient-to-b from-transparent via-pink-500/50 to-transparent opacity-40"></div>
-					<div className="absolute top-40 right-0 w-px h-96 bg-gradient-to-b from-transparent via-fuchsia-500/50 to-transparent opacity-40"></div>
-					<div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-rose-500 to-transparent opacity-30"></div>
-					<div className="absolute bottom-20 right-0 w-px h-64 bg-gradient-to-t from-transparent via-pink-500/50 to-transparent opacity-40"></div>
-					
-					{/* Curved pink lines */}
-					<svg className="absolute top-1/4 left-0 w-full h-full opacity-20" viewBox="0 0 1200 800" preserveAspectRatio="none">
-						<path d="M0,200 Q300,150 600,200 T1200,200" stroke="rgb(236, 72, 153)" strokeWidth="2" fill="none" />
-						<path d="M0,400 Q300,350 600,400 T1200,400" stroke="rgb(219, 39, 119)" strokeWidth="2" fill="none" />
-						<path d="M0,600 Q300,550 600,600 T1200,600" stroke="rgb(244, 114, 182)" strokeWidth="2" fill="none" />
-					</svg>
-					
-					{/* Vertical pink lines on sides */}
-					<div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-pink-500/20 to-transparent"></div>
-					<div className="absolute top-0 right-1/4 w-px h-full bg-gradient-to-b from-transparent via-fuchsia-500/20 to-transparent"></div>
+		<div className="relative min-h-screen overflow-hidden bg-[#05000b]">
+			{/* Neon cosmic background */}
+			<div className="fixed inset-0 -z-10 overflow-hidden bg-[#05000b]">
+				{/* Deep base gradient */}
+				<div className="absolute inset-0 bg-gradient-to-br from-[#0b0016] via-[#08000f] to-[#020007]" />
+
+				{/* Radial glow zones */}
+				<div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(255,66,166,0.25),transparent_45%),radial-gradient(circle_at_85%_25%,rgba(255,130,230,0.30),transparent_45%),radial-gradient(circle_at_50%_80%,rgba(120,0,90,0.20),transparent_55%),radial-gradient(circle_at_70%_70%,rgba(255,30,140,0.18),transparent_55%)]" />
+
+				{/* Sweeping light streaks */}
+				<div className="absolute inset-0 opacity-70 bg-[linear-gradient(120deg,rgba(255,52,160,0.35),rgba(255,52,160,0)_35%),linear-gradient(-115deg,rgba(255,105,200,0.3),rgba(255,105,200,0)_30%),linear-gradient(150deg,rgba(255,90,170,0.25),rgba(255,90,170,0)_40%)]" />
+
+				{/* Bold neon streaks */}
+				<div className="absolute inset-0 pointer-events-none">
+					<div className="absolute -left-32 top-8 w-[140%] h-[3px] bg-gradient-to-r from-transparent via-[#ff5bd9] to-transparent blur-[12px] rotate-[10deg] opacity-70" />
+					<div className="absolute -right-20 top-1/3 w-[120%] h-[3px] bg-gradient-to-r from-transparent via-[#ff3ea7] to-transparent blur-[10px] -rotate-[14deg] opacity-60" />
+					<div className="absolute left-10 bottom-1/4 w-[130%] h-[4px] bg-gradient-to-r from-transparent via-[#ff6ad5] to-transparent blur-[14px] rotate-[18deg] opacity-55" />
 				</div>
+
+				{/* Particle sparkle layer */}
+				<div className="absolute inset-0 opacity-[0.06] bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIwLjUiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')]" />
 			</div>
 
 			{/* Main Content */}
@@ -120,9 +118,9 @@ export default function HomePage() {
 						transition={{ delay: 0.5, duration: 0.6 }}
 						className="max-w-3xl mx-auto"
 					>
-						<div className="relative p-6 mb-4 bg-gray-700 rounded-2xl">
+						<div className="relative p-6 mb-4 bg-gray-700/80 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.04)] backdrop-blur-md">
 							{/* Icon on far left */}
-							<div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+							<div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300">
 								<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 									<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
 								</svg>
@@ -139,13 +137,13 @@ export default function HomePage() {
 									}
 								}}
 								placeholder="Paste your YouTube URL here... (e.g., https://www.youtube.com/watch?v=PcZ2funGjYM)"
-								className="w-full pl-12 pr-32 py-4 bg-transparent border-0 text-gray-300 placeholder:text-gray-500 focus:outline-none focus:text-white transition-colors"
+								className="w-full pl-12 pr-32 py-4 bg-transparent border-0 text-gray-200 placeholder:text-gray-400 focus:outline-none focus:text-white transition-colors"
 							/>
 
 							{/* Start Analyzing button at bottom right */}
 							<button
 								onClick={handleAnalyze}
-								className="absolute bottom-4 right-4 text-gray-400 hover:text-gray-300 transition-colors flex items-center gap-1"
+								className="absolute bottom-4 right-4 text-gray-300 hover:text-white transition-colors flex items-center gap-1"
 							>
 								<span>Start Analyzing</span>
 								<span className="text-lg">›</span>
