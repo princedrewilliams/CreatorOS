@@ -120,13 +120,21 @@ export default function HomePage() {
 						className="max-w-3xl mx-auto"
 					>
 						<div className="relative p-[2px] mb-4 rounded-2xl bg-gradient-to-r from-pink-500/50 via-pink-400/20 to-pink-500/50 shadow-[0_0_35px_rgba(255,60,160,0.3)] backdrop-blur-md overflow-hidden">
-							<div className="relative rounded-[14px] bg-[#0a0013]/90 px-4 py-4 pl-12 pr-40 shadow-[inset_0_0_18px_rgba(0,0,0,0.65)] border border-pink-500/10">
+							<div className="relative rounded-[14px] bg-[#0a0013]/90 px-4 py-5 pl-12 pr-44 shadow-[inset_0_0_18px_rgba(0,0,0,0.65)] border border-pink-500/10">
 								{/* Icon on far left */}
 								<div className="absolute left-4 top-1/2 -translate-y-1/2 text-pink-200">
 									<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
 									</svg>
 								</div>
+								
+								{/* Example text - centered at bottom */}
+								<Text
+									size="1"
+									className="absolute left-1/2 bottom-2 -translate-x-1/2 text-white text-[11px]"
+								>
+									Example: youtube.com/@channelname
+								</Text>
 								
 								{/* Input Field with placeholder */}
 								<input
@@ -139,7 +147,7 @@ export default function HomePage() {
 										}
 									}}
 									placeholder="Paste your YouTube URL here... (e.g., https://www.youtube.com/watch?v=PcZ2funGjYM)"
-									className="w-full bg-transparent !bg-transparent appearance-none border-0 text-sm sm:text-base text-white placeholder:text-gray-400 focus:outline-none focus:text-white focus:bg-transparent transition-colors"
+									className="w-full bg-transparent !bg-transparent appearance-none border-0 text-sm sm:text-base text-white placeholder:text-gray-400 focus:outline-none focus:text-white focus:bg-transparent transition-colors pr-44 pt-3 pb-5"
 									style={{ backgroundColor: "transparent", color: "#f8fafc" }}
 									autoComplete="off"
 								/>
