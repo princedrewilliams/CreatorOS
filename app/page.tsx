@@ -77,8 +77,8 @@ export default function HomePage() {
 						transition={{ delay: 0.2, duration: 0.5 }}
 						className="mb-6"
 					>
-						<Badge 
-							color="purple" 
+					<Badge 
+						color="purple" 
 							variant="soft" 
 							size="2"
 							className="inline-flex items-center gap-2 bg-pink-500/20 border-pink-500/30 !bg-pink-500/20"
@@ -99,16 +99,16 @@ export default function HomePage() {
 					>
 						<h1 className="text-7xl sm:text-8xl lg:text-9xl font-bold mb-4 text-white leading-tight tracking-tight">
 							Reverse-Engineer What Makes{" "}
-							<span
-								className="inline-block"
-								style={{
-									backgroundImage: "linear-gradient(90deg, #ff5abf 0%, #ff3ea7 45%, #d742ff 80%, #ff8bf5 100%)",
-									backgroundClip: "text",
-									WebkitBackgroundClip: "text",
-									WebkitTextFillColor: "transparent",
-									color: "#ff5abf",
-								}}
-							>
+								<span
+									className="inline-block"
+									style={{
+										backgroundImage: "linear-gradient(90deg, #ff5abf 0%, #ff3ea7 45%, #d742ff 80%, #ff8bf5 100%)",
+										backgroundClip: "text",
+										WebkitBackgroundClip: "text",
+										WebkitTextFillColor: "transparent",
+										color: "#ff5abf",
+									}}
+								>
 								YouTube Channels Win
 							</span>
 						</h1>
@@ -133,8 +133,8 @@ export default function HomePage() {
 						transition={{ delay: 0.5, duration: 0.6 }}
 						className="max-w-3xl mx-auto"
 					>
-						<div className="relative p-[2px] mb-4 rounded-2xl bg-gradient-to-r from-pink-500/50 via-pink-400/20 to-pink-500/50 shadow-[0_0_35px_rgba(255,60,160,0.3)] backdrop-blur-md">
-							<div className="relative rounded-[14px] bg-[#0a0013]/90 px-4 py-4 pl-12 pr-48 shadow-[inset_0_0_18px_rgba(0,0,0,0.65)] border border-pink-500/10 h-14 flex items-center">
+						<div className="relative p-[2px] mb-2 rounded-2xl bg-gradient-to-r from-pink-500/50 via-pink-400/20 to-pink-500/50 shadow-[0_0_35px_rgba(255,60,160,0.3)] backdrop-blur-md">
+							<div className="relative rounded-[14px] bg-[#0a0013]/90 px-4 py-3 pl-12 pr-48 shadow-[inset_0_0_18px_rgba(0,0,0,0.65)] border border-pink-500/10 flex items-center h-12 sm:h-14">
 								{/* Icon on far left */}
 								<div className="absolute left-4 top-1/2 -translate-y-1/2 text-pink-200">
 									<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -145,7 +145,7 @@ export default function HomePage() {
 								{/* Example text - left bottom */}
 								<Text
 									size="1"
-									className="absolute left-12 bottom-1 text-white text-[10px] sm:text-[11px]"
+									className="absolute left-12 -bottom-3 text-white text-[10px] sm:text-[11px]"
 								>
 									Example: youtube.com/@channelname
 								</Text>
@@ -161,7 +161,7 @@ export default function HomePage() {
 										}
 									}}
 									placeholder="Paste your YouTube URL here... (e.g., https://www.youtube.com/watch?v=PcZ2funGjYM)"
-									className="w-full bg-transparent !bg-transparent appearance-none border-0 text-xs sm:text-sm text-white placeholder:text-gray-400 focus:outline-none focus:text-white focus:bg-transparent transition-colors pr-48 leading-snug"
+									className="w-full bg-transparent !bg-transparent appearance-none border-0 text-[11px] sm:text-sm text-white placeholder:text-white/70 focus:outline-none focus:text-white focus:bg-transparent transition-colors pr-48 leading-snug"
 									style={{
 										backgroundColor: "transparent",
 										color: "#ffffff",
@@ -182,6 +182,11 @@ export default function HomePage() {
 								</button>
 							</div>
 						</div>
+						{error && (
+							<div className="text-center mt-1">
+								<Text size="2" className="text-red-400">{error}</Text>
+							</div>
+						)}
 					</motion.div>
 				</motion.div>
 
