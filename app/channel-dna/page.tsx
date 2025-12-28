@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Heading, Text, Card, Button, Badge } from "@whop/react/components";
 import { MagnifyingGlassIcon, ArrowRightIcon, CheckIcon, ReloadIcon } from "@radix-ui/react-icons";
 import { motion, AnimatePresence } from "framer-motion";
@@ -50,12 +51,21 @@ interface ChannelAnalysis {
 }
 
 export default function ChannelDNAPage() {
+	const searchParams = useSearchParams();
 	const [channelUrl, setChannelUrl] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [analyzing, setAnalyzing] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [analysis, setAnalysis] = useState<ChannelAnalysis | null>(null);
 	const [channelData, setChannelData] = useState<any>(null);
+
+	// Read URL parameter from homepage
+	useEffect(() => {
+		const urlParam = searchParams.get("url");
+		if (urlParam) {
+			setChannelUrl(decodeURIComponent(urlParam));
+		}
+	}, [searchParams]);
 
 	const handleAnalyze = async () => {
 		if (!channelUrl.trim()) {
