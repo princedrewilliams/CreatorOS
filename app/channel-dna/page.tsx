@@ -171,19 +171,19 @@ function ChannelDNAContent() {
 						<div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
 							<div>
 								<Text size="1" color="gray" className="mb-1">Subscribers</Text>
-								<Text size="4" weight="bold">{channelData.subscriberCount.toLocaleString()}</Text>
+								<Text size="4" weight="bold">{channelData?.subscriberCount ? Number(channelData.subscriberCount).toLocaleString() : "—"}</Text>
 							</div>
 							<div>
 								<Text size="1" color="gray" className="mb-1">Total Videos</Text>
-								<Text size="4" weight="bold">{channelData.totalVideos}</Text>
+								<Text size="4" weight="bold">{channelData?.totalVideos ?? "—"}</Text>
 							</div>
 							<div>
 								<Text size="1" color="gray" className="mb-1">Upload Frequency</Text>
-								<Text size="4" weight="bold">{channelData.uploadFrequency}</Text>
+								<Text size="4" weight="bold">{channelData?.uploadFrequency ?? "—"}</Text>
 							</div>
 							<div>
 								<Text size="1" color="gray" className="mb-1">Avg Length</Text>
-								<Text size="4" weight="bold">{channelData.averageVideoLength}</Text>
+								<Text size="4" weight="bold">{channelData?.averageVideoLength ?? "—"}</Text>
 							</div>
 						</div>
 					</Card>

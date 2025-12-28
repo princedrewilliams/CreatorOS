@@ -29,12 +29,12 @@ async function callRapidApi(endpoint: RapidEndpoint, username: string) {
 	});
 
 	if (res.status === 429) {
-		throw new Error("Rate limited by RapidAPI (429). Please try again shortly.");
+		return { error: "Rate limited (429). Please try again soon." };
 	}
 
 	if (!res.ok) {
 		const text = await res.text();
-		throw new Error(`RapidAPI ${endpoint} failed: ${res.status} ${text}`);
+		return { error: `RapidAPI ${endpoint} failed: ${res.status} ${text}` };
 	}
 
 	return res.json();
@@ -80,6 +80,17 @@ export async function POST(req: Request) {
 			callRapidApi("channel_longs_and_shorts", username),
 			callRapidApi("channel_main_stats", username),
 		]);
+
+		// If any endpoint returned an error, surface it
+		const firstError =
+			(about as any)?.error ||
+			(stats as any)?.error ||
+			(details as any)?.error ||
+			(longsAndShorts as any)?.error ||
+			(mainStats as any)?.error;
+		if (firstError) {
+			return NextResponse.json({ error: firstError }, { status: 429 });
+		}
 
 		const openaiKey = process.env.OPENAI_API_KEY;
 		if (!openaiKey) {
