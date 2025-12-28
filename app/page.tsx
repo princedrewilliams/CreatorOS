@@ -87,14 +87,7 @@ export default function HomePage() {
 					>
 						<Heading size="7" as="h1" className="mb-4 text-white sm:text-8">
 							Reverse-Engineer What Makes{" "}
-							<span 
-								className="inline-block bg-gradient-to-r from-pink-400 via-rose-400 to-fuchsia-400 bg-clip-text text-transparent"
-								style={{ 
-									WebkitBackgroundClip: 'text',
-									WebkitTextFillColor: 'transparent',
-									backgroundClip: 'text'
-								}}
-							>
+							<span style={{ color: '#ec4899' }}>
 								YouTube Channels Win
 							</span>
 						</Heading>
