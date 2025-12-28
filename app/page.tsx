@@ -162,7 +162,12 @@ export default function HomePage() {
 									}}
 									placeholder="Paste your YouTube URL here... (e.g., https://www.youtube.com/watch?v=PcZ2funGjYM)"
 									className="w-full bg-transparent !bg-transparent appearance-none border-0 text-sm sm:text-base text-white placeholder:text-gray-400 focus:outline-none focus:text-white focus:bg-transparent transition-colors pr-48 pt-3 pb-5 leading-snug"
-									style={{ backgroundColor: "transparent", color: "#f8fafc" }}
+									style={{
+										backgroundColor: "transparent",
+										color: "#ffffff",
+										WebkitTextFillColor: "#ffffff",
+										caretColor: "#ffffff",
+									}}
 									autoComplete="off"
 								/>
 
