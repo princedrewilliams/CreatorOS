@@ -28,19 +28,19 @@ export default function HomePage() {
 			{/* Neon cosmic background */}
 			<div className="fixed inset-0 -z-10 overflow-hidden bg-[#05000b]">
 				{/* Deep base gradient */}
-				<div className="absolute inset-0 bg-gradient-to-br from-[#0b0016] via-[#08000f] to-[#020007]" />
+				<div className="absolute inset-0 bg-gradient-to-br from-[#0b0018] via-[#090013] to-[#020008]" />
 
 				{/* Radial glow zones */}
-				<div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(255,66,166,0.25),transparent_45%),radial-gradient(circle_at_85%_25%,rgba(255,130,230,0.30),transparent_45%),radial-gradient(circle_at_50%_80%,rgba(120,0,90,0.20),transparent_55%),radial-gradient(circle_at_70%_70%,rgba(255,30,140,0.18),transparent_55%)]" />
+				<div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_25%,rgba(255,66,166,0.35),transparent_40%),radial-gradient(circle_at_80%_25%,rgba(255,130,230,0.32),transparent_45%),radial-gradient(circle_at_50%_78%,rgba(120,0,90,0.22),transparent_55%),radial-gradient(circle_at_70%_70%,rgba(255,30,140,0.2),transparent_55%)]" />
 
 				{/* Sweeping light streaks */}
-				<div className="absolute inset-0 opacity-70 bg-[linear-gradient(120deg,rgba(255,52,160,0.35),rgba(255,52,160,0)_35%),linear-gradient(-115deg,rgba(255,105,200,0.3),rgba(255,105,200,0)_30%),linear-gradient(150deg,rgba(255,90,170,0.25),rgba(255,90,170,0)_40%)]" />
+				<div className="absolute inset-0 opacity-80 bg-[linear-gradient(120deg,rgba(255,52,160,0.4),rgba(255,52,160,0)_38%),linear-gradient(-115deg,rgba(255,105,200,0.34),rgba(255,105,200,0)_32%),linear-gradient(150deg,rgba(255,90,170,0.28),rgba(255,90,170,0)_42%)]" />
 
 				{/* Bold neon streaks */}
 				<div className="absolute inset-0 pointer-events-none">
-					<div className="absolute -left-32 top-8 w-[140%] h-[3px] bg-gradient-to-r from-transparent via-[#ff5bd9] to-transparent blur-[12px] rotate-[10deg] opacity-70" />
-					<div className="absolute -right-20 top-1/3 w-[120%] h-[3px] bg-gradient-to-r from-transparent via-[#ff3ea7] to-transparent blur-[10px] -rotate-[14deg] opacity-60" />
-					<div className="absolute left-10 bottom-1/4 w-[130%] h-[4px] bg-gradient-to-r from-transparent via-[#ff6ad5] to-transparent blur-[14px] rotate-[18deg] opacity-55" />
+					<div className="absolute -left-28 top-10 w-[150%] h-[4px] bg-gradient-to-r from-transparent via-[#ff5bd9] to-transparent blur-[14px] rotate-[10deg] opacity-80" />
+					<div className="absolute -right-16 top-1/3 w-[130%] h-[4px] bg-gradient-to-r from-transparent via-[#ff3ea7] to-transparent blur-[12px] -rotate-[14deg] opacity-68" />
+					<div className="absolute left-12 bottom-1/4 w-[140%] h-[5px] bg-gradient-to-r from-transparent via-[#ff6ad5] to-transparent blur-[16px] rotate-[18deg] opacity-62" />
 				</div>
 
 				{/* Particle sparkle layer */}
@@ -83,12 +83,12 @@ export default function HomePage() {
 						transition={{ delay: 0.3, duration: 0.6 }}
 						className="mb-6"
 					>
-						<h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold mb-4 text-white leading-tight">
+						<h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold mb-4 text-white leading-tight tracking-tight">
 							Reverse-Engineer What Makes{" "}
 							<span
 								className="inline-block"
 								style={{
-									backgroundImage: "linear-gradient(90deg, #ff5abf 0%, #ff3ea7 50%, #c400ff 100%)",
+									backgroundImage: "linear-gradient(90deg, #ff5abf 0%, #ff3ea7 45%, #d742ff 80%, #ff8bf5 100%)",
 									backgroundClip: "text",
 									WebkitBackgroundClip: "text",
 									WebkitTextFillColor: "transparent",
@@ -119,10 +119,10 @@ export default function HomePage() {
 						transition={{ delay: 0.5, duration: 0.6 }}
 						className="max-w-3xl mx-auto"
 					>
-						<div className="relative p-[2px] mb-4 rounded-2xl bg-gradient-to-r from-pink-500/40 via-pink-400/15 to-pink-500/40 shadow-[0_0_30px_rgba(255,60,160,0.25)] backdrop-blur-md">
-							<div className="relative rounded-[14px] bg-[#110017]/85 px-4 py-4 pl-12 pr-36 shadow-[inset_0_0_15px_rgba(0,0,0,0.6)]">
+						<div className="relative p-[2px] mb-4 rounded-2xl bg-gradient-to-r from-pink-500/50 via-pink-400/20 to-pink-500/50 shadow-[0_0_35px_rgba(255,60,160,0.3)] backdrop-blur-md">
+							<div className="relative rounded-[14px] bg-[#0a0013]/90 px-4 py-4 pl-12 pr-40 shadow-[inset_0_0_18px_rgba(0,0,0,0.65)] border border-pink-500/10">
 								{/* Icon on far left */}
-								<div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300">
+								<div className="absolute left-4 top-1/2 -translate-y-1/2 text-pink-200">
 									<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
 									</svg>
