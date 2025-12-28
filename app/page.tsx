@@ -83,7 +83,7 @@ export default function HomePage() {
 						transition={{ delay: 0.3, duration: 0.6 }}
 						className="mb-6"
 					>
-						<h1 className="text-6xl sm:text-7xl lg:text-9xl font-bold mb-4 text-white leading-tight tracking-tight">
+						<h1 className="text-7xl sm:text-8xl lg:text-9xl font-bold mb-4 text-white leading-tight tracking-tight">
 							Reverse-Engineer What Makes{" "}
 							<span
 								className="inline-block"
@@ -139,7 +139,9 @@ export default function HomePage() {
 										}
 									}}
 									placeholder="Paste your YouTube URL here... (e.g., https://www.youtube.com/watch?v=PcZ2funGjYM)"
-									className="w-full bg-transparent border-0 text-sm sm:text-base text-gray-100 placeholder:text-gray-400 focus:outline-none focus:text-white transition-colors"
+									className="w-full bg-transparent !bg-transparent appearance-none border-0 text-sm sm:text-base text-white placeholder:text-gray-400 focus:outline-none focus:text-white focus:bg-transparent transition-colors"
+									style={{ backgroundColor: "transparent", color: "#f8fafc" }}
+									autoComplete="off"
 								/>
 
 								{/* Start Analyzing button at bottom right */}
