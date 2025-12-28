@@ -63,30 +63,29 @@ export default function HomePage() {
 	];
 
 	return (
-		<div className="relative min-h-screen overflow-hidden">
-			{/* Layered Background Gradients */}
-			<div className="fixed inset-0 -z-10">
-				{/* Base dark gradient */}
-				<div className="absolute inset-0 bg-gradient-to-br from-gray-12 via-gray-11 to-gray-12"></div>
-				
-				{/* Radial gradients in corners - pink/magenta zones */}
-				<div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(236,72,153,0.15),transparent_50%)]"></div>
-				<div className="absolute inset-0 bg-[radial-gradient(circle_at_100%_100%,rgba(219,39,119,0.12),transparent_50%)]"></div>
-				<div className="absolute inset-0 bg-[radial-gradient(circle_at_100%_0%,rgba(232,121,249,0.1),transparent_50%)]"></div>
-				<div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_100%,rgba(244,114,182,0.08),transparent_50%)]"></div>
-				
-				{/* Linear gradient overlay */}
-				<div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-gray-12/50"></div>
-				
-				{/* Abstract light streaks - pink */}
-				<div className="absolute top-0 left-0 w-full h-full opacity-30">
-					<div className="absolute top-1/4 left-0 w-96 h-1 bg-gradient-to-r from-transparent via-pink-500 to-transparent blur-xl transform -rotate-12"></div>
-					<div className="absolute bottom-1/3 right-0 w-96 h-1 bg-gradient-to-l from-transparent via-fuchsia-500 to-transparent blur-xl transform rotate-12"></div>
-					<div className="absolute top-1/2 left-1/4 w-64 h-1 bg-gradient-to-r from-transparent via-rose-500 to-transparent blur-lg transform rotate-45"></div>
+		<div className="relative min-h-screen overflow-hidden bg-black">
+			{/* Black Background with Pink Accent Lines */}
+			<div className="fixed inset-0 -z-10 bg-black">
+				{/* Pink accent lines */}
+				<div className="absolute top-0 left-0 w-full h-full">
+					{/* Diagonal line top-left to bottom-right */}
+					<div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-pink-500 to-transparent opacity-30"></div>
+					<div className="absolute top-20 left-0 w-px h-64 bg-gradient-to-b from-transparent via-pink-500/50 to-transparent opacity-40"></div>
+					<div className="absolute top-40 right-0 w-px h-96 bg-gradient-to-b from-transparent via-fuchsia-500/50 to-transparent opacity-40"></div>
+					<div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-rose-500 to-transparent opacity-30"></div>
+					<div className="absolute bottom-20 right-0 w-px h-64 bg-gradient-to-t from-transparent via-pink-500/50 to-transparent opacity-40"></div>
+					
+					{/* Curved pink lines */}
+					<svg className="absolute top-1/4 left-0 w-full h-full opacity-20" viewBox="0 0 1200 800" preserveAspectRatio="none">
+						<path d="M0,200 Q300,150 600,200 T1200,200" stroke="rgb(236, 72, 153)" strokeWidth="2" fill="none" />
+						<path d="M0,400 Q300,350 600,400 T1200,400" stroke="rgb(219, 39, 119)" strokeWidth="2" fill="none" />
+						<path d="M0,600 Q300,550 600,600 T1200,600" stroke="rgb(244, 114, 182)" strokeWidth="2" fill="none" />
+					</svg>
+					
+					{/* Vertical pink lines on sides */}
+					<div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-pink-500/20 to-transparent"></div>
+					<div className="absolute top-0 right-1/4 w-px h-full bg-gradient-to-b from-transparent via-fuchsia-500/20 to-transparent"></div>
 				</div>
-				
-				{/* Subtle particle texture */}
-				<div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIwLjUiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')]"></div>
 			</div>
 
 			{/* Main Content */}
@@ -109,12 +108,12 @@ export default function HomePage() {
 							color="purple" 
 							variant="soft" 
 							size="2"
-							className="inline-flex items-center gap-2"
+							className="inline-flex items-center gap-2 bg-pink-500/20 border-pink-500/30 text-pink-300"
 						>
 							<svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
 							</svg>
-							Introducing Channel DNA Analyzer
+							<span className="text-white">Introducing Channel DNA Analyzer</span>
 						</Badge>
 					</motion.div>
 
@@ -125,7 +124,7 @@ export default function HomePage() {
 						transition={{ delay: 0.3, duration: 0.6 }}
 						className="mb-6"
 					>
-						<Heading size="7" as="h1" className="mb-4 text-gray-12 dark:text-gray-12 sm:text-8">
+						<Heading size="7" as="h1" className="mb-4 text-white sm:text-8">
 							Reverse-Engineer What Makes{" "}
 							<span className="bg-gradient-to-r from-pink-400 via-rose-400 to-fuchsia-400 bg-clip-text text-transparent">
 								YouTube Channels Win
@@ -140,7 +139,7 @@ export default function HomePage() {
 						transition={{ delay: 0.4, duration: 0.6 }}
 						className="mb-12"
 					>
-						<Text size="4" className="text-gray-11 dark:text-gray-11 sm:text-5 max-w-3xl mx-auto">
+						<Text size="4" className="text-white sm:text-5 max-w-3xl mx-auto">
 							Analyze posting patterns, titles, thumbnails, and content strategy — instantly.
 						</Text>
 					</motion.div>
@@ -152,7 +151,7 @@ export default function HomePage() {
 						transition={{ delay: 0.5, duration: 0.6 }}
 						className="max-w-3xl mx-auto"
 					>
-						<Card size="3" variant="surface" className="p-6 mb-4 bg-white/95 dark:bg-gray-a2/95 backdrop-blur-sm border-pink-500/20">
+						<Card size="3" variant="surface" className="p-6 mb-4 bg-gray-900/50 backdrop-blur-sm border-pink-500/30">
 							<div className="flex flex-col sm:flex-row gap-4">
 								{/* Input Field */}
 								<div className="flex-1 relative">
@@ -161,7 +160,7 @@ export default function HomePage() {
 											<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
 										</svg>
 									</div>
-									<Text size="2" weight="medium" className="mb-2 ml-1 text-gray-11 dark:text-gray-11">
+									<Text size="2" weight="medium" className="mb-2 ml-1 text-white">
 										Paste a YouTube channel link
 									</Text>
 									<input
@@ -174,7 +173,7 @@ export default function HomePage() {
 											}
 										}}
 										placeholder="Example: youtube.com/@channelname"
-										className="w-full pl-12 pr-4 py-4 rounded-xl bg-white dark:bg-gray-a2 border border-gray-a6 dark:border-gray-a6 text-gray-12 dark:text-gray-12 placeholder:text-gray-9 dark:placeholder:text-gray-9 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/50 transition-all duration-200"
+										className="w-full pl-12 pr-4 py-4 rounded-xl bg-gray-900 border border-gray-700 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/50 transition-all duration-200"
 									/>
 								</div>
 
@@ -185,7 +184,7 @@ export default function HomePage() {
 										variant="solid"
 										color="purple"
 										size="4"
-										className="px-8 py-4 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 border-0 shadow-lg shadow-pink-500/20 hover:shadow-pink-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 whitespace-nowrap"
+										className="px-8 py-4 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 border-0 shadow-lg shadow-pink-500/20 hover:shadow-pink-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 whitespace-nowrap text-white"
 									>
 										Analyze Channel
 										<ArrowRightIcon className="ml-2 w-5 h-5" />
@@ -195,10 +194,10 @@ export default function HomePage() {
 						</Card>
 
 						{/* Helper Text */}
-						<Text size="1" color="gray" className="text-center">
+						<Text size="1" className="text-center text-gray-400">
 							Try these example formats:{" "}
-							<span className="text-gray-10 dark:text-gray-10">youtube.com/@channelname</span>{" "}
-							<span className="text-gray-10 dark:text-gray-10">youtube.com/c/channelname</span>
+							<span className="text-gray-500">youtube.com/@channelname</span>{" "}
+							<span className="text-gray-500">youtube.com/c/channelname</span>
 						</Text>
 					</motion.div>
 				</motion.div>
@@ -210,7 +209,7 @@ export default function HomePage() {
 					transition={{ delay: 0.6, duration: 0.5 }}
 					className="mb-12 sm:mb-16"
 				>
-					<Text size="3" color="gray" className="text-center text-gray-10 dark:text-gray-10">
+					<Text size="3" className="text-center text-gray-400">
 						Works on any public YouTube channel
 					</Text>
 				</motion.div>
@@ -233,10 +232,10 @@ export default function HomePage() {
 							<Card 
 								size="3" 
 								variant="surface" 
-								className="group relative p-6 bg-white/95 dark:bg-gray-a2/95 backdrop-blur-sm border-pink-500/10 hover:border-pink-500/30 transition-all duration-300"
+								className="group relative p-6 bg-gray-900/50 backdrop-blur-sm border-pink-500/20 hover:border-pink-500/40 transition-all duration-300"
 							>
-								{/* Glow effect on hover */}
-								<div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-pink-500/0 via-pink-500/5 to-pink-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+								{/* Pink glow effect on hover */}
+								<div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-pink-500/0 via-pink-500/10 to-pink-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
 								
 								<div className="relative z-10">
 									{/* Icon */}
@@ -245,12 +244,12 @@ export default function HomePage() {
 									</div>
 									
 									{/* Title */}
-									<Heading size="5" as="h3" className="mb-2 text-gray-12 dark:text-gray-12">
+									<Heading size="5" as="h3" className="mb-2 text-white">
 										{feature.title}
 									</Heading>
 									
 									{/* Description */}
-									<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11 leading-relaxed">
+									<Text size="2" className="text-gray-300 leading-relaxed">
 										{feature.description}
 									</Text>
 								</div>
@@ -266,7 +265,7 @@ export default function HomePage() {
 					transition={{ delay: 1.2, duration: 0.5 }}
 					className="mt-12 sm:mt-16"
 				>
-					<Text size="3" color="gray" className="text-center text-gray-10 dark:text-gray-10">
+					<Text size="3" className="text-center text-gray-400">
 						Works on any public YouTube channel
 					</Text>
 				</motion.div>
