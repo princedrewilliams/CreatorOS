@@ -85,12 +85,20 @@ export default function HomePage() {
 						transition={{ delay: 0.3, duration: 0.6 }}
 						className="mb-6"
 					>
-						<Heading size="7" as="h1" className="mb-4 text-white sm:text-8">
+						<h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold mb-4 text-white leading-tight">
 							Reverse-Engineer What Makes{" "}
-							<span style={{ color: '#ec4899' }}>
+							<span 
+								className="bg-gradient-to-r from-pink-400 via-rose-400 to-fuchsia-400"
+								style={{ 
+									backgroundClip: 'text',
+									WebkitBackgroundClip: 'text',
+									WebkitTextFillColor: 'transparent',
+									color: 'transparent'
+								}}
+							>
 								YouTube Channels Win
 							</span>
-						</Heading>
+						</h1>
 					</motion.div>
 
 					{/* Subtitle */}
@@ -112,9 +120,9 @@ export default function HomePage() {
 						transition={{ delay: 0.5, duration: 0.6 }}
 						className="max-w-3xl mx-auto"
 					>
-						<div className="relative p-6 mb-4 bg-gray-800 rounded-2xl">
+						<div className="relative p-6 mb-4 bg-gray-700 rounded-2xl">
 							{/* Icon on far left */}
-							<div className="absolute left-4 top-1/2 -translate-y-1/2 text-white">
+							<div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
 								<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 									<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
 								</svg>
@@ -131,7 +139,7 @@ export default function HomePage() {
 									}
 								}}
 								placeholder="Paste your YouTube URL here... (e.g., https://www.youtube.com/watch?v=PcZ2funGjYM)"
-								className="w-full pl-12 pr-32 py-4 bg-transparent border-0 text-gray-300 placeholder:text-gray-400 focus:outline-none focus:text-white transition-colors"
+								className="w-full pl-12 pr-32 py-4 bg-transparent border-0 text-gray-300 placeholder:text-gray-500 focus:outline-none focus:text-white transition-colors"
 							/>
 
 							{/* Start Analyzing button at bottom right */}
