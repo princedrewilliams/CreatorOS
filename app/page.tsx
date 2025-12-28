@@ -134,7 +134,7 @@ export default function HomePage() {
 						className="max-w-3xl mx-auto"
 					>
 						<div className="relative p-[2px] mb-4 rounded-2xl bg-gradient-to-r from-pink-500/50 via-pink-400/20 to-pink-500/50 shadow-[0_0_35px_rgba(255,60,160,0.3)] backdrop-blur-md">
-							<div className="relative rounded-[14px] bg-[#0a0013]/90 px-4 py-5 pl-12 pr-44 shadow-[inset_0_0_18px_rgba(0,0,0,0.65)] border border-pink-500/10">
+							<div className="relative rounded-[14px] bg-[#0a0013]/90 px-4 py-4 pl-12 pr-48 shadow-[inset_0_0_18px_rgba(0,0,0,0.65)] border border-pink-500/10 h-14 flex items-center">
 								{/* Icon on far left */}
 								<div className="absolute left-4 top-1/2 -translate-y-1/2 text-pink-200">
 									<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -145,7 +145,7 @@ export default function HomePage() {
 								{/* Example text - left bottom */}
 								<Text
 									size="1"
-									className="absolute left-12 bottom-2 text-white text-[10px] sm:text-[11px]"
+									className="absolute left-12 bottom-1 text-white text-[10px] sm:text-[11px]"
 								>
 									Example: youtube.com/@channelname
 								</Text>
@@ -161,7 +161,7 @@ export default function HomePage() {
 										}
 									}}
 									placeholder="Paste your YouTube URL here... (e.g., https://www.youtube.com/watch?v=PcZ2funGjYM)"
-									className="w-full bg-transparent !bg-transparent appearance-none border-0 text-sm sm:text-base text-white placeholder:text-gray-400 focus:outline-none focus:text-white focus:bg-transparent transition-colors pr-48 pt-3 pb-5 leading-snug"
+									className="w-full bg-transparent !bg-transparent appearance-none border-0 text-sm sm:text-base text-white placeholder:text-gray-400 focus:outline-none focus:text-white focus:bg-transparent transition-colors pr-48 leading-snug"
 									style={{
 										backgroundColor: "transparent",
 										color: "#ffffff",
