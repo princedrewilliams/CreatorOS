@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Heading, Text, Card, Button, Badge } from "@whop/react/components";
 import { MagnifyingGlassIcon, ArrowRightIcon, CheckIcon, ReloadIcon } from "@radix-ui/react-icons";
@@ -50,7 +50,7 @@ interface ChannelAnalysis {
 	takeaways: string[];
 }
 
-export default function ChannelDNAPage() {
+function ChannelDNAContent() {
 	const searchParams = useSearchParams();
 	const [channelUrl, setChannelUrl] = useState("");
 	const [loading, setLoading] = useState(false);
@@ -410,6 +410,31 @@ export default function ChannelDNAPage() {
 				</div>
 			</div>
 		</div>
+	);
+}
+
+export default function ChannelDNAPage() {
+	return (
+		<Suspense fallback={
+			<div className="relative min-h-screen">
+				<div className="fixed inset-0 bg-gradient-to-br from-gray-12 via-blue-12 to-purple-12 -z-10">
+					<div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(59,130,246,0.3),transparent_50%)]"></div>
+					<div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(147,51,234,0.2),transparent_50%)]"></div>
+					<div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_20%,rgba(37,99,235,0.25),transparent_50%)]"></div>
+				</div>
+				<div className="relative p-4 sm:p-6 lg:p-8">
+					<div className="max-w-4xl mx-auto">
+						<BackButton />
+						<Heading size="7" className="mb-2 mt-6 text-white">Channel Deconstruction Engine</Heading>
+						<Text size="3" className="mb-8 text-gray-300">
+							Loading...
+						</Text>
+					</div>
+				</div>
+			</div>
+		}>
+			<ChannelDNAContent />
+		</Suspense>
 	);
 }
 
