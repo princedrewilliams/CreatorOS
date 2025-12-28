@@ -5,8 +5,7 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Heading, Text, Card, Button, Badge } from "@whop/react/components";
 import { 
-	ArrowRightIcon,
-	MagnifyingGlassIcon
+	ArrowRightIcon
 } from "@radix-ui/react-icons";
 
 export default function HomePage() {
