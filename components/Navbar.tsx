@@ -60,24 +60,24 @@ export function Navbar() {
 	const isDashboard = pathname === "/" || pathname === "/dashboard" || pathname === "/about";
 
 	return (
-		<nav className="sticky top-0 z-50 w-full border-b border-gray-a6 dark:border-gray-a7 bg-white dark:bg-gray-a2 backdrop-blur-lg shadow-sm">
+		<nav className="sticky top-0 z-50 w-full border-b border-gray-800 bg-black backdrop-blur-lg shadow-sm">
 			<div className="mx-auto flex h-16 items-center justify-between px-3 sm:px-4 lg:px-8 gap-2 sm:gap-4">
 				<div className="flex items-center gap-2 sm:gap-4 flex-shrink-0 min-w-0">
 					<Link href="/" className="flex items-center gap-2 whitespace-nowrap flex-shrink-0 no-underline min-w-0">
-						<span className="text-5 sm:text-6 font-bold text-gray-12 dark:text-gray-12 truncate">CreatorOS</span>
+						<span className="text-5 sm:text-6 font-bold text-white truncate">CreatorOS</span>
 					</Link>
 				</div>
 
 				<div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
 					{!loading && user ? (
 						<>
-							<Text size="2" color="gray" className="hidden sm:block text-gray-11 dark:text-gray-11">
+							<Text size="2" className="hidden sm:block text-white">
 								{user.whop_username}
 							</Text>
 							{/* Mobile logout button */}
 							<button
 								onClick={handleLogout}
-								className="sm:hidden flex items-center justify-center w-8 h-8 rounded-md hover:bg-gray-a4 dark:hover:bg-gray-a5 text-gray-11 dark:text-gray-11 transition-colors"
+								className="sm:hidden flex items-center justify-center w-8 h-8 rounded-md hover:bg-gray-800 text-white transition-colors"
 								title="Logout"
 							>
 								<PersonIcon className="w-5 h-5" />
@@ -88,7 +88,7 @@ export function Navbar() {
 								color="gray"
 								size="2"
 								onClick={handleLogout}
-								className="hidden sm:inline-flex"
+								className="hidden sm:inline-flex text-white hover:bg-gray-800"
 							>
 								Logout
 							</Button>

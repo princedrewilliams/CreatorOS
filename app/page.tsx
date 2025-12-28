@@ -87,7 +87,7 @@ export default function HomePage() {
 					>
 						<Heading size="7" as="h1" className="mb-4 text-white sm:text-8">
 							Reverse-Engineer What Makes{" "}
-							<span className="text-white">
+							<span className="text-pink-400">
 								YouTube Channels Win
 							</span>
 						</Heading>
@@ -134,7 +134,7 @@ export default function HomePage() {
 											}
 										}}
 										placeholder="Example: youtube.com/@channelname"
-										className="w-full pl-12 pr-4 py-4 rounded-xl bg-gray-900 border border-gray-700 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/50 transition-all duration-200"
+										className="w-full pl-12 pr-4 py-4 rounded-xl bg-gray-700 border-0 text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition-all duration-200"
 									/>
 								</div>
 
