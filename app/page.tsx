@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Heading, Text, Card, Button, Badge } from "@whop/react/components";
+import { Heading, Text, Badge } from "@whop/react/components";
 import { 
 	ArrowRightIcon
 } from "@radix-ui/react-icons";
@@ -87,7 +87,14 @@ export default function HomePage() {
 					>
 						<Heading size="7" as="h1" className="mb-4 text-white sm:text-8">
 							Reverse-Engineer What Makes{" "}
-							<span className="bg-gradient-to-r from-pink-400 via-rose-400 to-fuchsia-400 bg-clip-text text-transparent">
+							<span 
+								className="inline-block bg-gradient-to-r from-pink-400 via-rose-400 to-fuchsia-400 bg-clip-text text-transparent"
+								style={{ 
+									WebkitBackgroundClip: 'text',
+									WebkitTextFillColor: 'transparent',
+									backgroundClip: 'text'
+								}}
+							>
 								YouTube Channels Win
 							</span>
 						</Heading>
