@@ -85,13 +85,14 @@ export default function HomePage() {
 					>
 						<h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold mb-4 text-white leading-tight">
 							Reverse-Engineer What Makes{" "}
-							<span 
-								className="bg-gradient-to-r from-pink-400 via-rose-400 to-fuchsia-400"
-								style={{ 
-									backgroundClip: 'text',
-									WebkitBackgroundClip: 'text',
-									WebkitTextFillColor: 'transparent',
-									color: 'transparent'
+							<span
+								className="inline-block"
+								style={{
+									backgroundImage: "linear-gradient(90deg, #ff5abf 0%, #ff3ea7 50%, #c400ff 100%)",
+									backgroundClip: "text",
+									WebkitBackgroundClip: "text",
+									WebkitTextFillColor: "transparent",
+									color: "#ff5abf",
 								}}
 							>
 								YouTube Channels Win
@@ -118,36 +119,38 @@ export default function HomePage() {
 						transition={{ delay: 0.5, duration: 0.6 }}
 						className="max-w-3xl mx-auto"
 					>
-						<div className="relative p-6 mb-4 bg-gray-700/80 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.04)] backdrop-blur-md">
-							{/* Icon on far left */}
-							<div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300">
-								<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-									<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-								</svg>
-							</div>
-							
-							{/* Input Field with placeholder */}
-							<input
-								type="url"
-								value={channelUrl}
-								onChange={(e) => setChannelUrl(e.target.value)}
-								onKeyDown={(e) => {
-									if (e.key === "Enter") {
-										handleAnalyze();
-									}
-								}}
-								placeholder="Paste your YouTube URL here... (e.g., https://www.youtube.com/watch?v=PcZ2funGjYM)"
-								className="w-full pl-12 pr-32 py-4 bg-transparent border-0 text-gray-200 placeholder:text-gray-400 focus:outline-none focus:text-white transition-colors"
-							/>
+						<div className="relative p-[2px] mb-4 rounded-2xl bg-gradient-to-r from-pink-500/40 via-pink-400/15 to-pink-500/40 shadow-[0_0_30px_rgba(255,60,160,0.25)] backdrop-blur-md">
+							<div className="relative rounded-[14px] bg-[#110017]/85 px-4 py-4 pl-12 pr-36 shadow-[inset_0_0_15px_rgba(0,0,0,0.6)]">
+								{/* Icon on far left */}
+								<div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300">
+									<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+									</svg>
+								</div>
+								
+								{/* Input Field with placeholder */}
+								<input
+									type="url"
+									value={channelUrl}
+									onChange={(e) => setChannelUrl(e.target.value)}
+									onKeyDown={(e) => {
+										if (e.key === "Enter") {
+											handleAnalyze();
+										}
+									}}
+									placeholder="Paste your YouTube URL here... (e.g., https://www.youtube.com/watch?v=PcZ2funGjYM)"
+									className="w-full bg-transparent border-0 text-gray-100 placeholder:text-gray-400 focus:outline-none focus:text-white transition-colors"
+								/>
 
-							{/* Start Analyzing button at bottom right */}
-							<button
-								onClick={handleAnalyze}
-								className="absolute bottom-4 right-4 text-gray-300 hover:text-white transition-colors flex items-center gap-1"
-							>
-								<span>Start Analyzing</span>
-								<span className="text-lg">›</span>
-							</button>
+								{/* Start Analyzing button at bottom right */}
+								<button
+									onClick={handleAnalyze}
+									className="absolute right-3 top-1/2 -translate-y-1/2 px-5 py-2 rounded-lg bg-gradient-to-r from-pink-500 to-rose-500 text-white text-sm font-semibold shadow-[0_10px_25px_rgba(255,60,160,0.35)] hover:scale-[1.02] active:scale-[0.98] transition-transform"
+								>
+									Start Analyzing
+									<span className="ml-1 text-lg">›</span>
+								</button>
+							</div>
 						</div>
 					</motion.div>
 				</motion.div>
