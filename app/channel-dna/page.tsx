@@ -170,7 +170,7 @@ export default function ChannelDNAPage() {
 
 				{/* Channel Data Preview */}
 				{channelData && (
-					<Card size="3" variant="surface" className="p-6 mb-6">
+					<Card size="3" variant="surface" className="p-6 mb-6 bg-white/95 dark:bg-gray-a2/95 backdrop-blur-sm">
 						<Heading size="5" className="mb-4">Channel Overview</Heading>
 						<div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
 							<div>
@@ -203,7 +203,7 @@ export default function ChannelDNAPage() {
 							className="space-y-6"
 						>
 							{/* Summary */}
-							<Card size="3" variant="surface" className="p-6">
+							<Card size="3" variant="surface" className="p-6 bg-white/95 dark:bg-gray-a2/95 backdrop-blur-sm">
 								<Heading size="5" className="mb-3">Summary</Heading>
 								<Text size="3" color="gray">{analysis.summary}</Text>
 							</Card>
