@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -18,6 +18,14 @@ const TABS = [
 ];
 
 export default function ChannelDNAPage() {
+	return (
+		<Suspense fallback={<PageFallback />}>
+			<ChannelDNAContent />
+		</Suspense>
+	);
+}
+
+function ChannelDNAContent() {
 	const searchParams = useSearchParams();
 	const router = useRouter();
 	const [channelUrl, setChannelUrl] = useState("");
@@ -335,6 +343,14 @@ function getMockPayload(url: string) {
 	};
 
 	return { channelData: mock, analysis: mockAnalysis };
+}
+
+function PageFallback() {
+	return (
+		<div className="min-h-screen flex items-center justify-center bg-[#05000b] text-white">
+			<Text size="3">Loading channel analysis…</Text>
+		</div>
+	);
 }
 
 function Metric({ label, value }: { label: string; value: any }) {
