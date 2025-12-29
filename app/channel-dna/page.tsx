@@ -186,10 +186,6 @@ function ChannelDNAContent() {
 
 	const percentile = score?.percentile ?? null;
 	const contextLabel = score?.contextLabel ?? null;
-	const primaryInsight =
-		aiSummary?.doubleDown ||
-		aiSummary?.summary ||
-		(score?.strengths?.[0] ? `Double down on ${score.strengths[0].category}` : "Focused growth opportunity");
 
 	return (
 		<div className="relative min-h-screen bg-[#05000b]">
@@ -246,160 +242,131 @@ function ChannelDNAContent() {
 					})}
 				</div>
 
-				{/* Main content simplified */}
-				<div className="space-y-4 w-full">
-					<Card className="p-5 sm:p-6 bg-gradient-to-br from-[#0c0014] via-[#06000f] to-[#080010] border border-pink-500/15 shadow-[0_0_30px_rgba(255,60,170,0.18)]">
-						<div className="flex flex-col lg:flex-row gap-6">
-							<div className="relative w-full max-w-[220px]">
-								<div className="relative aspect-[9/16] rounded-xl overflow-hidden border border-white/10 bg-black/40">
+				{/* Main content to mirror reference layout */}
+				<div className="grid lg:grid-cols-[2fr,1fr] gap-5">
+					<div className="space-y-4">
+						<Card className="p-5 sm:p-6 bg-gradient-to-br from-[#140017] via-[#0b0014] to-[#090012] border border-pink-500/15 shadow-[0_0_35px_rgba(255,60,170,0.25)]">
+							<div className="flex flex-col lg:flex-row items-center gap-6">
+								<div className="relative w-28 h-28 rounded-full overflow-hidden border-2 border-pink-400 shadow-[0_0_25px_rgba(255,80,170,0.4)]">
 									{baseStats?.thumbnail ? (
-										<Image src={baseStats.thumbnail} alt="Channel" fill className="object-cover" />
+										<Image src={baseStats.thumbnail} alt="Avatar" fill className="object-cover" />
 									) : (
-										<div className="w-full h-full flex items-center justify-center text-white/60 text-sm">No artwork</div>
+										<div className="w-full h-full flex items-center justify-center text-white/70 text-xs">No avatar</div>
 									)}
 								</div>
-							</div>
-							<div className="flex-1 space-y-4">
-								<div className="flex items-center gap-4 flex-wrap">
-									<div className="relative w-24 h-24 flex items-center justify-center">
-										<div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-400 via-pink-500 to-purple-500 opacity-50 blur-md" />
-										<div className="absolute inset-1 rounded-full border border-pink-400/40" />
-										<div className="relative flex flex-col items-center justify-center w-full h-full rounded-full bg-black/50 text-white">
-											<Text size="1" className="text-white/70">Channel</Text>
-											<Heading size="7" className="text-white leading-none">{score?.total ?? "—"}</Heading>
-											{contextLabel && (
-												<Text size="1" className="text-pink-200/90 mt-1">{contextLabel}</Text>
-											)}
-										</div>
-									</div>
-									<div className="flex-1 space-y-2 min-w-[220px]">
-										<Heading size="5" className="text-white">{baseStats?.title || "Channel Analyzer"}</Heading>
-										<Text size="3" className="text-white/85">{primaryInsight}</Text>
-										<Text size="2" className="text-white/70">
-											{aiSummary?.summary || "One-line verdict based on deterministic scoring."}
-										</Text>
-										{typeof percentile === "number" && (
-											<Text size="2" className="text-white/70">
-												Stronger than {percentile}% of channels
-											</Text>
+								<div className="flex-1 space-y-1 text-center lg:text-left">
+									<Heading size="6" className="text-white leading-tight">{baseStats?.title || "Channel"}</Heading>
+									<Text size="2" className="text-white/80">
+										{formatNumber(baseStats?.subscribers)} subscribers • {formatNumber(baseStats?.views)} views
+									</Text>
+									<Text size="2" className="text-white/70">
+										{baseStats?.postingFrequency || "—"} • {baseStats?.niche || "Business & Finance"}
+									</Text>
+								</div>
+								<div className="relative w-32 h-32 flex items-center justify-center">
+									<div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-400 via-pink-500 to-purple-500 opacity-70 blur-md" />
+									<div className="absolute inset-1 rounded-full border-2 border-pink-400/80" />
+									<div className="relative flex flex-col items-center justify-center w-full h-full rounded-full bg-black/50 text-white shadow-[0_0_25px_rgba(255,60,170,0.35)]">
+										<Text size="1" className="text-white/70">Channel</Text>
+										<Heading size="7" className="text-white leading-none">{score?.total ?? "—"}</Heading>
+										{contextLabel && (
+											<Text size="1" className="text-pink-200/90 mt-1">{contextLabel}</Text>
 										)}
 									</div>
 								</div>
-								<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-									<Chip label="Subscribers" value={formatNumber(baseStats?.subscribers)} />
-									<Chip label="Views" value={formatNumber(baseStats?.views)} />
-									<Chip label="Cadence" value={baseStats?.postingFrequency || "—"} />
-									<Chip label="Positioning" value={baseStats?.niche || "—"} />
-								</div>
 							</div>
-						</div>
-					</Card>
+							<div className="mt-4 space-y-2 text-white/85">
+								<Text size="3" className="text-white/90 font-semibold">Your Top 10% Viral Channel</Text>
+								<Text size="2" className="text-white/75">
+									{aiSummary?.summary || "This channel repeatedly produces videos that perform well beyond its subscriber base."}
+								</Text>
+							</div>
+						</Card>
 
-					<Card className="p-4 bg-black/40 border border-white/5 backdrop-blur">
-						<details open className="space-y-3">
-							<summary className="cursor-pointer text-white font-semibold">Score Breakdown</summary>
-							<div className="space-y-2">
-								{Object.entries(categories).map(([label, val]) => (
-									<ScoreBar key={label} label={label} value={Number(val ?? 0)} />
+						<Card className="p-5 bg-black/30 border border-white/10 backdrop-blur-md">
+							<div className="space-y-2 text-white/85">
+								{(analysis?.["Viral Potential"]?.insights || []).slice(0, 3).map((item: string, i: number) => (
+									<div key={i} className="flex items-start gap-2">
+										<span className="mt-1 w-2 h-2 rounded-full bg-pink-400 shadow-[0_0_8px_rgba(255,80,170,0.6)]" />
+										<Text size="3">{item}</Text>
+									</div>
 								))}
 							</div>
-						</details>
-					</Card>
+						</Card>
 
-					<Card className="p-4 bg-black/40 border border-white/5 backdrop-blur">
-						<details className="space-y-3">
-							<summary className="cursor-pointer text-white font-semibold">Strengths & Weaknesses</summary>
-							<div className="grid sm:grid-cols-2 gap-3">
-								<div>
-									<Text size="2" className="text-white/70 mb-1">Top strengths</Text>
-									<ul className="list-disc list-inside text-white/80 space-y-1">
-										{(score?.strengths || []).slice(0, 3).map((s: any, i: number) => (
-											<li key={i}>{`${s.category}: ${s.score}`}</li>
-										))}
-									</ul>
+						<Card className="p-5 bg-black/30 border border-white/10 backdrop-blur-md">
+							<div className="flex items-center justify-between mb-3">
+								<div className="flex items-center gap-3">
+									<div className="px-3 py-1 rounded-full bg-pink-500/20 border border-pink-400/30 text-white text-sm">
+										Viral Score: {categories?.["Viral Potential"] ?? "—"}/100
+									</div>
+									<Heading size="5" className="text-white">Trending Viral Videos</Heading>
 								</div>
-								<div>
-									<Text size="2" className="text-white/70 mb-1">Top weaknesses</Text>
-									<ul className="list-disc list-inside text-white/80 space-y-1">
-										{(score?.weaknesses || []).slice(0, 3).map((s: any, i: number) => (
-											<li key={i}>{`${s.category}: ${s.score}`}</li>
-										))}
-									</ul>
-								</div>
+								<Text size="2" className="text-white/60">Top performers by recency</Text>
 							</div>
-						</details>
-					</Card>
+							<div className="grid md:grid-cols-3 gap-4">
+								{trendingVideos.slice(0, 3).map((video) => {
+									const href = video.id ? `https://www.youtube.com/watch?v=${video.id}` : undefined;
+									return (
+										<a
+											key={video.id}
+											href={href}
+											target="_blank"
+											rel="noreferrer"
+											className="rounded-xl border border-white/10 bg-white/5 overflow-hidden shadow-lg block hover:border-pink-400/40 transition-colors"
+										>
+											<div className="relative aspect-[16/9]">
+												<Image
+													src={video.thumbnail}
+													alt={video.title}
+													fill
+													className="object-cover"
+												/>
+												<div className="absolute top-2 left-2 bg-pink-500 text-white text-xs px-2 py-1 rounded-full">
+													{video.score ? `${video.score}%` : "Top"}
+												</div>
+											</div>
+											<div className="p-3 space-y-1">
+												<Text size="3" className="text-white font-semibold leading-snug line-clamp-2">
+													{video.title}
+												</Text>
+												<Text size="2" className="text-white/70">
+													{formatNumber(video.views)} views • {video.publishedAt || "recently"}
+												</Text>
+											</div>
+										</a>
+									);
+								})}
+							</div>
+						</Card>
+					</div>
 
-					<Card className="p-4 bg-black/40 border border-white/5 backdrop-blur">
-						<details className="space-y-3">
-							<summary className="cursor-pointer text-white font-semibold">Next Actions</summary>
-							<ul className="list-disc list-inside text-white/80 space-y-1">
-								{(score?.improvements || []).slice(0, 3).map((s: any, i: number) => (
-									<li key={i}>{s}</li>
+					<div className="space-y-4">
+						<Card className="p-5 bg-black/30 border border-pink-500/20 backdrop-blur-md">
+							<Heading size="5" className="text-white mb-3">AI Insights</Heading>
+							<Text size="3" className="text-white/85">{aiSummary?.summary || "Patterns observed across top videos."}</Text>
+							<div className="mt-3 space-y-2">
+								{(aiSummary?.recommendations || []).slice(0, 3).map((rec: string, i: number) => (
+									<div key={i} className="flex items-start gap-2">
+										<span className="mt-1 w-2 h-2 rounded-full bg-pink-400 shadow-[0_0_8px_rgba(255,80,170,0.6)]" />
+										<Text size="2" className="text-white/80">{rec}</Text>
+									</div>
 								))}
-							</ul>
+							</div>
 							{aiSummary?.doubleDown && (
-								<div className="px-3 py-2 rounded-lg border border-pink-400/30 bg-pink-500/10 text-white">
-									<Text size="2" className="text-white">Double down on: {aiSummary.doubleDown}</Text>
+								<div className="mt-4 px-3 py-2 rounded-lg border border-pink-400/30 bg-pink-500/10 text-white">
+									<Text size="2" className="text-white font-semibold">Double down on:</Text>
+									<Text size="2" className="text-white/90">{aiSummary.doubleDown}</Text>
 								</div>
 							)}
-						</details>
-					</Card>
+						</Card>
 
-					<Card className="p-4 bg-black/40 border border-white/5 backdrop-blur">
-						<details className="space-y-3">
-							<summary className="cursor-pointer text-white font-semibold">Category Details</summary>
+						<Card className="p-5 bg-black/30 border border-white/10 backdrop-blur-md">
+							<Heading size="5" className="text-white mb-3">{activeTab}</Heading>
 							<TabContent tab={activeTab} analysis={analysis} channelData={channelData} />
-						</details>
-					</Card>
+						</Card>
+					</div>
 				</div>
-
-				{/* Trending section at bottom */}
-				<Card className="mt-6 p-5 bg-black/40 border border-white/5 backdrop-blur">
-					<div className="flex items-center justify-between mb-4">
-						<div className="flex items-center gap-3">
-							<div className="px-3 py-1 rounded-full bg-pink-500/20 border border-pink-400/30 text-white text-sm">
-								Viral Score: {categories?.["Viral Potential"] ?? "—"}/100
-							</div>
-							<Heading size="5" className="text-white">Trending Viral Videos</Heading>
-						</div>
-						<Text size="2" className="text-white/60">Top performers by recency</Text>
-					</div>
-					<div className="grid md:grid-cols-3 gap-4">
-						{trendingVideos.slice(0, 3).map((video) => {
-							const href = video.id ? `https://www.youtube.com/watch?v=${video.id}` : undefined;
-							return (
-								<a
-									key={video.id}
-									href={href}
-									target="_blank"
-									rel="noreferrer"
-									className="rounded-xl border border-white/10 bg-white/5 overflow-hidden shadow-lg block hover:border-pink-400/40 transition-colors"
-								>
-									<div className="relative aspect-[16/9]">
-										<Image
-											src={video.thumbnail}
-											alt={video.title}
-											fill
-											className="object-cover"
-										/>
-										<div className="absolute top-2 left-2 bg-pink-500 text-white text-xs px-2 py-1 rounded-full">
-											{video.score ? `${video.score}%` : "Top"}
-										</div>
-									</div>
-									<div className="p-3 space-y-1">
-										<Text size="3" className="text-white font-semibold leading-snug line-clamp-2">
-											{video.title}
-										</Text>
-										<Text size="2" className="text-white/70">
-											{formatNumber(video.views)} views • {video.publishedAt || "recently"}
-										</Text>
-									</div>
-								</a>
-							);
-						})}
-					</div>
-				</Card>
 			</div>
 		</div>
 	);
