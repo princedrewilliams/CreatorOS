@@ -180,8 +180,8 @@ function ChannelDNAContent() {
 		];
 	}, [channelData, analysis]);
 
-	const categories = useMemo(() => {
-		return score?.categories || {};
+	const categories = useMemo<Record<string, number>>(() => {
+		return (score?.categories as Record<string, number>) || {};
 	}, [score]);
 
 	return (
@@ -376,7 +376,7 @@ function ChannelDNAContent() {
 							</div>
 							<div className="mt-4 space-y-2">
 								{Object.entries(categories).map(([label, val]) => (
-									<ScoreBar key={label} label={label} value={val} />
+									<ScoreBar key={label} label={label} value={Number(val ?? 0)} />
 								))}
 							</div>
 							<div className="mt-4 grid grid-cols-2 gap-3">
