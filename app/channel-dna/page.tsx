@@ -310,7 +310,7 @@ function ChannelDNAContent() {
 									<Text size="2" className="text-white/70 mb-1">Top weaknesses</Text>
 									<ul className="list-disc list-inside text-white/80 space-y-1">
 										{(score?.weaknesses || []).slice(0, 3).map((s: any, i: number) => (
-											<li key_{i}>{`${s.category}: ${s.score}`}</li>
+											<li key={i}>{`${s.category}: ${s.score}`}</li>
 										))}
 									</ul>
 								</div>
