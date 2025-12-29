@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Text, Badge } from "@whop/react/components";
 import { 
 	ArrowRightIcon
@@ -13,9 +12,6 @@ export default function HomePage() {
 	const [channelUrl, setChannelUrl] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const [analysisResult, setAnalysisResult] = useState<any>(null);
-	const [analysisData, setAnalysisData] = useState<any>(null);
-	const [analysisReady, setAnalysisReady] = useState(false);
 	const router = useRouter();
 
 	const handleAnalyze = async () => {
@@ -25,9 +21,6 @@ export default function HomePage() {
 		}
 		setError(null);
 		setLoading(true);
-		setAnalysisReady(false);
-		setAnalysisResult(null);
-		setAnalysisData(null);
 		try {
 			const res = await fetch("/api/channel-analyze", {
 				method: "POST",
@@ -38,10 +31,8 @@ export default function HomePage() {
 				const errData = await res.json().catch(() => ({}));
 				throw new Error(errData.error || "Analysis failed. Please try again.");
 			}
-			const data = await res.json();
-			setAnalysisResult(data.analysis || null);
-			setAnalysisData(data.data || null);
-			setAnalysisReady(true);
+			await res.json();
+			router.push(`/channel-dna?url=${encodeURIComponent(channelUrl.trim())}`);
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Analysis failed. Please try again.");
 		} finally {
@@ -198,39 +189,6 @@ export default function HomePage() {
 							<div className="text-center mt-1">
 								<Text size="2" className="text-red-400">{error}</Text>
 							</div>
-						)}
-						{analysisReady && (
-							<motion.div
-								initial={{ opacity: 0, y: 8 }}
-								animate={{ opacity: 1, y: 0 }}
-								className="mt-4 rounded-2xl bg-[#0a0013]/80 border border-pink-500/20 p-4 shadow-[0_0_20px_rgba(255,60,160,0.25)]"
-							>
-								<div className="flex items-center justify-between flex-wrap gap-3 mb-3">
-									<Text size="3" className="text-white font-semibold">Analysis ready</Text>
-									<Link
-										href={`/channel-dna?url=${encodeURIComponent(channelUrl.trim())}`}
-										className="px-4 py-2 rounded-lg border border-pink-400 text-white text-sm font-semibold shadow-[0_8px_18px_rgba(255,60,160,0.25)] hover:scale-[1.02] active:scale-[0.98] transition-transform"
-									>
-										View full report
-									</Link>
-								</div>
-								<Text size="2" className="text-white/80 mb-2">Preview</Text>
-								<div className="grid sm:grid-cols-2 gap-3 text-white/80 text-sm">
-									{analysisResult &&
-										Object.entries(analysisResult)
-											.slice(0, 6)
-											.map(([key, val]) => (
-												<div key={key} className="rounded-lg bg-white/5 p-3 border border-white/5">
-													<div className="text-white font-semibold mb-1 text-sm">{key}</div>
-													<Text size="1" className="text-white/70">
-														{typeof val === "string"
-															? val
-															: JSON.stringify(val).slice(0, 160) + "..."}
-													</Text>
-												</div>
-											))}
-								</div>
-							</motion.div>
 						)}
 					</motion.div>
 				</motion.div>
