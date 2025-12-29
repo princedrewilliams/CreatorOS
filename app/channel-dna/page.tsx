@@ -7,15 +7,26 @@ import { motion } from "framer-motion";
 import { Text, Heading, Card, Button } from "@whop/react/components";
 
 const TABS = [
-	"Viral Potential",
-	"Engagement Signals",
-	"SEO Strategy",
-	"Posting Consistency",
-	"Thumbnail Strategy",
-	"Content Clusters",
-	"Channel Positioning",
+	"Viral Score",
+	"Audience Engagement",
+	"Search & Discoverability",
+	"Upload Consistency",
+	"Thumbnail Performance",
+	"Winning Topics",
+	"Channel Identity",
 	"Replication Score",
 ];
+
+const TAB_TO_ANALYSIS: Record<string, string> = {
+	"Viral Score": "Viral Potential",
+	"Audience Engagement": "Engagement Signals",
+	"Search & Discoverability": "SEO Strategy",
+	"Upload Consistency": "Posting Consistency",
+	"Thumbnail Performance": "Thumbnail Strategy",
+	"Winning Topics": "Content Clusters",
+	"Channel Identity": "Channel Positioning",
+	"Replication Score": "Replication Score",
+};
 
 export default function ChannelDNAPage() {
 	return (
@@ -121,6 +132,45 @@ function ChannelDNAContent() {
 		};
 	}, [channelData, analysis]);
 
+	const trendingVideos = useMemo(() => {
+		const videos = (channelData?.videos || []) as any[];
+		const mapped = videos.slice(0, 3).map((v) => ({
+			id: v.id,
+			title: v.title,
+			views: v.views || v.statistics?.viewCount,
+			publishedAt: v.publishedAt,
+			thumbnail: v.thumbnails?.high?.url || v.thumbnails?.medium?.url || v.thumbnails?.default?.url,
+			score: analysis?.["Viral Potential"]?.score ?? 0,
+		}));
+		if (mapped.length) return mapped;
+		return [
+			{
+				id: "mock-1",
+				title: "This Negotiation Trick Makes You Rich",
+				views: 1928715,
+				publishedAt: "4 weeks ago",
+				thumbnail: "https://via.placeholder.com/320x180",
+				score: 87,
+			},
+			{
+				id: "mock-2",
+				title: "10 Websites to Make Easy Money",
+				views: 3162850,
+				publishedAt: "2 months ago",
+				thumbnail: "https://via.placeholder.com/320x180",
+				score: 82,
+			},
+			{
+				id: "mock-3",
+				title: "9 Mistakes Killing Your Wealth",
+				views: 981209,
+				publishedAt: "1 month ago",
+				thumbnail: "https://via.placeholder.com/320x180",
+				score: 78,
+			},
+		];
+	}, [channelData, analysis]);
+
 	return (
 		<div className="relative min-h-screen bg-[#05000b]">
 			<div className="fixed inset-0 -z-10 overflow-hidden bg-[#05000b]">
@@ -130,6 +180,21 @@ function ChannelDNAContent() {
 			</div>
 
 			<div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
+				<div className="flex items-center justify-between mb-4">
+					<Heading size="6" className="text-white flex items-center gap-2">
+						<span className="w-3 h-3 rounded-full bg-pink-400 shadow-[0_0_15px_rgba(255,64,170,0.6)]" />
+						Channel Analyzer
+					</Heading>
+					<Button
+						variant="ghost"
+						color="gray"
+						onClick={() => router.push("/")}
+						className="text-white border border-white/10 hover:border-pink-400 hover:text-white"
+					>
+						Analyze Another Channel
+					</Button>
+				</div>
+
 				{/* Top nav tabs */}
 				<div className="flex flex-wrap gap-2 mb-6">
 					{TABS.map((tab) => {
@@ -138,101 +203,167 @@ function ChannelDNAContent() {
 							<button
 								key={tab}
 								onClick={() => setActiveTab(tab)}
-								className={`px-3 py-2 text-sm rounded-lg border transition-colors ${
+								className={`px-4 py-2 text-sm rounded-full border transition-colors flex items-center gap-2 ${
 									isActive
-										? "border-pink-400 bg-pink-500/20 text-white"
-										: "border-white/10 bg-white/5 text-white/70 hover:border-pink-300/60 hover:text-white"
+										? "border-pink-400 bg-gradient-to-r from-pink-500/60 via-pink-500/40 to-purple-500/50 text-white shadow-[0_0_25px_rgba(255,80,180,0.35)]"
+										: "border-white/10 bg-white/5 text-white/80 hover:border-pink-300/60 hover:text-white"
 								}`}
 							>
 								{tab}
+								{isActive && <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/15 border border-white/20">FREE</span>}
 							</button>
 						);
 					})}
 				</div>
 
-				{/* Base stats header */}
-				<Card variant="surface" className="p-4 sm:p-6 bg-white/5 border border-white/10 backdrop-blur-md mb-6">
-					<div className="grid gap-4 sm:gap-6 sm:grid-cols-[1fr,1.2fr] items-center">
-						<div className="space-y-3">
-							<Heading size="6" className="text-white">Channel Snapshot</Heading>
-							<Text size="2" className="text-white/70 break-words">{channelUrl || "No channel URL provided"}</Text>
-							{error && <Text size="2" className="text-red-400">{error}</Text>}
-							<div className="flex gap-3">
-								<input
-									type="url"
-									value={channelUrl}
-									onChange={(e) => setChannelUrl(e.target.value)}
-									onKeyDown={(e) => {
-										if (e.key === "Enter") void handleAnalyze();
-									}}
-									placeholder="Paste your YouTube URL here... (e.g., youtube.com/@channelname)"
-									className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-3 text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-pink-500"
-								/>
-								<Button
-									variant="solid"
-									color="purple"
-									size="3"
-									onClick={() => void handleAnalyze()}
-									disabled={loading}
-									className="min-w-[150px]"
-								>
-									{loading ? "Analyzing..." : "Analyze"}
-								</Button>
+				{/* Main content */}
+				<div className="grid lg:grid-cols-[1.65fr,0.85fr] gap-5">
+					{/* Left: Hero + Trending */}
+					<div className="space-y-4">
+						<Card className="p-5 sm:p-6 bg-gradient-to-br from-[#140017] via-[#0c0014] to-[#090012] border border-pink-500/20 shadow-[0_0_40px_rgba(255,60,170,0.25)]">
+							<div className="flex flex-col lg:flex-row gap-6">
+								<div className="flex items-center gap-4 flex-1">
+									<div className="relative">
+										<div className="absolute inset-0 rounded-full bg-pink-500/40 blur-xl" />
+										<div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-pink-400 shadow-[0_0_30px_rgba(255,80,170,0.5)]">
+											{baseStats?.thumbnail ? (
+												<Image src={baseStats.thumbnail} alt="Avatar" fill className="object-cover" />
+											) : (
+												<div className="w-full h-full flex items-center justify-center text-white/70 text-xs">No avatar</div>
+											)}
+										</div>
+									</div>
+									<div className="space-y-1">
+										<Heading size="6" className="text-white leading-tight">{baseStats?.title || "Channel"}</Heading>
+										<Text size="2" className="text-white/70 leading-tight">
+											{formatNumber(baseStats?.subscribers)} subscribers • {formatNumber(baseStats?.views)} views
+										</Text>
+										<Text size="2" className="text-white/70 leading-tight">
+											{baseStats?.postingFrequency || "—"} • {baseStats?.niche || "Business & Finance"}
+										</Text>
+									</div>
+								</div>
+								<div className="flex items-center gap-4">
+									<div className="relative w-24 h-24 flex items-center justify-center">
+										<div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-400 via-pink-500 to-purple-500 opacity-60 blur-md" />
+										<div className="absolute inset-1 rounded-full border border-pink-400/60" />
+										<div className="relative flex flex-col items-center justify-center w-full h-full rounded-full bg-black/40 text-white">
+											<Text size="1" className="text-white/70">Channel</Text>
+											<Heading size="7" className="text-white leading-none">
+												{analysis?.[TAB_TO_ANALYSIS[activeTab]]?.score ?? "—"}
+											</Heading>
+										</div>
+									</div>
+									<div className="space-y-2">
+										<Button
+											variant="soft"
+											color="purple"
+											size="2"
+											className="bg-pink-500/20 border border-pink-400/40 text-white hover:bg-pink-500/30"
+											onClick={() => window?.scrollTo({ top: 0, behavior: "smooth" })}
+										>
+											Share Report
+										</Button>
+										<Button
+											variant="ghost"
+											color="gray"
+											size="2"
+											className="text-white border border-white/15 hover:border-pink-400"
+											onClick={() => void handleAnalyze()}
+										>
+											Refresh
+										</Button>
+									</div>
+								</div>
 							</div>
-						</div>
 
-						<div className="grid grid-cols-2 gap-3 text-white">
-							<div className="col-span-2 rounded-lg border border-white/10 bg-white/5 overflow-hidden h-28 relative">
-								{baseStats?.banner ? (
-									<Image src={baseStats.banner} alt="Banner" fill className="object-cover" />
-								) : (
-									<div className="w-full h-full flex items-center justify-center text-white/40 text-sm">Banner not available</div>
-								)}
-							</div>
-							<div className="flex items-center gap-3 col-span-2">
-								<div className="w-14 h-14 rounded-full overflow-hidden border border-white/20 bg-white/10 flex-shrink-0">
-									{baseStats?.thumbnail ? (
-										<Image src={baseStats.thumbnail} alt="Avatar" width={56} height={56} className="object-cover" />
-									) : (
-										<div className="w-full h-full flex items-center justify-center text-white/50 text-xs">No avatar</div>
-									)}
+							<div className="mt-6 grid md:grid-cols-[1.3fr,0.7fr] gap-5 items-start">
+								<div>
+									<Heading size="5" className="text-white mb-2">Your Top 10% Viral Channel</Heading>
+									<Text size="3" className="text-white/80">
+										{analysis?.["Viral Potential"]?.summary || "This channel repeatedly produces videos that perform beyond its subscriber base."}
+									</Text>
+									<div className="mt-4 space-y-2">
+										{(analysis?.["Viral Potential"]?.insights || []).slice(0, 3).map((item: string, i: number) => (
+											<div key={i} className="flex items-start gap-2 text-white/85">
+												<span className="mt-1 w-2 h-2 rounded-full bg-pink-400 shadow-[0_0_10px_rgba(255,80,170,0.6)]" />
+												<Text size="3">{item}</Text>
+											</div>
+										))}
+									</div>
 								</div>
-								<div className="space-y-1">
-									<Text size="4" className="text-white font-semibold leading-tight">{baseStats?.title || "—"}</Text>
-									<Text size="2" className="text-white/70 leading-tight">Positioning: {baseStats?.niche || "—"}</Text>
-								</div>
+								<Card className="bg-black/30 border border-pink-500/20 p-4 space-y-2">
+									<Heading size="4" className="text-white flex items-center gap-2">AI Insights</Heading>
+									{(analysis?.[TAB_TO_ANALYSIS[activeTab]]?.insights || []).slice(0, 3).map((item: string, i: number) => (
+										<div key={i} className="flex items-start gap-2 text-white/85">
+											<span className="mt-1 w-1.5 h-1.5 rounded-full bg-pink-300" />
+											<Text size="2" className="text-white/80">{item}</Text>
+										</div>
+									))}
+									<Button
+										variant="solid"
+										color="purple"
+										size="3"
+										className="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white mt-2"
+									>
+										Unlock Full Report (PRO)
+									</Button>
+								</Card>
 							</div>
-							<div className="col-span-2">
-								<Text size="2" className="text-white/80 line-clamp-3">
-									{baseStats?.description || "Bio not available."}
-								</Text>
+						</Card>
+
+						<Card className="p-5 bg-black/30 border border-white/10 backdrop-blur-md">
+							<div className="flex items-center justify-between mb-4">
+								<Heading size="5" className="text-white">Trending Viral Videos</Heading>
+								<Text size="2" className="text-white/60">Top performers by recency</Text>
 							</div>
-							<div className="grid grid-cols-2 sm:grid-cols-4 gap-3 col-span-2">
-								<Metric label="Subscribers" value={formatNumber(baseStats?.subscribers)} />
-								<Metric label="Views" value={formatNumber(baseStats?.views)} />
-								<Metric label="Videos" value={formatNumber(baseStats?.videos)} />
-								<Metric label="Cadence" value={baseStats?.postingFrequency || "—"} />
+							<div className="grid md:grid-cols-3 gap-4">
+								{trendingVideos.map((video) => (
+									<div key={video.id} className="rounded-xl border border-white/10 bg-white/5 overflow-hidden shadow-lg">
+										<div className="relative aspect-[16/9]">
+											<Image
+												src={video.thumbnail}
+												alt={video.title}
+												fill
+												className="object-cover"
+											/>
+											<div className="absolute top-2 left-2 bg-pink-500 text-white text-xs px-2 py-1 rounded-full">
+												{video.score ? `${video.score}%` : "Top"}
+											</div>
+										</div>
+										<div className="p-3 space-y-1">
+											<Text size="3" className="text-white font-semibold leading-snug line-clamp-2">
+												{video.title}
+											</Text>
+											<Text size="2" className="text-white/70">
+												{formatNumber(video.views)} views • {video.publishedAt || "recently"}
+											</Text>
+										</div>
+									</div>
+								))}
 							</div>
-							<div className="grid grid-cols-2 sm:grid-cols-3 gap-3 col-span-2">
-								<Metric label="Avg title length" value={baseStats?.avgTitleLength ? `${baseStats.avgTitleLength} chars` : "—"} />
-								<Metric label="Top keywords" value={channelData?.metrics?.commonKeywords?.slice(0, 3).map((k: any) => k.word).join(", ") || "—"} />
-								<Metric label="Handle" value={channelData?.channel?.handle || "—"} />
-							</div>
-						</div>
+						</Card>
 					</div>
-				</Card>
 
-				{/* Content area */}
-				<Card variant="surface" className="p-4 sm:p-6 bg-white/5 border border-white/10 backdrop-blur-md">
-					<TabContent tab={activeTab} analysis={analysis} channelData={channelData} />
-				</Card>
+					{/* Right: Tab detail */}
+					<Card className="p-5 bg-black/30 border border-pink-500/20 backdrop-blur-md">
+						<TabContent tab={activeTab} analysis={analysis} channelData={channelData} />
+						<div className="mt-4 grid grid-cols-2 gap-3">
+							<Metric label="Subscribers" value={formatNumber(baseStats?.subscribers)} />
+							<Metric label="Views" value={formatNumber(baseStats?.views)} />
+							<Metric label="Videos" value={formatNumber(baseStats?.videos)} />
+							<Metric label="Cadence" value={baseStats?.postingFrequency || "—"} />
+						</div>
+					</Card>
+				</div>
 			</div>
 		</div>
 	);
 }
 
 function TabContent({ tab, analysis, channelData }: { tab: string; analysis: any; channelData: any }) {
-	const bucket = analysis?.[tab] || {};
+	const analysisKey = TAB_TO_ANALYSIS[tab] || tab;
+	const bucket = analysis?.[analysisKey] || {};
 	const score = bucket.score ?? "—";
 	const summary = bucket.summary || "No summary yet.";
 	const insights: string[] = bucket.insights || [];
