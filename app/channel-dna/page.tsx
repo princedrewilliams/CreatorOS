@@ -184,6 +184,13 @@ function ChannelDNAContent() {
 		return (score?.categories as Record<string, number>) || {};
 	}, [score]);
 
+	const percentile = score?.percentile ?? null;
+	const contextLabel = score?.contextLabel ?? null;
+	const primaryInsight =
+		aiSummary?.doubleDown ||
+		aiSummary?.summary ||
+		(score?.strengths?.[0] ? `Double down on ${score.strengths[0].category}` : "Focused growth opportunity");
+
 	return (
 		<div className="relative min-h-screen bg-[#05000b]">
 			<div className="fixed inset-0 -z-10 overflow-hidden bg-[#05000b]">
@@ -192,12 +199,22 @@ function ChannelDNAContent() {
 				<div className="absolute inset-0 opacity-80 bg-[linear-gradient(120deg,rgba(255,52,160,0.4),rgba(255,52,160,0)_38%),linear-gradient(-115deg,rgba(255,105,200,0.34),rgba(255,105,200,0)_32%),linear-gradient(150deg,rgba(255,90,170,0.28),rgba(255,90,170,0)_42%)]" />
 			</div>
 
-			<div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
+			<div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
 				<div className="flex items-center justify-between mb-4">
-					<Heading size="6" className="text-white flex items-center gap-2">
-						<span className="w-3 h-3 rounded-full bg-pink-400 shadow-[0_0_15px_rgba(255,64,170,0.6)]" />
-						Channel Analyzer
-					</Heading>
+					<div className="flex items-center gap-3">
+						<Button
+							variant="ghost"
+							color="gray"
+							onClick={() => router.push("/")}
+							className="text-white border border-white/10 hover:border-pink-400 hover:text-white"
+						>
+							← Back
+						</Button>
+						<Heading size="6" className="text-white flex items-center gap-2">
+							<span className="w-3 h-3 rounded-full bg-pink-400 shadow-[0_0_15px_rgba(255,64,170,0.6)]" />
+							Channel Analyzer
+						</Heading>
+					</div>
 					<Button
 						variant="ghost"
 						color="gray"
@@ -229,202 +246,148 @@ function ChannelDNAContent() {
 					})}
 				</div>
 
-				{/* Main content */}
-				<div className="grid lg:grid-cols-[1.65fr,0.85fr] gap-5">
-					{/* Left: Hero + Trending */}
-					<div className="space-y-4">
-						<Card className="p-5 sm:p-6 bg-gradient-to-br from-[#140017] via-[#0c0014] to-[#090012] border border-pink-500/20 shadow-[0_0_40px_rgba(255,60,170,0.25)]">
-							<div className="flex flex-col lg:flex-row gap-6">
-								<div className="flex items-center gap-4 flex-1">
-									<div className="relative">
-										<div className="absolute inset-0 rounded-full bg-pink-500/40 blur-xl" />
-										<div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-pink-400 shadow-[0_0_30px_rgba(255,80,170,0.5)]">
-											{baseStats?.thumbnail ? (
-												<Image src={baseStats.thumbnail} alt="Avatar" fill className="object-cover" />
-											) : (
-												<div className="w-full h-full flex items-center justify-center text-white/70 text-xs">No avatar</div>
-											)}
-										</div>
-									</div>
-									<div className="space-y-1">
-										<Heading size="6" className="text-white leading-tight">{baseStats?.title || "Channel"}</Heading>
-										<Text size="2" className="text-white/70 leading-tight">
-											{formatNumber(baseStats?.subscribers)} subscribers • {formatNumber(baseStats?.views)} views
-										</Text>
-										<Text size="2" className="text-white/70 leading-tight">
-											{baseStats?.postingFrequency || "—"} • {baseStats?.niche || "Business & Finance"}
-										</Text>
-									</div>
-								</div>
-								<div className="flex items-center gap-4">
-									<div className="relative w-24 h-24 flex items-center justify-center">
-										<div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-400 via-pink-500 to-purple-500 opacity-60 blur-md" />
-										<div className="absolute inset-1 rounded-full border border-pink-400/60" />
-										<div className="relative flex flex-col items-center justify-center w-full h-full rounded-full bg-black/40 text-white">
-											<Text size="1" className="text-white/70">Channel</Text>
-											<Heading size="7" className="text-white leading-none">
-												{score?.total ?? "—"}
-											</Heading>
-										</div>
-									</div>
-									<div className="space-y-2">
-										<Button
-											variant="soft"
-											color="purple"
-											size="2"
-											className="bg-pink-500/20 border border-pink-400/40 text-white hover:bg-pink-500/30"
-											onClick={() => window?.scrollTo({ top: 0, behavior: "smooth" })}
-										>
-											Share Report
-										</Button>
-										<Button
-											variant="ghost"
-											color="gray"
-											size="2"
-											className="text-white border border-white/15 hover:border-pink-400"
-											onClick={() => void handleAnalyze()}
-										>
-											Refresh
-										</Button>
-									</div>
-								</div>
-							</div>
-
-							<div className="mt-6 grid md:grid-cols-[1.3fr,0.7fr] gap-5 items-start">
-								<div>
-									<Heading size="5" className="text-white mb-2">Your Top 10% Viral Channel</Heading>
-									<Text size="3" className="text-white/80">
-										{analysis?.["Viral Potential"]?.summary || "This channel repeatedly produces videos that perform beyond its subscriber base."}
-									</Text>
-									<div className="mt-4 space-y-2">
-										{(analysis?.["Viral Potential"]?.insights || []).slice(0, 3).map((item: string, i: number) => (
-											<div key={i} className="flex items-start gap-2 text-white/85">
-												<span className="mt-1 w-2 h-2 rounded-full bg-pink-400 shadow-[0_0_10px_rgba(255,80,170,0.6)]" />
-												<Text size="3">{item}</Text>
-											</div>
-										))}
-									</div>
-								</div>
-								<Card className="bg-black/30 border border-pink-500/20 p-4 space-y-2">
-									<Heading size="4" className="text-white flex items-center gap-2">AI Insights</Heading>
-									{(analysis?.[TAB_TO_ANALYSIS[activeTab]]?.insights || []).slice(0, 3).map((item: string, i: number) => (
-										<div key={i} className="flex items-start gap-2 text-white/85">
-											<span className="mt-1 w-1.5 h-1.5 rounded-full bg-pink-300" />
-											<Text size="2" className="text-white/80">{item}</Text>
-										</div>
-									))}
-								</Card>
-							</div>
-						</Card>
-
-						<Card className="p-5 bg-black/30 border border-white/10 backdrop-blur-md">
-							<div className="flex items-center justify-between mb-4">
-								<div className="flex items-center gap-3">
-									<div className="px-3 py-1 rounded-full bg-pink-500/20 border border-pink-400/30 text-white text-sm">
-										Viral Score: {categories?.["Viral Score"] ?? "—"}/100
-									</div>
-									<Heading size="5" className="text-white">Trending Viral Videos</Heading>
-								</div>
-								<Text size="2" className="text-white/60">Top performers by recency</Text>
-							</div>
-							<div className="grid md:grid-cols-3 gap-4">
-								{trendingVideos.map((video) => (
-									<div key={video.id} className="rounded-xl border border-white/10 bg-white/5 overflow-hidden shadow-lg">
-										<div className="relative aspect-[16/9]">
-											<Image
-												src={video.thumbnail}
-												alt={video.title}
-												fill
-												className="object-cover"
-											/>
-											<div className="absolute top-2 left-2 bg-pink-500 text-white text-xs px-2 py-1 rounded-full">
-												{video.score ? `${video.score}%` : "Top"}
-											</div>
-										</div>
-										<div className="p-3 space-y-1">
-											<Text size="3" className="text-white font-semibold leading-snug line-clamp-2">
-												{video.title}
-											</Text>
-											<Text size="2" className="text-white/70">
-												{formatNumber(video.views)} views • {video.publishedAt || "recently"}
-											</Text>
-										</div>
-									</div>
-								))}
-							</div>
-						</Card>
-					</div>
-
-					{/* Right: Score + detail */}
-					<div className="space-y-4">
-						<Card className="p-5 bg-black/30 border border-pink-500/20 backdrop-blur-md">
-							<div className="flex gap-4 items-center">
-								<div className="relative w-28 h-28 flex items-center justify-center">
+				{/* Main content simplified */}
+				<div className="space-y-4 w-full">
+					<Card className="p-5 sm:p-6 bg-gradient-to-br from-[#140017] via-[#0c0014] to-[#090012] border border-pink-500/10 shadow-[0_0_25px_rgba(255,60,170,0.18)]">
+						<div className="flex flex-col gap-4">
+							<div className="flex items-center gap-4">
+								<div className="relative w-24 h-24 flex items-center justify-center">
 									<div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-400 via-pink-500 to-purple-500 opacity-50 blur-md" />
-									<div className="absolute inset-1 rounded-full border border-pink-400/60" />
-									<div className="relative flex flex-col items-center justify-center w-full h-full rounded-full bg-black/40 text-white">
-										<Text size="1" className="text-white/70">Score</Text>
+									<div className="absolute inset-1 rounded-full border border-pink-400/40" />
+									<div className="relative flex flex-col items-center justify-center w-full h-full rounded-full bg-black/50 text-white">
+										<Text size="1" className="text-white/70">Channel</Text>
 										<Heading size="7" className="text-white leading-none">{score?.total ?? "—"}</Heading>
+										{contextLabel && (
+											<Text size="1" className="text-pink-200/90 mt-1">{contextLabel}</Text>
+										)}
 									</div>
 								</div>
 								<div className="flex-1 space-y-2">
-									<Heading size="5" className="text-white">Channel Score</Heading>
-									<Text size="3" className="text-white/75">
-										{aiSummary?.explanation || "Deterministic score based on viral performance, engagement, discoverability, cadence, thumbnails, focus, and identity."}
+									<Heading size="5" className="text-white">{baseStats?.title || "Channel Analyzer"}</Heading>
+									<Text size="3" className="text-white/80">{primaryInsight}</Text>
+									<Text size="2" className="text-white/70">
+										{aiSummary?.summary || "One-line verdict based on deterministic scoring."}
 									</Text>
+									{typeof percentile === "number" && (
+										<Text size="2" className="text-white/70">
+											Stronger than {percentile}% of channels
+										</Text>
+									)}
 								</div>
 							</div>
-							<div className="mt-4 space-y-2">
+							<div className="flex flex-wrap gap-3 text-white/80">
+								<Text size="2">{formatNumber(baseStats?.subscribers)} subs</Text>
+								<Text size="2">{formatNumber(baseStats?.views)} views</Text>
+								<Text size="2">{baseStats?.postingFrequency || "Cadence —"}</Text>
+							</div>
+						</div>
+					</Card>
+
+					<Card className="p-4 bg-black/40 border border-white/5 backdrop-blur">
+						<details open className="space-y-3">
+							<summary className="cursor-pointer text-white font-semibold">Score Breakdown</summary>
+							<div className="space-y-2">
 								{Object.entries(categories).map(([label, val]) => (
 									<ScoreBar key={label} label={label} value={Number(val ?? 0)} />
 								))}
 							</div>
-							<div className="mt-4 grid grid-cols-2 gap-3">
-								<Metric label="Subscribers" value={formatNumber(baseStats?.subscribers)} />
-								<Metric label="Views" value={formatNumber(baseStats?.views)} />
-								<Metric label="Videos" value={formatNumber(baseStats?.videos)} />
-								<Metric label="Cadence" value={baseStats?.postingFrequency || "—"} />
-							</div>
-						</Card>
+						</details>
+					</Card>
 
-						<Card className="p-5 bg-black/30 border border-white/10 backdrop-blur-md">
-							<Heading size="5" className="text-white mb-3">Why this score?</Heading>
-							<div className="space-y-2">
-								<Text size="3" className="text-white/80">{aiSummary?.explanation || "Based on weighted performance across key growth levers."}</Text>
-								<div className="grid sm:grid-cols-2 gap-3">
-									<div>
-										<Text size="2" className="text-white/70 mb-1">Top strengths</Text>
-										<ul className="list-disc list-inside text-white/80 space-y-1">
-											{(aiSummary?.strengths || score?.strengths || []).slice(0, 3).map((s: any, i: number) => (
-												<li key={i}>{typeof s === "string" ? s : `${s.category}: ${s.score}`}</li>
-											))}
-										</ul>
-									</div>
-									<div>
-										<Text size="2" className="text-white/70 mb-1">Top weaknesses</Text>
-										<ul className="list-disc list-inside text-white/80 space-y-1">
-											{(aiSummary?.weaknesses || score?.weaknesses || []).slice(0, 3).map((s: any, i: number) => (
-												<li key={i}>{typeof s === "string" ? s : `${s.category}: ${s.score}`}</li>
-											))}
-										</ul>
-									</div>
-								</div>
-								<div className="mt-2">
-									<Text size="2" className="text-white/70 mb-1">High-impact improvements</Text>
+					<Card className="p-4 bg-black/40 border border-white/5 backdrop-blur">
+						<details className="space-y-3">
+							<summary className="cursor-pointer text-white font-semibold">Strengths & Weaknesses</summary>
+							<div className="grid sm:grid-cols-2 gap-3">
+								<div>
+									<Text size="2" className="text-white/70 mb-1">Top strengths</Text>
 									<ul className="list-disc list-inside text-white/80 space-y-1">
-										{(aiSummary?.improvements || score?.improvements || []).slice(0, 3).map((s: any, i: number) => (
-											<li key={i}>{s}</li>
+										{(score?.strengths || []).slice(0, 3).map((s: any, i: number) => (
+											<li key={i}>{`${s.category}: ${s.score}`}</li>
+										))}
+									</ul>
+								</div>
+								<div>
+									<Text size="2" className="text-white/70 mb-1">Top weaknesses</Text>
+									<ul className="list-disc list-inside text-white/80 space-y-1">
+										{(score?.weaknesses || []).slice(0, 3).map((s: any, i: number) => (
+											<li key_{i}>{`${s.category}: ${s.score}`}</li>
 										))}
 									</ul>
 								</div>
 							</div>
-						</Card>
+						</details>
+					</Card>
 
-						<Card className="p-5 bg-black/30 border border-pink-500/20 backdrop-blur-md">
+					<Card className="p-4 bg-black/40 border border-white/5 backdrop-blur">
+						<details className="space-y-3">
+							<summary className="cursor-pointer text-white font-semibold">Next Actions</summary>
+							<ul className="list-disc list-inside text-white/80 space-y-1">
+								{(score?.improvements || []).slice(0, 3).map((s: any, i: number) => (
+									<li key={i}>{s}</li>
+								))}
+							</ul>
+							{aiSummary?.doubleDown && (
+								<div className="px-3 py-2 rounded-lg border border-pink-400/30 bg-pink-500/10 text-white">
+									<Text size="2" className="text-white">Double down on: {aiSummary.doubleDown}</Text>
+								</div>
+							)}
+						</details>
+					</Card>
+
+					<Card className="p-4 bg-black/40 border border-white/5 backdrop-blur">
+						<details className="space-y-3">
+							<summary className="cursor-pointer text-white font-semibold">Category Details</summary>
 							<TabContent tab={activeTab} analysis={analysis} channelData={channelData} />
-						</Card>
-					</div>
+						</details>
+					</Card>
 				</div>
+
+				{/* Trending section at bottom */}
+				<Card className="mt-6 p-5 bg-black/40 border border-white/5 backdrop-blur">
+					<div className="flex items-center justify-between mb-4">
+						<div className="flex items-center gap-3">
+							<div className="px-3 py-1 rounded-full bg-pink-500/20 border border-pink-400/30 text-white text-sm">
+								Viral Score: {categories?.["Viral Potential"] ?? "—"}/100
+							</div>
+							<Heading size="5" className="text-white">Trending Viral Videos</Heading>
+						</div>
+						<Text size="2" className="text-white/60">Top performers by recency</Text>
+					</div>
+					<div className="grid md:grid-cols-3 gap-4">
+						{trendingVideos.slice(0, 3).map((video) => {
+							const href = video.id ? `https://www.youtube.com/watch?v=${video.id}` : undefined;
+							return (
+								<a
+									key={video.id}
+									href={href}
+									target="_blank"
+									rel="noreferrer"
+									className="rounded-xl border border-white/10 bg-white/5 overflow-hidden shadow-lg block hover:border-pink-400/40 transition-colors"
+								>
+									<div className="relative aspect-[16/9]">
+										<Image
+											src={video.thumbnail}
+											alt={video.title}
+											fill
+											className="object-cover"
+										/>
+										<div className="absolute top-2 left-2 bg-pink-500 text-white text-xs px-2 py-1 rounded-full">
+											{video.score ? `${video.score}%` : "Top"}
+										</div>
+									</div>
+									<div className="p-3 space-y-1">
+										<Text size="3" className="text-white font-semibold leading-snug line-clamp-2">
+											{video.title}
+										</Text>
+										<Text size="2" className="text-white/70">
+											{formatNumber(video.views)} views • {video.publishedAt || "recently"}
+										</Text>
+									</div>
+								</a>
+							);
+						})}
+					</div>
+				</Card>
 			</div>
 		</div>
 	);

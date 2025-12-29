@@ -363,24 +363,22 @@ function buildHeuristicAnalysis(payload: {
 }
 
 type ScoringCategory =
-	| "Viral Score"
+	| "Viral Potential"
 	| "Audience Engagement"
-	| "Discoverability"
+	| "Discoverability / SEO"
 	| "Upload Consistency"
 	| "Thumbnail Performance"
-	| "Topic Focus"
-	| "Channel Identity"
-	| "Replication Score";
+	| "Channel Identity & Focus"
+	| "Channel Score";
 
 const CATEGORY_WEIGHTS: Record<ScoringCategory, number> = {
-	"Viral Score": 0.25,
+	"Viral Potential": 0.3,
 	"Audience Engagement": 0.2,
-	Discoverability: 0.15,
-	"Upload Consistency": 0.1,
+	"Discoverability / SEO": 0.15,
+	"Upload Consistency": 0.15,
 	"Thumbnail Performance": 0.1,
-	"Topic Focus": 0.1,
-	"Channel Identity": 0.1,
-	"Replication Score": 0, // derived later as overall quality
+	"Channel Identity & Focus": 0.1,
+	"Channel Score": 0,
 };
 
 function clamp(val: number, min = 0, max = 100) {
@@ -415,7 +413,7 @@ function computeScores(input: { channel: YoutubeChannel; videos: YoutubeVideo[];
 	const likes = recent.map((v) => v.likes || 0);
 	const comments = recent.map((v) => v.comments || 0);
 
-	// Viral Score
+	// Viral Potential (normalize by subs when possible)
 	const avgViews = average(views);
 	const viewsPerSub = subs > 0 ? avgViews / subs : 0;
 	const viralViewsScore = clamp(Math.log10(viewsPerSub * 1_000 + 1) * 25); // ~0-100
@@ -433,11 +431,11 @@ function computeScores(input: { channel: YoutubeChannel; videos: YoutubeVideo[];
 	const shortsVsLong = clamp(
 		shortAvg + longAvg > 0 ? ((Math.max(shortAvg, longAvg) / Math.max(1, Math.min(shortAvg, longAvg)))) * 15 : 0,
 	);
-	const viralScore = clamp((viralViewsScore * 0.55 + outlierRatio * 0.25 + shortsVsLong * 0.2), 0, 100);
+	const viralScore = clamp((viralViewsScore * 0.6 + outlierRatio * 0.25 + shortsVsLong * 0.15), 0, 100);
 
 	// Engagement
-	const likeRate = subs > 0 ? average(likes) / subs : 0;
-	const commentRate = subs > 0 ? average(comments) / subs : 0;
+	const likeRate = avgViews > 0 ? average(likes) / Math.max(1, avgViews) : 0;
+	const commentRate = avgViews > 0 ? average(comments) / Math.max(1, avgViews) : 0;
 	const likeScore = clamp(Math.log10(likeRate * 1_000 + 1) * 25);
 	const commentScore = clamp(Math.log10(commentRate * 2_000 + 1) * 25);
 	const engagementConsistency = (() => {
@@ -448,7 +446,7 @@ function computeScores(input: { channel: YoutubeChannel; videos: YoutubeVideo[];
 		const cv = Math.sqrt(variance) / (avg || 1);
 		return clamp(100 - cv * 80);
 	})();
-	const engagementScore = clamp(likeScore * 0.5 + commentScore * 0.2 + engagementConsistency * 0.3);
+	const engagementScore = clamp(likeScore * 0.45 + commentScore * 0.25 + engagementConsistency * 0.3);
 
 	// Discoverability
 	const titleLengths = recent.map((v) => (v.title || "").length).filter(Boolean);
@@ -460,7 +458,7 @@ function computeScores(input: { channel: YoutubeChannel; videos: YoutubeVideo[];
 		return clamp(100 - diff * 2);
 	})();
 	const keywordScore = clamp((metrics.commonKeywords?.length || 0) * 6);
-	const discoverabilityScore = clamp(titleLengthScore * 0.6 + keywordScore * 0.4);
+	const discoverabilityScore = clamp(titleLengthScore * 0.55 + keywordScore * 0.45);
 
 	// Upload Consistency
 	const cadenceScore = (() => {
@@ -485,56 +483,55 @@ function computeScores(input: { channel: YoutubeChannel; videos: YoutubeVideo[];
 	const thumbTextPattern = titleLengthScore; // reuse as proxy
 	const thumbnailScore = clamp(thumbConsistency * 0.6 + thumbTextPattern * 0.4);
 
-	// Topic Focus
-	const topicScore = clamp(keywordScore * 1.2);
-
-	// Channel Identity
-	const bioClarity = clamp((channel.description || "").length > 80 ? 80 : 50 + (channel.description || "").length * 0.3, 0, 95);
-	const identityScore = clamp((bioClarity + titleLengthScore) / 2);
+	// Channel Identity & Focus (uses keyword focus + bio clarity)
+	const topicScore = clamp(keywordScore * 1.0);
+	const bioClarity = clamp((channel.description || "").length > 80 ? 85 : 50 + (channel.description || "").length * 0.35, 0, 95);
+	const identityScore = clamp((bioClarity * 0.5) + (titleLengthScore * 0.25) + (topicScore * 0.25));
 
 	const categories: Record<ScoringCategory, number> = {
-		"Viral Score": viralScore,
+		"Viral Potential": viralScore,
 		"Audience Engagement": engagementScore,
-		Discoverability: discoverabilityScore,
+		"Discoverability / SEO": discoverabilityScore,
 		"Upload Consistency": uploadConsistencyScore,
 		"Thumbnail Performance": thumbnailScore,
-		"Topic Focus": topicScore,
-		"Channel Identity": identityScore,
-		"Replication Score": 0, // derived after weighted
+		"Channel Identity & Focus": clamp((topicScore + identityScore) / 2),
+		"Channel Score": 0, // derived after weighted
 	};
 
 	let total = 0;
 	for (const [k, w] of Object.entries(CATEGORY_WEIGHTS)) {
 		total += (categories[k as ScoringCategory] || 0) * w;
 	}
-	categories["Replication Score"] = clamp(total); // treat as overall
+	categories["Channel Score"] = clamp(total); // treat as overall
 
 	const sorted = Object.entries(categories)
-		.filter(([k]) => k !== "Replication Score")
+		.filter(([k]) => k !== "Channel Score")
 		.sort((a, b) => b[1] - a[1]);
 	const strengths = sorted.slice(0, 3).map(([k, v]) => ({ category: k, score: Math.round(v) }));
 	const weaknesses = sorted.slice(-3).map(([k, v]) => ({ category: k, score: Math.round(v) }));
 
 	const improvements = weaknesses.map((w) => {
 		switch (w.category) {
-			case "Viral Score":
+			case "Viral Potential":
 				return "Test 3 new hooks and measure 48h views/sub ratio; double down on winners.";
 			case "Audience Engagement":
 				return "Add a single, specific CTA and reply to top 10 comments within 1 hour.";
-			case "Discoverability":
+			case "Discoverability / SEO":
 				return "Front-load 1 keyword in the first 40 chars of title and first line of description.";
 			case "Upload Consistency":
 				return "Lock a 2-3 day schedule and batch two videos ahead to avoid gaps.";
 			case "Thumbnail Performance":
 				return "Standardize a template: bold 1-3 words, strong face/emotion, consistent palette.";
-			case "Topic Focus":
+			case "Channel Identity & Focus":
 				return "Pick 2 topic clusters and publish 3-in-a-row; group them into playlists.";
-			case "Channel Identity":
-				return "Rewrite bio with a 1-line promise and add the same promise to banner CTA.";
 			default:
 				return "Tighten packaging and cadence across next 5 uploads.";
 		}
 	});
+
+	const percentile = clamp(Math.round(total * 0.95));
+	const contextLabel =
+		total >= 86 ? "Elite" : total >= 71 ? "High Growth" : total >= 41 ? "Strong Foundation" : "Needs Work";
 
 	return {
 		total: Math.round(total),
@@ -545,6 +542,8 @@ function computeScores(input: { channel: YoutubeChannel; videos: YoutubeVideo[];
 		strengths,
 		weaknesses,
 		improvements,
+		percentile,
+		contextLabel,
 	};
 }
 
@@ -576,45 +575,30 @@ export async function POST(req: Request) {
 		> = buildHeuristicAnalysis(payload);
 
 		let aiSummary: {
-			explanation: string;
-			strengths: string[];
-			weaknesses: string[];
-			improvements: string[];
+			summary: string;
+			recommendations: string[];
+			doubleDown: string;
 		} = {
-			explanation: "",
-			strengths: score.strengths.map((s) => `${s.category}: ${s.score}`),
-			weaknesses: score.weaknesses.map((w) => `${w.category}: ${w.score}`),
-			improvements: score.improvements,
+			summary: "",
+			recommendations: score.improvements.slice(0, 3),
+			doubleDown: score.strengths[0] ? `Double down on ${score.strengths[0].category}` : "",
 		};
 
 		if (openaiKey) {
 			const client = new OpenAI({ apiKey: openaiKey });
 			const prompt = `
-You are a YouTube growth strategist. Given structured public channel data, return JSON with these exact keys:
-- Viral Potential
-- Engagement Signals
-- SEO Strategy
-- Posting Consistency
-- Thumbnail Strategy
-- Content Clusters
-- Channel Positioning
-- Replication Score
+You are a precise YouTube growth analyst. You will receive deterministic scores (0-100) already calculated. DO NOT create or change numeric scores.
+Return JSON with: { "summary": string, "recommendations": [3 strings], "double_down": string }.
+Focus on why scores are high/low, repeating patterns across top videos, and 3 high-impact next actions. Keep concise.
 
-Each key value must be an object: { "score": 0-100, "summary": string, "insights": [2-3 short bullet strings] }.
-Focus on concrete, specific recommendations.
-
-Structured data:
-${JSON.stringify(payload, null, 2)}
-
-Also produce a concise explanation of the aggregated channel score (0-100) derived from these category weights:
-Viral Score 25%, Audience Engagement 20%, Discoverability 15%, Upload Consistency 10%, Thumbnail Performance 10%, Topic Focus 10%, Channel Identity 10%.
-Use this key: "channel_summary": { "explanation": string, "strengths": [string], "weaknesses": [string], "improvements": [string] }.
+Data:
+${JSON.stringify({ score, payload }, null, 2)}
 `;
 
 			const completion = await client.chat.completions.create({
 				model: "gpt-4.1-mini",
 				messages: [
-					{ role: "system", content: "You are a precise, concise YouTube channel analyst." },
+					{ role: "system", content: "You are concise, factual, and never invent numbers." },
 					{ role: "user", content: prompt },
 				],
 				response_format: { type: "json_object" },
@@ -624,18 +608,14 @@ Use this key: "channel_summary": { "explanation": string, "strengths": [string],
 			try {
 				const parsed = JSON.parse(content);
 				if (parsed && typeof parsed === "object") {
-					analysis = parsed as typeof analysis;
-					if (parsed.channel_summary) {
-						aiSummary = {
-							explanation: parsed.channel_summary.explanation || "",
-							strengths: parsed.channel_summary.strengths || aiSummary.strengths,
-							weaknesses: parsed.channel_summary.weaknesses || aiSummary.weaknesses,
-							improvements: parsed.channel_summary.improvements || aiSummary.improvements,
-						};
-					}
+					aiSummary = {
+						summary: parsed.summary || aiSummary.summary,
+						recommendations: parsed.recommendations || aiSummary.recommendations,
+						doubleDown: parsed.double_down || aiSummary.doubleDown,
+					};
 				}
 			} catch {
-				// fall back to heuristic
+				// fallback to deterministic recs
 			}
 		}
 
