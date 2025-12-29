@@ -248,37 +248,49 @@ function ChannelDNAContent() {
 
 				{/* Main content simplified */}
 				<div className="space-y-4 w-full">
-					<Card className="p-5 sm:p-6 bg-gradient-to-br from-[#140017] via-[#0c0014] to-[#090012] border border-pink-500/10 shadow-[0_0_25px_rgba(255,60,170,0.18)]">
-						<div className="flex flex-col gap-4">
-							<div className="flex items-center gap-4">
-								<div className="relative w-24 h-24 flex items-center justify-center">
-									<div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-400 via-pink-500 to-purple-500 opacity-50 blur-md" />
-									<div className="absolute inset-1 rounded-full border border-pink-400/40" />
-									<div className="relative flex flex-col items-center justify-center w-full h-full rounded-full bg-black/50 text-white">
-										<Text size="1" className="text-white/70">Channel</Text>
-										<Heading size="7" className="text-white leading-none">{score?.total ?? "—"}</Heading>
-										{contextLabel && (
-											<Text size="1" className="text-pink-200/90 mt-1">{contextLabel}</Text>
-										)}
-									</div>
-								</div>
-								<div className="flex-1 space-y-2">
-									<Heading size="5" className="text-white">{baseStats?.title || "Channel Analyzer"}</Heading>
-									<Text size="3" className="text-white/80">{primaryInsight}</Text>
-									<Text size="2" className="text-white/70">
-										{aiSummary?.summary || "One-line verdict based on deterministic scoring."}
-									</Text>
-									{typeof percentile === "number" && (
-										<Text size="2" className="text-white/70">
-											Stronger than {percentile}% of channels
-										</Text>
+					<Card className="p-5 sm:p-6 bg-gradient-to-br from-[#0c0014] via-[#06000f] to-[#080010] border border-pink-500/15 shadow-[0_0_30px_rgba(255,60,170,0.18)]">
+						<div className="flex flex-col lg:flex-row gap-6">
+							<div className="relative w-full max-w-[220px]">
+								<div className="relative aspect-[9/16] rounded-xl overflow-hidden border border-white/10 bg-black/40">
+									{baseStats?.thumbnail ? (
+										<Image src={baseStats.thumbnail} alt="Channel" fill className="object-cover" />
+									) : (
+										<div className="w-full h-full flex items-center justify-center text-white/60 text-sm">No artwork</div>
 									)}
 								</div>
 							</div>
-							<div className="flex flex-wrap gap-3 text-white/80">
-								<Text size="2">{formatNumber(baseStats?.subscribers)} subs</Text>
-								<Text size="2">{formatNumber(baseStats?.views)} views</Text>
-								<Text size="2">{baseStats?.postingFrequency || "Cadence —"}</Text>
+							<div className="flex-1 space-y-4">
+								<div className="flex items-center gap-4 flex-wrap">
+									<div className="relative w-24 h-24 flex items-center justify-center">
+										<div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-400 via-pink-500 to-purple-500 opacity-50 blur-md" />
+										<div className="absolute inset-1 rounded-full border border-pink-400/40" />
+										<div className="relative flex flex-col items-center justify-center w-full h-full rounded-full bg-black/50 text-white">
+											<Text size="1" className="text-white/70">Channel</Text>
+											<Heading size="7" className="text-white leading-none">{score?.total ?? "—"}</Heading>
+											{contextLabel && (
+												<Text size="1" className="text-pink-200/90 mt-1">{contextLabel}</Text>
+											)}
+										</div>
+									</div>
+									<div className="flex-1 space-y-2 min-w-[220px]">
+										<Heading size="5" className="text-white">{baseStats?.title || "Channel Analyzer"}</Heading>
+										<Text size="3" className="text-white/85">{primaryInsight}</Text>
+										<Text size="2" className="text-white/70">
+											{aiSummary?.summary || "One-line verdict based on deterministic scoring."}
+										</Text>
+										{typeof percentile === "number" && (
+											<Text size="2" className="text-white/70">
+												Stronger than {percentile}% of channels
+											</Text>
+										)}
+									</div>
+								</div>
+								<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+									<Chip label="Subscribers" value={formatNumber(baseStats?.subscribers)} />
+									<Chip label="Views" value={formatNumber(baseStats?.views)} />
+									<Chip label="Cadence" value={baseStats?.postingFrequency || "—"} />
+									<Chip label="Positioning" value={baseStats?.niche || "—"} />
+								</div>
 							</div>
 						</div>
 					</Card>
@@ -585,6 +597,15 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
 					style={{ width: `${Math.max(0, Math.min(100, value ?? 0))}%` }}
 				/>
 			</div>
+		</div>
+	);
+}
+
+function Chip({ label, value }: { label: string; value: string | number | null | undefined }) {
+	return (
+		<div className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/80 text-sm flex items-center gap-2">
+			<span className="text-white/60">{label}:</span>
+			<span className="text-white">{value ?? "—"}</span>
 		</div>
 	);
 }
