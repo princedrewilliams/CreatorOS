@@ -3,7 +3,6 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import { Text, Heading, Card, Button } from "@whop/react/components";
 
 const TABS = [
@@ -46,6 +45,8 @@ function ChannelDNAContent() {
 	const [info, setInfo] = useState<string | null>(null);
 	const [analysis, setAnalysis] = useState<any>(null);
 	const [channelData, setChannelData] = useState<any>(null);
+	const [score, setScore] = useState<any>(null);
+	const [aiSummary, setAiSummary] = useState<any>(null);
 	const mockFlag = useMemo(() => {
 		const v = (searchParams.get("mock") || "").toLowerCase();
 		return v === "1" || v === "true" || v === "yes";
@@ -60,6 +61,8 @@ function ChannelDNAContent() {
 				const mock = getMockPayload(decoded);
 				setAnalysis(mock.analysis);
 				setChannelData(mock.channelData);
+				setScore(mock.score);
+				setAiSummary(mock.aiSummary);
 				setInfo("Mock data loaded (testing mode).");
 				setError(null);
 			} else {
@@ -81,6 +84,8 @@ function ChannelDNAContent() {
 			const mock = getMockPayload(target);
 			setAnalysis(mock.analysis);
 			setChannelData(mock.channelData);
+			setScore(mock.score);
+			setAiSummary(mock.aiSummary);
 			setError(null);
 			setInfo("Mock data loaded (testing mode).");
 			setLoading(false);
@@ -102,12 +107,16 @@ function ChannelDNAContent() {
 			const data = await res.json();
 			setAnalysis(data.analysis || null);
 			setChannelData(data.data || null);
+			setScore(data.score || null);
+			setAiSummary(data.aiSummary || null);
 		} catch (err) {
 			const message = err instanceof Error ? err.message : "An error occurred";
 			// Fallback to mock to keep UI testable even on API failure
 			const mock = getMockPayload(target);
 			setAnalysis(mock.analysis);
 			setChannelData(mock.channelData);
+			setScore(mock.score);
+			setAiSummary(mock.aiSummary);
 			setError(null);
 			setInfo(`Using mock data due to upstream error: ${message}`);
 		} finally {
@@ -170,6 +179,10 @@ function ChannelDNAContent() {
 			},
 		];
 	}, [channelData, analysis]);
+
+	const categories = useMemo(() => {
+		return score?.categories || {};
+	}, [score]);
 
 	return (
 		<div className="relative min-h-screen bg-[#05000b]">
@@ -250,7 +263,7 @@ function ChannelDNAContent() {
 										<div className="relative flex flex-col items-center justify-center w-full h-full rounded-full bg-black/40 text-white">
 											<Text size="1" className="text-white/70">Channel</Text>
 											<Heading size="7" className="text-white leading-none">
-												{analysis?.[TAB_TO_ANALYSIS[activeTab]]?.score ?? "—"}
+												{score?.total ?? "—"}
 											</Heading>
 										</div>
 									</div>
@@ -300,21 +313,18 @@ function ChannelDNAContent() {
 											<Text size="2" className="text-white/80">{item}</Text>
 										</div>
 									))}
-									<Button
-										variant="solid"
-										color="purple"
-										size="3"
-										className="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white mt-2"
-									>
-										Unlock Full Report (PRO)
-									</Button>
 								</Card>
 							</div>
 						</Card>
 
 						<Card className="p-5 bg-black/30 border border-white/10 backdrop-blur-md">
 							<div className="flex items-center justify-between mb-4">
-								<Heading size="5" className="text-white">Trending Viral Videos</Heading>
+								<div className="flex items-center gap-3">
+									<div className="px-3 py-1 rounded-full bg-pink-500/20 border border-pink-400/30 text-white text-sm">
+										Viral Score: {categories?.["Viral Score"] ?? "—"}/100
+									</div>
+									<Heading size="5" className="text-white">Trending Viral Videos</Heading>
+								</div>
 								<Text size="2" className="text-white/60">Top performers by recency</Text>
 							</div>
 							<div className="grid md:grid-cols-3 gap-4">
@@ -345,16 +355,75 @@ function ChannelDNAContent() {
 						</Card>
 					</div>
 
-					{/* Right: Tab detail */}
-					<Card className="p-5 bg-black/30 border border-pink-500/20 backdrop-blur-md">
-						<TabContent tab={activeTab} analysis={analysis} channelData={channelData} />
-						<div className="mt-4 grid grid-cols-2 gap-3">
-							<Metric label="Subscribers" value={formatNumber(baseStats?.subscribers)} />
-							<Metric label="Views" value={formatNumber(baseStats?.views)} />
-							<Metric label="Videos" value={formatNumber(baseStats?.videos)} />
-							<Metric label="Cadence" value={baseStats?.postingFrequency || "—"} />
-						</div>
-					</Card>
+					{/* Right: Score + detail */}
+					<div className="space-y-4">
+						<Card className="p-5 bg-black/30 border border-pink-500/20 backdrop-blur-md">
+							<div className="flex gap-4 items-center">
+								<div className="relative w-28 h-28 flex items-center justify-center">
+									<div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-400 via-pink-500 to-purple-500 opacity-50 blur-md" />
+									<div className="absolute inset-1 rounded-full border border-pink-400/60" />
+									<div className="relative flex flex-col items-center justify-center w-full h-full rounded-full bg-black/40 text-white">
+										<Text size="1" className="text-white/70">Score</Text>
+										<Heading size="7" className="text-white leading-none">{score?.total ?? "—"}</Heading>
+									</div>
+								</div>
+								<div className="flex-1 space-y-2">
+									<Heading size="5" className="text-white">Channel Score</Heading>
+									<Text size="3" className="text-white/75">
+										{aiSummary?.explanation || "Deterministic score based on viral performance, engagement, discoverability, cadence, thumbnails, focus, and identity."}
+									</Text>
+								</div>
+							</div>
+							<div className="mt-4 space-y-2">
+								{Object.entries(categories).map(([label, val]) => (
+									<ScoreBar key={label} label={label} value={val} />
+								))}
+							</div>
+							<div className="mt-4 grid grid-cols-2 gap-3">
+								<Metric label="Subscribers" value={formatNumber(baseStats?.subscribers)} />
+								<Metric label="Views" value={formatNumber(baseStats?.views)} />
+								<Metric label="Videos" value={formatNumber(baseStats?.videos)} />
+								<Metric label="Cadence" value={baseStats?.postingFrequency || "—"} />
+							</div>
+						</Card>
+
+						<Card className="p-5 bg-black/30 border border-white/10 backdrop-blur-md">
+							<Heading size="5" className="text-white mb-3">Why this score?</Heading>
+							<div className="space-y-2">
+								<Text size="3" className="text-white/80">{aiSummary?.explanation || "Based on weighted performance across key growth levers."}</Text>
+								<div className="grid sm:grid-cols-2 gap-3">
+									<div>
+										<Text size="2" className="text-white/70 mb-1">Top strengths</Text>
+										<ul className="list-disc list-inside text-white/80 space-y-1">
+											{(aiSummary?.strengths || score?.strengths || []).slice(0, 3).map((s: any, i: number) => (
+												<li key={i}>{typeof s === "string" ? s : `${s.category}: ${s.score}`}</li>
+											))}
+										</ul>
+									</div>
+									<div>
+										<Text size="2" className="text-white/70 mb-1">Top weaknesses</Text>
+										<ul className="list-disc list-inside text-white/80 space-y-1">
+											{(aiSummary?.weaknesses || score?.weaknesses || []).slice(0, 3).map((s: any, i: number) => (
+												<li key={i}>{typeof s === "string" ? s : `${s.category}: ${s.score}`}</li>
+											))}
+										</ul>
+									</div>
+								</div>
+								<div className="mt-2">
+									<Text size="2" className="text-white/70 mb-1">High-impact improvements</Text>
+									<ul className="list-disc list-inside text-white/80 space-y-1">
+										{(aiSummary?.improvements || score?.improvements || []).slice(0, 3).map((s: any, i: number) => (
+											<li key={i}>{s}</li>
+										))}
+									</ul>
+								</div>
+							</div>
+						</Card>
+
+						<Card className="p-5 bg-black/30 border border-pink-500/20 backdrop-blur-md">
+							<TabContent tab={activeTab} analysis={analysis} channelData={channelData} />
+						</Card>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -429,6 +498,42 @@ function getMockPayload(url: string) {
 		videos: [],
 	};
 
+	const mockScore = {
+		total: 81,
+		categories: {
+			"Viral Score": 82,
+			"Audience Engagement": 77,
+			Discoverability: 74,
+			"Upload Consistency": 80,
+			"Thumbnail Performance": 79,
+			"Topic Focus": 76,
+			"Channel Identity": 81,
+			"Replication Score": 81,
+		},
+		strengths: [
+			{ category: "Viral Score", score: 82 },
+			{ category: "Upload Consistency", score: 80 },
+			{ category: "Channel Identity", score: 81 },
+		],
+		weaknesses: [
+			{ category: "Topic Focus", score: 76 },
+			{ category: "Discoverability", score: 74 },
+			{ category: "Audience Engagement", score: 77 },
+		],
+		improvements: [
+			"Front-load 1 keyword in the first 40 chars of title.",
+			"Batch record 2 ahead to avoid gaps.",
+			"Add 1-line promise to banner + about.",
+		],
+	};
+
+	const mockAiSummary = {
+		explanation: "Strong viral potential and consistency; improve keyword clarity and tighten topics.",
+		strengths: mockScore.strengths.map((s) => `${s.category}: ${s.score}`),
+		weaknesses: mockScore.weaknesses.map((s) => `${s.category}: ${s.score}`),
+		improvements: mockScore.improvements,
+	};
+
 	const mk = (score: number, summary: string, insights: string[]) => ({ score, summary, insights });
 	const mockAnalysis = {
 		"Viral Potential": mk(82, "Hooks are clear and repeatable with strong topic intent.", [
@@ -473,7 +578,7 @@ function getMockPayload(url: string) {
 		]),
 	};
 
-	return { channelData: mock, analysis: mockAnalysis };
+	return { channelData: mock, analysis: mockAnalysis, score: mockScore, aiSummary: mockAiSummary };
 }
 
 function PageFallback() {
@@ -502,5 +607,22 @@ function formatNumber(val: any) {
 		return `${val}`;
 	}
 	return `${val}`;
+}
+
+function ScoreBar({ label, value }: { label: string; value: number }) {
+	return (
+		<div>
+			<div className="flex justify-between text-white/75 text-sm mb-1">
+				<span>{label}</span>
+				<span>{value ?? "—"}/100</span>
+			</div>
+			<div className="w-full h-2.5 rounded-full bg-white/10 overflow-hidden">
+				<div
+					className="h-full bg-gradient-to-r from-pink-500 to-purple-500"
+					style={{ width: `${Math.max(0, Math.min(100, value ?? 0))}%` }}
+				/>
+			</div>
+		</div>
+	);
 }
 

@@ -20,6 +20,10 @@ type YoutubeVideo = {
 	id: string;
 	title: string;
 	publishedAt: string;
+	durationSec?: number;
+	views?: number;
+	likes?: number;
+	comments?: number;
 	thumbnails: Record<string, { url: string; width: number; height: number }>;
 };
 
@@ -188,7 +192,7 @@ async function fetchRecentVideos(uploadsPlaylistId: string): Promise<YoutubeVide
 		playlistId: uploadsPlaylistId,
 	});
 
-	return (items.items || []).map((item: any) => {
+	const baseList: YoutubeVideo[] = (items.items || []).map((item: any) => {
 		const snippet = item.snippet || {};
 		return {
 			id: snippet.resourceId?.videoId || item.contentDetails?.videoId || "",
@@ -197,6 +201,56 @@ async function fetchRecentVideos(uploadsPlaylistId: string): Promise<YoutubeVide
 			thumbnails: snippet.thumbnails || {},
 		};
 	});
+
+	const ids = baseList.map((v) => v.id).filter(Boolean);
+	if (!ids.length) return baseList;
+
+	const detailed = await fetchVideoDetails(ids);
+	const map = new Map(detailed.map((v) => [v.id, v]));
+
+	return baseList.map((v) => {
+		const d = map.get(v.id);
+		return {
+			...v,
+			views: d?.views ?? v.views,
+			likes: d?.likes ?? v.likes,
+			comments: d?.comments ?? v.comments,
+			durationSec: d?.durationSec ?? v.durationSec,
+			thumbnails: v.thumbnails || d?.thumbnails || {},
+		};
+	});
+}
+
+async function fetchVideoDetails(ids: string[]): Promise<YoutubeVideo[]> {
+	const chunks: string[][] = [];
+	for (let i = 0; i < ids.length; i += 50) {
+		chunks.push(ids.slice(i, i + 50));
+	}
+
+	const results: YoutubeVideo[] = [];
+	for (const chunk of chunks) {
+		const res = await ytFetch("/videos", {
+			part: "snippet,statistics,contentDetails",
+			id: chunk.join(","),
+			maxResults: "50",
+		});
+		for (const item of res.items || []) {
+			const snippet = item.snippet || {};
+			const stats = item.statistics || {};
+			const content = item.contentDetails || {};
+			results.push({
+				id: item.id,
+				title: snippet.title,
+				publishedAt: snippet.publishedAt,
+				durationSec: parseISODuration(content.duration),
+				views: toNumber(stats.viewCount),
+				likes: toNumber(stats.likeCount),
+				comments: toNumber(stats.commentCount),
+				thumbnails: snippet.thumbnails || {},
+			});
+		}
+	}
+	return results;
 }
 
 function deriveMetrics(videos: YoutubeVideo[]) {
@@ -308,6 +362,192 @@ function buildHeuristicAnalysis(payload: {
 	};
 }
 
+type ScoringCategory =
+	| "Viral Score"
+	| "Audience Engagement"
+	| "Discoverability"
+	| "Upload Consistency"
+	| "Thumbnail Performance"
+	| "Topic Focus"
+	| "Channel Identity"
+	| "Replication Score";
+
+const CATEGORY_WEIGHTS: Record<ScoringCategory, number> = {
+	"Viral Score": 0.25,
+	"Audience Engagement": 0.2,
+	Discoverability: 0.15,
+	"Upload Consistency": 0.1,
+	"Thumbnail Performance": 0.1,
+	"Topic Focus": 0.1,
+	"Channel Identity": 0.1,
+	"Replication Score": 0, // derived later as overall quality
+};
+
+function clamp(val: number, min = 0, max = 100) {
+	return Math.max(min, Math.min(max, val));
+}
+
+function average(nums: number[]) {
+	const arr = nums.filter((n) => Number.isFinite(n));
+	if (!arr.length) return 0;
+	return arr.reduce((a, b) => a + b, 0) / arr.length;
+}
+
+function parseISODuration(duration?: string) {
+	if (!duration) return undefined;
+	const match =
+		/^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/i.exec(duration) ||
+		/^P(?:(\d+)D)?T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/i.exec(duration);
+	if (!match) return undefined;
+	const [, dH, dM, dS, dd, dh2, dm2, ds2] = match;
+	const days = Number(dd) || 0;
+	const hours = Number(dH || dh2) || 0;
+	const minutes = Number(dM || dm2) || 0;
+	const seconds = Number(dS || ds2) || 0;
+	return days * 86400 + hours * 3600 + minutes * 60 + seconds;
+}
+
+function computeScores(input: { channel: YoutubeChannel; videos: YoutubeVideo[]; metrics: any }) {
+	const { channel, videos, metrics } = input;
+	const subs = channel.subscriberCount || 0;
+	const recent = videos.slice(0, 20);
+	const views = recent.map((v) => v.views || 0);
+	const likes = recent.map((v) => v.likes || 0);
+	const comments = recent.map((v) => v.comments || 0);
+
+	// Viral Score
+	const avgViews = average(views);
+	const viewsPerSub = subs > 0 ? avgViews / subs : 0;
+	const viralViewsScore = clamp(Math.log10(viewsPerSub * 1_000 + 1) * 25); // ~0-100
+	const outlierRatio = (() => {
+		if (!views.length) return 0;
+		const sorted = [...views].sort((a, b) => a - b);
+		const median = sorted[Math.floor(sorted.length / 2)] || 0;
+		const max = Math.max(...views);
+		return median > 0 ? clamp((max / median) * 20) : 0;
+	})();
+	const shortVideos = recent.filter((v) => (v.durationSec || 0) > 0 && (v.durationSec || 0) <= 90);
+	const longVideos = recent.filter((v) => (v.durationSec || 0) > 90);
+	const shortAvg = average(shortVideos.map((v) => v.views || 0));
+	const longAvg = average(longVideos.map((v) => v.views || 0));
+	const shortsVsLong = clamp(
+		shortAvg + longAvg > 0 ? ((Math.max(shortAvg, longAvg) / Math.max(1, Math.min(shortAvg, longAvg)))) * 15 : 0,
+	);
+	const viralScore = clamp((viralViewsScore * 0.55 + outlierRatio * 0.25 + shortsVsLong * 0.2), 0, 100);
+
+	// Engagement
+	const likeRate = subs > 0 ? average(likes) / subs : 0;
+	const commentRate = subs > 0 ? average(comments) / subs : 0;
+	const likeScore = clamp(Math.log10(likeRate * 1_000 + 1) * 25);
+	const commentScore = clamp(Math.log10(commentRate * 2_000 + 1) * 25);
+	const engagementConsistency = (() => {
+		if (likes.length < 3) return 50;
+		const avg = average(likes);
+		if (avg === 0) return 20;
+		const variance = average(likes.map((l) => Math.pow(l - avg, 2)));
+		const cv = Math.sqrt(variance) / (avg || 1);
+		return clamp(100 - cv * 80);
+	})();
+	const engagementScore = clamp(likeScore * 0.5 + commentScore * 0.2 + engagementConsistency * 0.3);
+
+	// Discoverability
+	const titleLengths = recent.map((v) => (v.title || "").length).filter(Boolean);
+	const titleLengthScore = (() => {
+		if (!titleLengths.length) return 50;
+		const avg = average(titleLengths);
+		// 38-64 sweet spot
+		const diff = Math.abs(avg - 50);
+		return clamp(100 - diff * 2);
+	})();
+	const keywordScore = clamp((metrics.commonKeywords?.length || 0) * 6);
+	const discoverabilityScore = clamp(titleLengthScore * 0.6 + keywordScore * 0.4);
+
+	// Upload Consistency
+	const cadenceScore = (() => {
+		const freq = metrics.postingFrequency || "";
+		if (freq.includes("Daily")) return 95;
+		if (freq.includes("Every 2-3 days")) return 90;
+		if (freq.includes("Weekly")) return 80;
+		if (freq.includes("Bi-weekly")) return 65;
+		if (freq.includes("Sporadic")) return 45;
+		return 60;
+	})();
+	const uploadConsistencyScore = cadenceScore;
+
+	// Thumbnail Performance
+	const thumbConsistency = (() => {
+		const palettes = recent.map((v) => (v.thumbnails?.high?.url || v.thumbnails?.default?.url || "").split("/").slice(-1)[0]);
+		const unique = new Set(palettes.filter(Boolean));
+		if (!palettes.length) return 40;
+		const ratio = unique.size / palettes.length;
+		return clamp(100 - ratio * 60);
+	})();
+	const thumbTextPattern = titleLengthScore; // reuse as proxy
+	const thumbnailScore = clamp(thumbConsistency * 0.6 + thumbTextPattern * 0.4);
+
+	// Topic Focus
+	const topicScore = clamp(keywordScore * 1.2);
+
+	// Channel Identity
+	const bioClarity = clamp((channel.description || "").length > 80 ? 80 : 50 + (channel.description || "").length * 0.3, 0, 95);
+	const identityScore = clamp((bioClarity + titleLengthScore) / 2);
+
+	const categories: Record<ScoringCategory, number> = {
+		"Viral Score": viralScore,
+		"Audience Engagement": engagementScore,
+		Discoverability: discoverabilityScore,
+		"Upload Consistency": uploadConsistencyScore,
+		"Thumbnail Performance": thumbnailScore,
+		"Topic Focus": topicScore,
+		"Channel Identity": identityScore,
+		"Replication Score": 0, // derived after weighted
+	};
+
+	let total = 0;
+	for (const [k, w] of Object.entries(CATEGORY_WEIGHTS)) {
+		total += (categories[k as ScoringCategory] || 0) * w;
+	}
+	categories["Replication Score"] = clamp(total); // treat as overall
+
+	const sorted = Object.entries(categories)
+		.filter(([k]) => k !== "Replication Score")
+		.sort((a, b) => b[1] - a[1]);
+	const strengths = sorted.slice(0, 3).map(([k, v]) => ({ category: k, score: Math.round(v) }));
+	const weaknesses = sorted.slice(-3).map(([k, v]) => ({ category: k, score: Math.round(v) }));
+
+	const improvements = weaknesses.map((w) => {
+		switch (w.category) {
+			case "Viral Score":
+				return "Test 3 new hooks and measure 48h views/sub ratio; double down on winners.";
+			case "Audience Engagement":
+				return "Add a single, specific CTA and reply to top 10 comments within 1 hour.";
+			case "Discoverability":
+				return "Front-load 1 keyword in the first 40 chars of title and first line of description.";
+			case "Upload Consistency":
+				return "Lock a 2-3 day schedule and batch two videos ahead to avoid gaps.";
+			case "Thumbnail Performance":
+				return "Standardize a template: bold 1-3 words, strong face/emotion, consistent palette.";
+			case "Topic Focus":
+				return "Pick 2 topic clusters and publish 3-in-a-row; group them into playlists.";
+			case "Channel Identity":
+				return "Rewrite bio with a 1-line promise and add the same promise to banner CTA.";
+			default:
+				return "Tighten packaging and cadence across next 5 uploads.";
+		}
+	});
+
+	return {
+		total: Math.round(total),
+		categories: Object.fromEntries(Object.entries(categories).map(([k, v]) => [k, Math.round(v)])) as Record<
+			ScoringCategory,
+			number
+		>,
+		strengths,
+		weaknesses,
+		improvements,
+	};
+}
+
 export async function POST(req: Request) {
 	try {
 		const body = await req.json();
@@ -325,6 +565,7 @@ export async function POST(req: Request) {
 
 		const videos = await fetchRecentVideos(channel.uploadsPlaylistId);
 		const metrics = deriveMetrics(videos);
+		const score = computeScores({ channel, videos, metrics });
 
 		const payload = { channel, videos, metrics };
 
@@ -333,6 +574,18 @@ export async function POST(req: Request) {
 			string,
 			{ score: number; summary: string; insights: string[] }
 		> = buildHeuristicAnalysis(payload);
+
+		let aiSummary: {
+			explanation: string;
+			strengths: string[];
+			weaknesses: string[];
+			improvements: string[];
+		} = {
+			explanation: "",
+			strengths: score.strengths.map((s) => `${s.category}: ${s.score}`),
+			weaknesses: score.weaknesses.map((w) => `${w.category}: ${w.score}`),
+			improvements: score.improvements,
+		};
 
 		if (openaiKey) {
 			const client = new OpenAI({ apiKey: openaiKey });
@@ -352,6 +605,10 @@ Focus on concrete, specific recommendations.
 
 Structured data:
 ${JSON.stringify(payload, null, 2)}
+
+Also produce a concise explanation of the aggregated channel score (0-100) derived from these category weights:
+Viral Score 25%, Audience Engagement 20%, Discoverability 15%, Upload Consistency 10%, Thumbnail Performance 10%, Topic Focus 10%, Channel Identity 10%.
+Use this key: "channel_summary": { "explanation": string, "strengths": [string], "weaknesses": [string], "improvements": [string] }.
 `;
 
 			const completion = await client.chat.completions.create({
@@ -368,6 +625,14 @@ ${JSON.stringify(payload, null, 2)}
 				const parsed = JSON.parse(content);
 				if (parsed && typeof parsed === "object") {
 					analysis = parsed as typeof analysis;
+					if (parsed.channel_summary) {
+						aiSummary = {
+							explanation: parsed.channel_summary.explanation || "",
+							strengths: parsed.channel_summary.strengths || aiSummary.strengths,
+							weaknesses: parsed.channel_summary.weaknesses || aiSummary.weaknesses,
+							improvements: parsed.channel_summary.improvements || aiSummary.improvements,
+						};
+					}
 				}
 			} catch {
 				// fall back to heuristic
@@ -377,6 +642,8 @@ ${JSON.stringify(payload, null, 2)}
 		return NextResponse.json({
 			analysis,
 			data: payload,
+			score,
+			aiSummary,
 		});
 	} catch (err) {
 		console.error(err);
