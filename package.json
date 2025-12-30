@@ -20,6 +20,7 @@
 		"date-fns": "^4.1.0",
 		"framer-motion": "^12.23.24",
 		"jspdf": "^3.0.4",
+		"lucide-react": "^0.522.0",
 		"next": "^16.0.7",
 		"openai": "^6.10.0",
 		"pdfkit": "^0.17.2",
