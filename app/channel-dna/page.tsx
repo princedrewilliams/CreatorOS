@@ -244,11 +244,7 @@ function ChannelDNAContent() {
 							<button
 								key={tab}
 								onClick={() => setActiveTab(tab)}
-								className={`px-4 py-2 text-sm rounded-full border transition-colors flex items-center gap-2 ${
-									isActive
-										? "border-pink-400 bg-gradient-to-r from-pink-500/60 via-pink-500/40 to-purple-500/50 text-white shadow-[0_0_20px_rgba(255,80,180,0.35)]"
-										: "border-white/10 bg-white/5 text-white/80 hover:border-pink-300/60 hover:text-white"
-								}`}
+								className={`tab-analyst flex items-center gap-2 ${isActive ? "active" : ""}`}
 							>
 								{tab}
 								{isActive && <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/10 border border-white/15">FREE</span>}
@@ -258,7 +254,7 @@ function ChannelDNAContent() {
 				</div>
 
 				{/* Hero (compressed height) */}
-				<Card className="p-4 sm:p-5 bg-gradient-to-br from-[#140017] via-[#0b0014] to-[#090012] border border-pink-500/15 shadow-[0_0_40px_rgba(255,60,170,0.3)]">
+				<Card className="p-4 sm:p-5 card-analyst bg-gradient-to-br from-[#140017] via-[#0b0014] to-[#090012] border border-pink-500/15 shadow-[0_0_40px_rgba(255,60,170,0.3)]">
 					<div className="flex flex-col lg:flex-row items-center gap-4">
 						<div className="relative w-28 h-28 rounded-full overflow-hidden border-2 border-pink-400 shadow-[0_0_25px_rgba(255,80,170,0.4)]">
 							{baseStats?.thumbnail ? (
@@ -304,7 +300,7 @@ function ChannelDNAContent() {
 
 				{/* Insights + chart row under hero */}
 				<div className="grid lg:grid-cols-2 gap-6">
-					<Card className="p-5 bg-black/30 border border-pink-500/20 backdrop-blur-md space-y-3">
+					<Card className="p-5 card-analyst bg-black/30 border border-pink-500/20 backdrop-blur-md space-y-3">
 						<Heading size="5" className="text-white">Observed Patterns</Heading>
 						<div className="space-y-3">
 							{(aiSummary?.recommendations || []).slice(0, 3).map((rec: string, i: number) => (
@@ -316,7 +312,7 @@ function ChannelDNAContent() {
 						</div>
 					</Card>
 
-					<Card className="p-5 bg-black/30 border border-white/10 backdrop-blur-md">
+					<Card className="p-5 card-analyst bg-black/30 border border-white/10 backdrop-blur-md">
 						<Heading size="5" className="text-white mb-1">{activeTab} Chart</Heading>
 						<Text size="2" className="text-white/60 mb-2">Visualization for this tab</Text>
 						{renderChartForTab(activeTab, uploadScore, discoverScore)}
@@ -324,13 +320,13 @@ function ChannelDNAContent() {
 				</div>
 
 				{/* Category detail */}
-				<Card className="p-5 bg-black/30 border border-white/10 backdrop-blur-md">
+				<Card className="p-5 card-analyst bg-black/30 border border-white/10 backdrop-blur-md">
 					<Heading size="5" className="text-white mb-3">{activeTab}</Heading>
 					<TabContent tab={activeTab} analysis={analysis} channelData={channelData} />
 				</Card>
 
 				{/* Trending section at bottom */}
-				<Card className="mt-8 p-5 bg-black/40 border border-white/5 backdrop-blur">
+				<Card className="mt-8 p-5 card-analyst bg-black/40 border border-white/5 backdrop-blur">
 					<div className="flex items-center justify-between mb-3">
 						<div className="flex items-center gap-3">
 							<div className="px-3 py-1 rounded-full bg-pink-500/20 border border-pink-400/30 text-white text-sm">
@@ -480,17 +476,20 @@ function renderChartForTab(tab: string, uploadScore: number, discoverScore: numb
 
 function ViralScatterChart() {
 	return (
-		<div className="w-full rounded-xl border border-white/10 bg-white/5 p-3">
-			<Heading size="4" className="text-white mb-1">Viral Scatter</Heading>
-			<Text size="2" className="text-white/60 mb-2">X: Views per Video (normalized) • Y: Engagement rate</Text>
+		<div className="w-full chart-container">
+			<div className="chart-title">Viral Scatter</div>
 			<svg viewBox="0 0 100 70" className="w-full h-48">
-				<rect x="0" y="0" width="100" height="70" fill="url(#vs-grad)" rx="4" ry="4" />
 				<defs>
 					<linearGradient id="vs-grad" x1="0" y1="0" x2="0" y2="1">
 						<stop offset="0%" stopColor="rgba(255,255,255,0.04)" />
 						<stop offset="100%" stopColor="rgba(255,255,255,0.01)" />
 					</linearGradient>
+					<radialGradient id="vs-dot" cx="50%" cy="50%" r="50%">
+						<stop offset="0%" stopColor="#ff8adf" />
+						<stop offset="100%" stopColor="#c0328f" />
+					</radialGradient>
 				</defs>
+				<rect x="0" y="0" width="100" height="70" fill="url(#vs-grad)" rx="4" ry="4" />
 				{[20, 40, 60, 80].map((v) => (
 					<line key={`v-${v}`} x1={v} y1="6" x2={v} y2="64" stroke="rgba(255,255,255,0.07)" strokeWidth="0.4" />
 				))}
@@ -522,9 +521,8 @@ function ViralScatterChart() {
 
 function DiscoveryLineChart() {
 	return (
-		<div className="w-full rounded-xl border border-white/10 bg-white/5 p-3">
-			<Heading size="4" className="text-white mb-1">Discovery Velocity</Heading>
-			<Text size="2" className="text-white/60 mb-2">Estimated early views over recent uploads</Text>
+		<div className="w-full chart-container">
+			<div className="chart-title">Discovery Velocity</div>
 			<svg viewBox="0 0 100 60" className="w-full h-44">
 				<defs>
 					<linearGradient id="dl-fill" x1="0" y1="0" x2="0" y2="1">
@@ -543,16 +541,14 @@ function DiscoveryLineChart() {
 			<Text size="2" className="text-white/75 mt-2">
 				Recent uploads show strong early momentum, indicating favorable algorithm pickup.
 			</Text>
-			{/* duplicate text removed for clarity */}
 		</div>
 	);
 }
 
 function ConsistencyBarChart() {
 	return (
-		<div className="w-full rounded-xl border border-white/10 bg-white/5 p-3">
-			<Heading size="4" className="text-white mb-1">Posting Rhythm</Heading>
-			<Text size="2" className="text-white/60 mb-2">Uploads per week over recent periods</Text>
+		<div className="w-full chart-container">
+			<div className="chart-title">Posting Rhythm</div>
 			<svg viewBox="0 0 100 50" className="w-full h-40">
 				{[0, 1, 2, 3].map((i) => (
 					<rect key={i} x={15 + i * 20} y={15 + (i % 2) * 5} width="12" height={30 - (i % 2) * 5} fill="#ff7fd6" opacity="0.8" rx="2" />
@@ -571,9 +567,8 @@ function ConsistencyBarChart() {
 
 function ThumbComparisonChart() {
 	return (
-		<div className="w-full rounded-xl border border-white/10 bg-white/5 p-3">
-			<Heading size="4" className="text-white mb-1">Thumbnail Performance</Heading>
-			<Text size="2" className="text-white/60 mb-2">Average views: top 20% thumbnails vs bottom 20%</Text>
+		<div className="w-full chart-container">
+			<div className="chart-title">Thumbnail Performance</div>
 			<svg viewBox="0 0 100 50" className="w-full h-40">
 				<rect x="20" y="15" width="20" height="30" fill="#7ce7ff" rx="2" opacity="0.8" />
 				<rect x="60" y="5" width="20" height="40" fill="#ff7fd6" rx="2" opacity="0.95" />
@@ -590,9 +585,8 @@ function ThumbComparisonChart() {
 
 function WinningTopicsBubbleChart() {
 	return (
-		<div className="w-full rounded-xl border border-white/10 bg-white/5 p-3">
-			<Heading size="4" className="text-white mb-1">Winning Topics</Heading>
-			<Text size="2" className="text-white/60 mb-2">Topic dominance: views and engagement by cluster</Text>
+		<div className="w-full chart-container">
+			<div className="chart-title">Winning Topics</div>
 			<svg viewBox="0 0 100 55" className="w-full h-44">
 				<circle cx="25" cy="30" r="8" fill="#7ce7ff" opacity="0.85" />
 				<circle cx="55" cy="24" r="11" fill="#ff7fd6" opacity="0.95" />
@@ -612,9 +606,8 @@ function WinningTopicsBubbleChart() {
 
 function IdentityRadarChart() {
 	return (
-		<div className="w-full rounded-xl border border-white/10 bg-white/5 p-3">
-			<Heading size="4" className="text-white mb-1">Channel Identity</Heading>
-			<Text size="2" className="text-white/60 mb-2">Identity strength across key signals</Text>
+		<div className="w-full chart-container">
+			<div className="chart-title">Channel Identity</div>
 			<svg viewBox="0 0 100 70" className="w-full h-44">
 				<polygon
 					points="50,5 85,20 75,60 25,60 15,20"
