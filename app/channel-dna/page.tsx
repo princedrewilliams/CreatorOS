@@ -7,7 +7,6 @@ import { Text, Heading, Card, Button } from "@whop/react/components";
 
 const TABS = [
 	"Viral Score",
-	"Audience Engagement",
 	"Search & Discoverability",
 	"Upload Consistency",
 	"Thumbnail Performance",
@@ -18,7 +17,6 @@ const TABS = [
 
 const TAB_TO_ANALYSIS: Record<string, string> = {
 	"Viral Score": "Viral Potential",
-	"Audience Engagement": "Engagement Signals",
 	"Search & Discoverability": "SEO Strategy",
 	"Upload Consistency": "Posting Consistency",
 	"Thumbnail Performance": "Thumbnail Strategy",
@@ -191,11 +189,12 @@ function ChannelDNAContent() {
 		<div className="relative min-h-screen bg-[#05000b]">
 			<div className="fixed inset-0 -z-10 overflow-hidden bg-[#05000b]">
 				<div className="absolute inset-0 bg-gradient-to-br from-[#0b0018] via-[#090013] to-[#020008]" />
-				<div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_25%,rgba(255,66,166,0.35),transparent_40%),radial-gradient(circle_at_80%_25%,rgba(255,130,230,0.32),transparent_45%),radial-gradient(circle_at_50%_78%,rgba(120,0,90,0.22),transparent_55%),radial-gradient(circle_at_70%_70%,rgba(255,30,140,0.2),transparent_55%)]" />
-				<div className="absolute inset-0 opacity-80 bg-[linear-gradient(120deg,rgba(255,52,160,0.4),rgba(255,52,160,0)_38%),linear-gradient(-115deg,rgba(255,105,200,0.34),rgba(255,105,200,0)_32%),linear-gradient(150deg,rgba(255,90,170,0.28),rgba(255,90,170,0)_42%)]" />
+				<div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_25%,rgba(255,66,166,0.45),transparent_38%),radial-gradient(circle_at_80%_25%,rgba(255,130,230,0.38),transparent_42%),radial-gradient(circle_at_50%_78%,rgba(120,0,90,0.3),transparent_55%),radial-gradient(circle_at_70%_70%,rgba(255,30,140,0.28),transparent_55%)]" />
+				<div className="absolute inset-0 opacity-90 bg-[linear-gradient(120deg,rgba(255,52,160,0.45),rgba(255,52,160,0)_38%),linear-gradient(-115deg,rgba(255,105,200,0.4),rgba(255,105,200,0)_32%),linear-gradient(150deg,rgba(255,90,170,0.32),rgba(255,90,170,0)_42%)]" />
+				<div className="absolute inset-0 opacity-35 bg-[radial-gradient(circle_at_10%_10%,rgba(255,255,255,0.12),transparent_25%),radial-gradient(circle_at_85%_15%,rgba(255,182,255,0.14),transparent_22%),radial-gradient(circle_at_40%_80%,rgba(255,120,200,0.12),transparent_30%)]" />
 			</div>
 
-			<div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
+			<div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 space-y-6">
 				<div className="flex items-center justify-between mb-4">
 					<div className="flex items-center gap-3">
 						<Button
@@ -221,8 +220,8 @@ function ChannelDNAContent() {
 					</Button>
 				</div>
 
-				{/* Top nav tabs */}
-				<div className="flex flex-wrap gap-2 mb-6">
+				{/* Tabs */}
+				<div className="flex flex-wrap gap-2">
 					{TABS.map((tab) => {
 						const isActive = activeTab === tab;
 						return (
@@ -231,20 +230,20 @@ function ChannelDNAContent() {
 								onClick={() => setActiveTab(tab)}
 								className={`px-4 py-2 text-sm rounded-full border transition-colors flex items-center gap-2 ${
 									isActive
-										? "border-pink-400 bg-gradient-to-r from-pink-500/60 via-pink-500/40 to-purple-500/50 text-white shadow-[0_0_25px_rgba(255,80,180,0.35)]"
+										? "border-pink-400 bg-gradient-to-r from-pink-500/60 via-pink-500/40 to-purple-500/50 text-white shadow-[0_0_20px_rgba(255,80,180,0.35)]"
 										: "border-white/10 bg-white/5 text-white/80 hover:border-pink-300/60 hover:text-white"
 								}`}
 							>
 								{tab}
-								{isActive && <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/15 border border-white/20">FREE</span>}
+								{isActive && <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/10 border border-white/15">FREE</span>}
 							</button>
 						);
 					})}
 				</div>
 
 				{/* Main content to mirror reference layout */}
-				<div className="grid lg:grid-cols-[2fr,1fr] gap-5">
-					<div className="space-y-4">
+				<div className="grid lg:grid-cols-[1.65fr,1fr] gap-6">
+					<div className="space-y-5">
 						<Card className="p-5 sm:p-6 bg-gradient-to-br from-[#140017] via-[#0b0014] to-[#090012] border border-pink-500/15 shadow-[0_0_35px_rgba(255,60,170,0.25)]">
 							<div className="flex flex-col lg:flex-row items-center gap-6">
 								<div className="relative w-28 h-28 rounded-full overflow-hidden border-2 border-pink-400 shadow-[0_0_25px_rgba(255,80,170,0.4)]">
