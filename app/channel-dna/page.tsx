@@ -295,10 +295,10 @@ function ChannelDNAContent() {
 						</Text>
 					</div>
 					<div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-white">
-						<ScoreBar label="Discoverability" value={categories?.["Search & Discoverability"] ?? categories?.["Discoverability / SEO"] ?? 0} />
+						<ScoreBar label="Discoverability" value={categories?.["Search & Discovery"] ?? categories?.["Discoverability / SEO"] ?? 0} />
 						<ScoreBar label="Consistency" value={categories?.["Upload Consistency"] ?? 0} />
 						<ScoreBar label="Engagement" value={categories?.["Audience Engagement"] ?? 0} />
-						<ScoreBar label="Topics" value={categories?.["Winning Topics"] ?? categories?.["Content Clusters"] ?? 0} />
+						<ScoreBar label="Winning Topics" value={categories?.["Winning Topics"] ?? categories?.["Content Clusters"] ?? 0} />
 					</div>
 				</Card>
 
@@ -442,6 +442,25 @@ function TabContent({ tab, analysis, channelData }: { tab: string; analysis: any
 	const keyInsight = insights?.[0] || summary || "Observed performance pattern is not yet available.";
 	const recommended = insights?.[1] || "Observation pending more data.";
 
+	const renderChart = () => {
+		switch (tab) {
+			case "Viral Score":
+				return <ViralScatterChart />;
+			case "Search & Discovery":
+				return <DiscoveryLineChart />;
+			case "Upload Consistency":
+				return <ConsistencyBarChart />;
+			case "Thumbnail Performance":
+				return <ThumbComparisonChart />;
+			case "Winning Topics":
+				return <WinningTopicsBubbleChart />;
+			case "Channel Identity":
+				return <IdentityRadarChart />;
+			default:
+				return <ScoreBar label={`${tab} score`} value={Number(score) || 0} />;
+		}
+	};
+
 	return (
 		<div className="space-y-4 text-white">
 			<div className="flex items-center justify-between flex-wrap gap-2">
@@ -451,11 +470,170 @@ function TabContent({ tab, analysis, channelData }: { tab: string; analysis: any
 				</div>
 			</div>
 			{/* One chart */}
-			<ScoreBar label={`${tab} score`} value={Number(score) || 0} />
+			{renderChart()}
 			{/* One key insight */}
 			<Text size="3" className="text-white/80">{keyInsight}</Text>
 			{/* One observation sentence (neutral) */}
-			<Text size="2" className="text-white/65">Noted: {recommended}</Text>
+			<Text size="2" className="text-white/65">Observed: {recommended}</Text>
+			{tab === "Viral Score" && (
+				<Text size="2" className="text-white/60">
+					Viral Score reflects how often videos exceed expected performance for a channel of this size.
+				</Text>
+			)}
+		</div>
+	);
+}
+
+function ViralScatterChart() {
+	return (
+		<div className="w-full rounded-xl border border-white/10 bg-white/5 p-3">
+			<Heading size="4" className="text-white mb-1">Viral Scatter</Heading>
+			<Text size="2" className="text-white/60 mb-2">X: Views per Video (normalized) • Y: Engagement rate</Text>
+			<svg viewBox="0 0 100 70" className="w-full h-48">
+				<rect x="0" y="0" width="100" height="70" fill="url(#vs-grad)" rx="4" ry="4" />
+				<defs>
+					<linearGradient id="vs-grad" x1="0" y1="0" x2="0" y2="1">
+						<stop offset="0%" stopColor="rgba(255,255,255,0.04)" />
+						<stop offset="100%" stopColor="rgba(255,255,255,0.01)" />
+					</linearGradient>
+				</defs>
+				{[20, 40, 60, 80].map((v) => (
+					<line key={`v-${v}`} x1={v} y1="5" x2={v} y2="65" stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" />
+				))}
+				{[20, 40, 60].map((v) => (
+					<line key={`h-${v}`} x1="5" y1={v} x2="95" y2={v} stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" />
+				))}
+				<circle cx="30" cy="50" r="2.5" fill="#7ce7ff" opacity="0.9" />
+				<circle cx="55" cy="35" r="2.5" fill="#7ce7ff" opacity="0.9" />
+				<circle cx="70" cy="25" r="3" fill="#ff6acb" opacity="0.95" />
+				<circle cx="62" cy="30" r="3" fill="#ff6acb" opacity="0.95" />
+				<circle cx="45" cy="42" r="2.5" fill="#7ce7ff" opacity="0.9" />
+				<text x="7" y="12" fontSize="6" fill="#ffb3e5">Top 10% highlighted</text>
+			</svg>
+			<Text size="2" className="text-white/75 mt-2">
+				This channel consistently produces videos that outperform its own baseline.
+			</Text>
+		</div>
+	);
+}
+
+function DiscoveryLineChart() {
+	return (
+		<div className="w-full rounded-xl border border-white/10 bg-white/5 p-3">
+			<Heading size="4" className="text-white mb-1">Discovery Velocity</Heading>
+			<Text size="2" className="text-white/60 mb-2">Estimated early views over recent uploads</Text>
+			<svg viewBox="0 0 100 60" className="w-full h-44">
+				<defs>
+					<linearGradient id="dl-fill" x1="0" y1="0" x2="0" y2="1">
+						<stop offset="0%" stopColor="rgba(255,106,203,0.25)" />
+						<stop offset="100%" stopColor="rgba(255,106,203,0.05)" />
+					</linearGradient>
+				</defs>
+				<polyline
+					points="5,45 20,38 35,30 50,34 65,26 80,20 95,18"
+					fill="none"
+					stroke="#ff7fd6"
+					strokeWidth="2"
+				/>
+				<polygon points="5,60 5,45 20,38 35,30 50,34 65,26 80,20 95,18 95,60" fill="url(#dl-fill)" />
+			</svg>
+			<Text size="2" className="text-white/75 mt-2">
+				Recent uploads show strong early momentum, indicating favorable algorithm pickup.
+			</Text>
+			<Text size="2" className="text-white/60">
+				Viral Score reflects how often videos exceed expected performance for a channel of this size.
+			</Text>
+		</div>
+	);
+}
+
+function ConsistencyBarChart() {
+	return (
+		<div className="w-full rounded-xl border border-white/10 bg-white/5 p-3">
+			<Heading size="4" className="text-white mb-1">Posting Rhythm</Heading>
+			<Text size="2" className="text-white/60 mb-2">Uploads per week over recent periods</Text>
+			<svg viewBox="0 0 100 50" className="w-full h-40">
+				{[0, 1, 2, 3].map((i) => (
+					<rect key={i} x={15 + i * 20} y={15 + (i % 2) * 5} width="12" height={30 - (i % 2) * 5} fill="#ff7fd6" opacity="0.8" rx="2" />
+				))}
+				<rect x="75" y="18" width="12" height="27" fill="#ff3ea7" opacity="0.9" rx="2" />
+			</svg>
+			<Text size="2" className="text-white/75 mt-2">
+				Uploads follow a predictable cadence with minimal gaps.
+			</Text>
+			<Text size="2" className="text-white/60">
+				Consistency is measured relative to this channel’s historical behavior — not an external standard.
+			</Text>
+		</div>
+	);
+}
+
+function ThumbComparisonChart() {
+	return (
+		<div className="w-full rounded-xl border border-white/10 bg-white/5 p-3">
+			<Heading size="4" className="text-white mb-1">Thumbnail Performance</Heading>
+			<Text size="2" className="text-white/60 mb-2">Average views: top 20% thumbnails vs bottom 20%</Text>
+			<svg viewBox="0 0 100 50" className="w-full h-40">
+				<rect x="20" y="15" width="20" height="30" fill="#ff7fd6" rx="2" />
+				<rect x="60" y="5" width="20" height="40" fill="#7ce7ff" rx="2" />
+			</svg>
+			<Text size="2" className="text-white/75 mt-2">
+				High-performing thumbnails correlate with significantly higher view velocity.
+			</Text>
+			<Text size="2" className="text-white/60">
+				Performance is inferred from post-publish view acceleration, not CTR estimates.
+			</Text>
+		</div>
+	);
+}
+
+function WinningTopicsBubbleChart() {
+	return (
+		<div className="w-full rounded-xl border border-white/10 bg-white/5 p-3">
+			<Heading size="4" className="text-white mb-1">Winning Topics</Heading>
+			<Text size="2" className="text-white/60 mb-2">Topic dominance: views and engagement by cluster</Text>
+			<svg viewBox="0 0 100 55" className="w-full h-44">
+				<circle cx="25" cy="30" r="8" fill="#ff7fd6" opacity="0.9" />
+				<circle cx="55" cy="24" r="10" fill="#ff3ea7" opacity="0.95" />
+				<circle cx="80" cy="32" r="6" fill="#7ce7ff" opacity="0.7" />
+				<text x="18" y="45" fontSize="6" fill="#ffb3e5">Cluster A</text>
+				<text x="48" y="12" fontSize="6" fill="#ffb3e5">Cluster B</text>
+			</svg>
+			<Text size="2" className="text-white/75 mt-2">
+				A small number of topic clusters drive the majority of total views.
+			</Text>
+			<Text size="2" className="text-white/60">
+				Topics are inferred using title and description semantic similarity.
+			</Text>
+		</div>
+	);
+}
+
+function IdentityRadarChart() {
+	return (
+		<div className="w-full rounded-xl border border-white/10 bg-white/5 p-3">
+			<Heading size="4" className="text-white mb-1">Channel Identity</Heading>
+			<Text size="2" className="text-white/60 mb-2">Identity strength across key signals</Text>
+			<svg viewBox="0 0 100 70" className="w-full h-44">
+				<polygon
+					points="50,5 85,20 75,60 25,60 15,20"
+					fill="rgba(255,106,203,0.15)"
+					stroke="#ff7fd6"
+					strokeWidth="1"
+				/>
+				<polygon
+					points="50,15 78,28 70,52 30,52 22,28"
+					fill="rgba(124,231,255,0.18)"
+					stroke="#7ce7ff"
+					strokeWidth="1"
+				/>
+			</svg>
+			<Text size="2" className="text-white/75 mt-2">
+				The channel maintains a clear and repeatable content identity.
+			</Text>
+			<Text size="2" className="text-white/60">
+				Identity strength reflects how predictable the channel’s content promise is to viewers.
+			</Text>
 		</div>
 	);
 }

@@ -369,6 +369,7 @@ type ScoringCategory =
 	| "Upload Consistency"
 	| "Thumbnail Performance"
 	| "Channel Identity & Focus"
+	| "Winning Topics"
 	| "Channel Score";
 
 const CATEGORY_WEIGHTS: Record<ScoringCategory, number> = {
@@ -378,6 +379,7 @@ const CATEGORY_WEIGHTS: Record<ScoringCategory, number> = {
 	"Upload Consistency": 0.15,
 	"Thumbnail Performance": 0.1,
 	"Channel Identity & Focus": 0.1,
+	"Winning Topics": 0,
 	"Channel Score": 0,
 };
 
@@ -488,6 +490,19 @@ function computeScores(input: { channel: YoutubeChannel; videos: YoutubeVideo[];
 	const bioClarity = clamp((channel.description || "").length > 80 ? 85 : 50 + (channel.description || "").length * 0.35, 0, 95);
 	const identityScore = clamp((bioClarity * 0.5) + (titleLengthScore * 0.25) + (topicScore * 0.25));
 
+	// Winning Topics (dominance: a few clusters outperform baseline)
+	const winningTopicsScore = (() => {
+		if (!videos.length) return 50;
+		// Approximate clustering via keywords frequency against average views
+		const avg = average(videos.map((v) => v.views || 0)) || 0;
+		const keywords = metrics.commonKeywords || [];
+		if (!keywords.length || avg === 0) return clamp(topicScore);
+		// treat top keywords as clusters; reward if their implied views exceed baseline
+		const topClusterBoost = Math.min(100, (keywords[0]?.count || 0) * 4);
+		const dominanceBoost = avg > 0 ? clamp((keywords.length ? topClusterBoost : 0) + Math.min(30, avg / (avg + 1) * 30)) : 50;
+		return clamp(Math.max(60, dominanceBoost));
+	})();
+
 	const categories: Record<ScoringCategory, number> = {
 		"Viral Potential": viralScore,
 		"Audience Engagement": engagementScore,
@@ -495,6 +510,7 @@ function computeScores(input: { channel: YoutubeChannel; videos: YoutubeVideo[];
 		"Upload Consistency": uploadConsistencyScore,
 		"Thumbnail Performance": thumbnailScore,
 		"Channel Identity & Focus": clamp((topicScore + identityScore) / 2),
+		"Winning Topics": winningTopicsScore,
 		"Channel Score": 0, // derived after weighted
 	};
 
