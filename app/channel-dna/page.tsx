@@ -221,7 +221,7 @@ function ChannelDNAContent() {
 				</div>
 
 				{/* Tabs */}
-				<div className="flex flex-wrap gap-2">
+				<div className="flex gap-2 overflow-x-auto whitespace-nowrap pb-2">
 					{TABS.map((tab) => {
 						const isActive = activeTab === tab;
 						return (
@@ -279,17 +279,6 @@ function ChannelDNAContent() {
 								<Text size="2" className="text-white/75">
 									{aiSummary?.summary || "This channel repeatedly produces videos that perform well beyond its subscriber base."}
 								</Text>
-							</div>
-						</Card>
-
-						<Card className="p-5 bg-black/30 border border-white/10 backdrop-blur-md">
-							<div className="space-y-2 text-white/85">
-								{(analysis?.["Viral Potential"]?.insights || []).slice(0, 3).map((item: string, i: number) => (
-									<div key={i} className="flex items-start gap-2">
-										<span className="mt-1 w-2 h-2 rounded-full bg-pink-400 shadow-[0_0_8px_rgba(255,80,170,0.6)]" />
-										<Text size="3">{item}</Text>
-									</div>
-								))}
 							</div>
 						</Card>
 
