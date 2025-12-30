@@ -638,3 +638,37 @@ function Chip({ label, value }: { label: string; value: string | number | null |
 	);
 }
 
+function ChannelScatter({ x, y }: { x: number; y: number }) {
+	const clampedX = Math.max(0, Math.min(100, x));
+	const clampedY = Math.max(0, Math.min(100, y));
+	const cx = (clampedX / 100) * 100;
+	const cy = 100 - (clampedY / 100) * 100;
+
+	return (
+		<div className="w-full h-60 bg-black/50 border border-white/10 rounded-xl p-3">
+			<svg viewBox="0 0 100 100" className="w-full h-full text-white/50">
+				<defs>
+					<linearGradient id="gridLine" x1="0" y1="0" x2="0" y2="1">
+						<stop offset="0%" stopColor="rgba(255,255,255,0.15)" />
+						<stop offset="100%" stopColor="rgba(255,255,255,0.05)" />
+					</linearGradient>
+				</defs>
+				{/* grid */}
+				{[25, 50, 75].map((v) => (
+					<line key={`v-${v}`} x1={v} y1="0" x2={v} y2="100" stroke="url(#gridLine)" strokeWidth="0.3" />
+				))}
+				{[25, 50, 75].map((v) => (
+					<line key={`h-${v}`} x1="0" y1={v} x2="100" y2={v} stroke="url(#gridLine)" strokeWidth="0.3" />
+				))}
+				{/* quadrants labels */}
+				<text x="50" y="6" textAnchor="middle" fontSize="6" fill="#ff9ddf">Scale Faster</text>
+				<text x="50" y="98" textAnchor="middle" fontSize="6" fill="#ff9ddf">Post More</text>
+				<text x="4" y="6" textAnchor="start" fontSize="6" fill="#ff9ddf">Fix Packaging</text>
+				<text x="96" y="98" textAnchor="end" fontSize="6" fill="#ff9ddf">Unstable Growth</text>
+				{/* point */}
+				<circle cx={cx} cy={cy} r="2.4" fill="#ff6acb" stroke="#ffb3e5" strokeWidth="0.6" />
+			</svg>
+		</div>
+	);
+}
+
