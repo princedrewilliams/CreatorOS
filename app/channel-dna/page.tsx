@@ -317,15 +317,9 @@ function ChannelDNAContent() {
 					</Card>
 
 					<Card className="p-5 bg-black/30 border border-white/10 backdrop-blur-md">
-						<Heading size="5" className="text-white mb-1">Channel Positioning</Heading>
-						<Text size="2" className="text-white/70 mb-2">
-							Upload Consistency vs Discoverability (normalized 0–100)
-						</Text>
-						<ChannelScatter x={uploadScore} y={discoverScore} />
-						<Text size="2" className="text-white/70 mt-2">
-							Top-right: Scale Faster • Top-left: Refine Packaging • Bottom-right: Increase Cadence • Bottom-left: Unstable Growth
-						</Text>
-						<Text size="2" className="text-white/80 mt-2">{chartInsight}</Text>
+						<Heading size="5" className="text-white mb-1">{activeTab} Chart</Heading>
+						<Text size="2" className="text-white/60 mb-2">Visualization for this tab</Text>
+						{renderChartForTab(activeTab, uploadScore, discoverScore)}
 					</Card>
 				</div>
 
@@ -442,25 +436,6 @@ function TabContent({ tab, analysis, channelData }: { tab: string; analysis: any
 	const keyInsight = insights?.[0] || summary || "Observed performance pattern is not yet available.";
 	const recommended = insights?.[1] || "Observation pending more data.";
 
-	const renderChart = () => {
-		switch (tab) {
-			case "Viral Score":
-				return <ViralScatterChart />;
-			case "Search & Discovery":
-				return <DiscoveryLineChart />;
-			case "Upload Consistency":
-				return <ConsistencyBarChart />;
-			case "Thumbnail Performance":
-				return <ThumbComparisonChart />;
-			case "Winning Topics":
-				return <WinningTopicsBubbleChart />;
-			case "Channel Identity":
-				return <IdentityRadarChart />;
-			default:
-				return <ScoreBar label={`${tab} score`} value={Number(score) || 0} />;
-		}
-	};
-
 	return (
 		<div className="space-y-4 text-white">
 			<div className="flex items-center justify-between flex-wrap gap-2">
@@ -469,8 +444,8 @@ function TabContent({ tab, analysis, channelData }: { tab: string; analysis: any
 					Score: <span className="font-semibold text-pink-300">{score}</span>/100
 				</div>
 			</div>
-			{/* One chart */}
-			{renderChart()}
+			{/* One chart now shown in the right column above */}
+			<ScoreBar label={`${tab} score`} value={Number(score) || 0} />
 			{/* One key insight */}
 			<Text size="3" className="text-white/80">{keyInsight}</Text>
 			{/* One observation sentence (neutral) */}
@@ -482,6 +457,25 @@ function TabContent({ tab, analysis, channelData }: { tab: string; analysis: any
 			)}
 		</div>
 	);
+}
+
+function renderChartForTab(tab: string, uploadScore: number, discoverScore: number) {
+	switch (tab) {
+		case "Viral Score":
+			return <ViralScatterChart />;
+		case "Search & Discovery":
+			return <DiscoveryLineChart />;
+		case "Upload Consistency":
+			return <ConsistencyBarChart />;
+		case "Thumbnail Performance":
+			return <ThumbComparisonChart />;
+		case "Winning Topics":
+			return <WinningTopicsBubbleChart />;
+		case "Channel Identity":
+			return <IdentityRadarChart />;
+		default:
+			return <ScoreBar label={`${tab} score`} value={0} />;
+	}
 }
 
 function ViralScatterChart() {
