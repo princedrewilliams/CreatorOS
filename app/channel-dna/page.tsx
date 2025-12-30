@@ -498,17 +498,26 @@ function ViralScatterChart() {
 					</linearGradient>
 				</defs>
 				{[20, 40, 60, 80].map((v) => (
-					<line key={`v-${v}`} x1={v} y1="5" x2={v} y2="65" stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" />
+					<line key={`v-${v}`} x1={v} y1="6" x2={v} y2="64" stroke="rgba(255,255,255,0.07)" strokeWidth="0.4" />
 				))}
 				{[20, 40, 60].map((v) => (
-					<line key={`h-${v}`} x1="5" y1={v} x2="95" y2={v} stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" />
+					<line key={`h-${v}`} x1="6" y1={v} x2="94" y2={v} stroke="rgba(255,255,255,0.07)" strokeWidth="0.4" />
 				))}
-				<circle cx="30" cy="50" r="2.5" fill="#7ce7ff" opacity="0.9" />
-				<circle cx="55" cy="35" r="2.5" fill="#7ce7ff" opacity="0.9" />
-				<circle cx="70" cy="25" r="3" fill="#ff6acb" opacity="0.95" />
-				<circle cx="62" cy="30" r="3" fill="#ff6acb" opacity="0.95" />
-				<circle cx="45" cy="42" r="2.5" fill="#7ce7ff" opacity="0.9" />
-				<text x="7" y="12" fontSize="6" fill="#ffb3e5">Top 10% highlighted</text>
+				<circle cx="30" cy="50" r="2.4" fill="#7ce7ff" opacity="0.85">
+					<animate attributeName="r" values="2.2;2.6;2.2" dur="3s" repeatCount="indefinite" />
+				</circle>
+				<circle cx="55" cy="35" r="2.4" fill="#7ce7ff" opacity="0.85">
+					<animate attributeName="r" values="2.2;2.6;2.2" dur="3s" begin="0.3s" repeatCount="indefinite" />
+				</circle>
+				<circle cx="70" cy="25" r="3.2" fill="#ff6acb" opacity="0.95">
+					<animate attributeName="r" values="3;3.6;3" dur="3s" begin="0.6s" repeatCount="indefinite" />
+				</circle>
+				<circle cx="62" cy="30" r="3" fill="#ff6acb" opacity="0.95">
+					<animate attributeName="r" values="2.8;3.4;2.8" dur="3s" begin="0.9s" repeatCount="indefinite" />
+				</circle>
+				<circle cx="45" cy="42" r="2.4" fill="#7ce7ff" opacity="0.85">
+					<animate attributeName="r" values="2.2;2.6;2.2" dur="3s" begin="0.5s" repeatCount="indefinite" />
+				</circle>
 			</svg>
 			<Text size="2" className="text-white/75 mt-2">
 				This channel consistently produces videos that outperform its own baseline.
@@ -540,9 +549,7 @@ function DiscoveryLineChart() {
 			<Text size="2" className="text-white/75 mt-2">
 				Recent uploads show strong early momentum, indicating favorable algorithm pickup.
 			</Text>
-			<Text size="2" className="text-white/60">
-				Viral Score reflects how often videos exceed expected performance for a channel of this size.
-			</Text>
+			{/* duplicate text removed for clarity */}
 		</div>
 	);
 }
@@ -574,8 +581,8 @@ function ThumbComparisonChart() {
 			<Heading size="4" className="text-white mb-1">Thumbnail Performance</Heading>
 			<Text size="2" className="text-white/60 mb-2">Average views: top 20% thumbnails vs bottom 20%</Text>
 			<svg viewBox="0 0 100 50" className="w-full h-40">
-				<rect x="20" y="15" width="20" height="30" fill="#ff7fd6" rx="2" />
-				<rect x="60" y="5" width="20" height="40" fill="#7ce7ff" rx="2" />
+				<rect x="20" y="15" width="20" height="30" fill="#7ce7ff" rx="2" opacity="0.8" />
+				<rect x="60" y="5" width="20" height="40" fill="#ff7fd6" rx="2" opacity="0.95" />
 			</svg>
 			<Text size="2" className="text-white/75 mt-2">
 				High-performing thumbnails correlate with significantly higher view velocity.
@@ -593,14 +600,14 @@ function WinningTopicsBubbleChart() {
 			<Heading size="4" className="text-white mb-1">Winning Topics</Heading>
 			<Text size="2" className="text-white/60 mb-2">Topic dominance: views and engagement by cluster</Text>
 			<svg viewBox="0 0 100 55" className="w-full h-44">
-				<circle cx="25" cy="30" r="8" fill="#ff7fd6" opacity="0.9" />
-				<circle cx="55" cy="24" r="10" fill="#ff3ea7" opacity="0.95" />
-				<circle cx="80" cy="32" r="6" fill="#7ce7ff" opacity="0.7" />
-				<text x="18" y="45" fontSize="6" fill="#ffb3e5">Cluster A</text>
-				<text x="48" y="12" fontSize="6" fill="#ffb3e5">Cluster B</text>
+				<circle cx="25" cy="30" r="8" fill="#7ce7ff" opacity="0.85" />
+				<circle cx="55" cy="24" r="11" fill="#ff7fd6" opacity="0.95" />
+				<circle cx="80" cy="32" r="6" fill="#c9a8ff" opacity="0.7" />
+				<text x="18" y="45" fontSize="6" fill="#ffb3e5">Top cluster</text>
+				<text x="48" y="12" fontSize="6" fill="#ffb3e5">Dominant</text>
 			</svg>
 			<Text size="2" className="text-white/75 mt-2">
-				A small number of topic clusters drive the majority of total views.
+				This channel consistently wins by repeating a small set of high-performing topics.
 			</Text>
 			<Text size="2" className="text-white/60">
 				Topics are inferred using title and description semantic similarity.
