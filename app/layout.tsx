@@ -43,8 +43,12 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en" suppressHydrationWarning>
-			<body className={`${inter.variable} antialiased bg-gray-1 dark:bg-gray-12`}>
+			<body className={`${inter.variable} antialiased liquid-body`}>
 				<WhopApp accentColor="blue" appearance="inherit">
+					<div className="liquid-bg">
+						<div className="blob" />
+						<div className="blob pink" />
+					</div>
 					<div className="flex min-h-screen flex-col">
 						<Navbar />
 						<main className="flex-1 w-full">
