@@ -7,22 +7,20 @@ import { Text, Heading, Card, Button } from "@whop/react/components";
 
 const TABS = [
 	"Viral Score",
-	"Search & Discoverability",
+	"Search & Discovery",
 	"Upload Consistency",
 	"Thumbnail Performance",
 	"Winning Topics",
 	"Channel Identity",
-	"Replication Score",
 ];
 
 const TAB_TO_ANALYSIS: Record<string, string> = {
 	"Viral Score": "Viral Potential",
-	"Search & Discoverability": "SEO Strategy",
+	"Search & Discovery": "SEO Strategy",
 	"Upload Consistency": "Posting Consistency",
 	"Thumbnail Performance": "Thumbnail Strategy",
 	"Winning Topics": "Content Clusters",
 	"Channel Identity": "Channel Positioning",
-	"Replication Score": "Replication Score",
 };
 
 export default function ChannelDNAPage() {
@@ -192,15 +190,15 @@ function ChannelDNAContent() {
 
 	const chartInsight = useMemo(() => {
 		if (uploadScore >= 70 && discoverScore >= 70) {
-			return "Strong cadence and discoverability — scale faster with more of what already works.";
+			return "Cadence and discoverability both outperform similar-sized channels.";
 		}
 		if (uploadScore >= 65 && discoverScore < 65) {
-			return "Posts consistently but discoverability lags — sharpen titles and thumbnails.";
+			return "Regular posting; discoverability trails peers of similar size.";
 		}
 		if (uploadScore < 65 && discoverScore >= 70) {
-			return "Great discoverability; increase posting cadence to capture momentum.";
+			return "High discoverability; posting cadence below peer average.";
 		}
-		return "Growth is unstable — tighten schedule and packaging to steady performance.";
+		return "Cadence and discoverability fluctuate relative to peer benchmarks.";
 	}, [uploadScore, discoverScore]);
 
 	return (
@@ -259,9 +257,9 @@ function ChannelDNAContent() {
 					})}
 				</div>
 
-				{/* Hero */}
-				<Card className="p-5 sm:p-6 bg-gradient-to-br from-[#140017] via-[#0b0014] to-[#090012] border border-pink-500/15 shadow-[0_0_40px_rgba(255,60,170,0.3)]">
-					<div className="flex flex-col lg:flex-row items-center gap-6">
+				{/* Hero (compressed height) */}
+				<Card className="p-4 sm:p-5 bg-gradient-to-br from-[#140017] via-[#0b0014] to-[#090012] border border-pink-500/15 shadow-[0_0_40px_rgba(255,60,170,0.3)]">
+					<div className="flex flex-col lg:flex-row items-center gap-4">
 						<div className="relative w-28 h-28 rounded-full overflow-hidden border-2 border-pink-400 shadow-[0_0_25px_rgba(255,80,170,0.4)]">
 							{baseStats?.thumbnail ? (
 								<Image src={baseStats.thumbnail} alt="Avatar" fill className="object-cover" />
@@ -290,42 +288,44 @@ function ChannelDNAContent() {
 							</div>
 						</div>
 					</div>
-					<div className="mt-4 space-y-2 text-white/85">
-						<Text size="3" className="text-white/90 font-semibold">Your Top 10% Viral Channel</Text>
-						<Text size="2" className="text-white/75">
-							{aiSummary?.summary || "This channel repeatedly produces videos that perform well beyond its subscriber base."}
+					<div className="mt-4 space-y-1 text-white/85">
+						<Text size="3" className="text-white/90 font-semibold">Performance Snapshot</Text>
+						<Text size="2" className="text-white/70">
+							Videos consistently outperform peer channels of similar size.
 						</Text>
+					</div>
+					<div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-white">
+						<ScoreBar label="Discoverability" value={categories?.["Search & Discoverability"] ?? categories?.["Discoverability / SEO"] ?? 0} />
+						<ScoreBar label="Consistency" value={categories?.["Upload Consistency"] ?? 0} />
+						<ScoreBar label="Engagement" value={categories?.["Audience Engagement"] ?? 0} />
+						<ScoreBar label="Topics" value={categories?.["Winning Topics"] ?? categories?.["Content Clusters"] ?? 0} />
 					</div>
 				</Card>
 
 				{/* Insights + chart row under hero */}
 				<div className="grid lg:grid-cols-2 gap-6">
-					<Card className="p-5 bg-black/30 border border-pink-500/20 backdrop-blur-md">
-						<Heading size="5" className="text-white mb-3">AI Insights</Heading>
-						<Text size="3" className="text-white/85">{aiSummary?.summary || "Patterns observed across top videos."}</Text>
-						<div className="mt-3 space-y-2">
+					<Card className="p-5 bg-black/30 border border-pink-500/20 backdrop-blur-md space-y-3">
+						<Heading size="5" className="text-white">Observed Patterns</Heading>
+						<div className="space-y-3">
 							{(aiSummary?.recommendations || []).slice(0, 3).map((rec: string, i: number) => (
-								<div key={i} className="flex items-start gap-2">
-									<span className="mt-1 w-2 h-2 rounded-full bg-pink-400 shadow-[0_0_8px_rgba(255,80,170,0.6)]" />
+								<div key={i} className="rounded-lg border border-white/10 bg-white/5 p-3 text-white/85">
+									<Text size="2" className="text-white font-semibold">Pattern {i + 1}</Text>
 									<Text size="2" className="text-white/80">{rec}</Text>
 								</div>
 							))}
 						</div>
-						{aiSummary?.doubleDown && (
-							<div className="mt-4 px-3 py-2 rounded-lg border border-pink-400/30 bg-pink-500/10 text-white">
-								<Text size="2" className="text-white font-semibold">Double down on:</Text>
-								<Text size="2" className="text-white/90">{aiSummary.doubleDown}</Text>
-							</div>
-						)}
 					</Card>
 
 					<Card className="p-5 bg-black/30 border border-white/10 backdrop-blur-md">
 						<Heading size="5" className="text-white mb-1">Channel Positioning</Heading>
-						<Text size="2" className="text-white/70 mb-3">
+						<Text size="2" className="text-white/70 mb-2">
 							Upload Consistency vs Discoverability (normalized 0–100)
 						</Text>
 						<ChannelScatter x={uploadScore} y={discoverScore} />
-						<Text size="2" className="text-white/80 mt-3">{chartInsight}</Text>
+						<Text size="2" className="text-white/70 mt-2">
+							Top-right: Scale Faster • Top-left: Refine Packaging • Bottom-right: Increase Cadence • Bottom-left: Unstable Growth
+						</Text>
+						<Text size="2" className="text-white/80 mt-2">{chartInsight}</Text>
 					</Card>
 				</div>
 
@@ -439,6 +439,8 @@ function TabContent({ tab, analysis, channelData }: { tab: string; analysis: any
 	const score = bucket.score ?? "—";
 	const summary = bucket.summary || "No summary yet.";
 	const insights: string[] = bucket.insights || [];
+	const keyInsight = insights?.[0] || summary || "Observed performance pattern is not yet available.";
+	const recommended = insights?.[1] || "Observation pending more data.";
 
 	return (
 		<div className="space-y-4 text-white">
@@ -448,28 +450,12 @@ function TabContent({ tab, analysis, channelData }: { tab: string; analysis: any
 					Score: <span className="font-semibold text-pink-300">{score}</span>/100
 				</div>
 			</div>
-			<Text size="3" className="text-white/80">{summary}</Text>
-			<div className="space-y-2">
-				{insights.length ? (
-					<ul className="list-disc list-inside space-y-1 text-white/80">
-						{insights.map((item, i) => (
-							<li key={i}>{item}</li>
-						))}
-					</ul>
-				) : (
-					<Text size="2" className="text-white/60">Insights will appear after analysis.</Text>
-				)}
-			</div>
-			{tab === "Posting Consistency" && channelData?.metrics && (
-				<div className="grid sm:grid-cols-3 gap-3">
-					<Metric label="Cadence" value={channelData.metrics.postingFrequency} />
-					<Metric label="Avg title length" value={`${channelData.metrics.averageTitleLength ?? "—"} chars`} />
-					<Metric
-						label="Top keywords"
-						value={channelData.metrics.commonKeywords?.slice(0, 4).map((k: any) => k.word).join(", ") || "—"}
-					/>
-				</div>
-			)}
+			{/* One chart */}
+			<ScoreBar label={`${tab} score`} value={Number(score) || 0} />
+			{/* One key insight */}
+			<Text size="3" className="text-white/80">{keyInsight}</Text>
+			{/* One observation sentence (neutral) */}
+			<Text size="2" className="text-white/65">Noted: {recommended}</Text>
 		</div>
 	);
 }
