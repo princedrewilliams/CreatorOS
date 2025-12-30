@@ -42,170 +42,145 @@ export default function HomePage() {
 
 
 	return (
-		<div className="relative min-h-screen overflow-hidden bg-[#05000b]">
-			{/* Neon cosmic background */}
-			<div className="fixed inset-0 -z-10 overflow-hidden bg-[#05000b]">
-				{/* Deep base gradient */}
-				<div className="absolute inset-0 bg-gradient-to-br from-[#0b0018] via-[#090013] to-[#020008]" />
+		<main className="relative min-h-screen w-full overflow-hidden bg-[#050505] selection:bg-pink-500/30 selection:text-pink-200">
+			{/* Deep atmospheric background from MagicPatterns export */}
+			<div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#1a0510] via-[#050505] to-[#050505] z-0" />
 
-				{/* Radial glow zones */}
-				<div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_25%,rgba(255,66,166,0.35),transparent_40%),radial-gradient(circle_at_80%_25%,rgba(255,130,230,0.32),transparent_45%),radial-gradient(circle_at_50%_78%,rgba(120,0,90,0.22),transparent_55%),radial-gradient(circle_at_70%_70%,rgba(255,30,140,0.2),transparent_55%)]" />
+			{/* Animated luminous orbs / waves */}
+			<div
+				className="absolute top-[-20%] right-[-10%] w-[800px] h-[800px] rounded-full bg-pink-600/10 blur-[120px] animate-pulse mix-blend-screen"
+				style={{ animationDuration: "8s" }}
+			/>
+			<div
+				className="absolute bottom-[-20%] left-[-10%] w-[900px] h-[900px] rounded-full bg-rose-600/10 blur-[120px] animate-pulse mix-blend-screen"
+				style={{ animationDuration: "10s" }}
+			/>
 
-				{/* Sweeping light streaks */}
-				<div className="absolute inset-0 opacity-80 bg-[linear-gradient(120deg,rgba(255,52,160,0.4),rgba(255,52,160,0)_38%),linear-gradient(-115deg,rgba(255,105,200,0.34),rgba(255,105,200,0)_32%),linear-gradient(150deg,rgba(255,90,170,0.28),rgba(255,90,170,0)_42%)]" />
-
-				{/* Bold neon streaks */}
-				<div className="absolute inset-0 pointer-events-none">
-					<div className="absolute -left-28 top-10 w-[150%] h-[4px] bg-gradient-to-r from-transparent via-[#ff5bd9] to-transparent blur-[14px] rotate-[10deg] opacity-80" />
-					<div className="absolute -right-16 top-1/3 w-[130%] h-[4px] bg-gradient-to-r from-transparent via-[#ff3ea7] to-transparent blur-[12px] -rotate-[14deg] opacity-68" />
-					<div className="absolute left-12 bottom-1/4 w-[140%] h-[5px] bg-gradient-to-r from-transparent via-[#ff6ad5] to-transparent blur-[16px] rotate-[18deg] opacity-62" />
-				</div>
-
-				{/* Particle sparkle layer */}
-				<div className="absolute inset-0 opacity-[0.06] bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIwLjUiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')]" />
+			{/* Curved lines overlay */}
+			<div className="absolute inset-0 z-0 opacity-30 pointer-events-none">
+				<svg className="w-full h-full" viewBox="0 0 1440 900" xmlns="http://www.w3.org/2000/svg">
+					<path
+						d="M-100 600 C 200 400, 400 800, 800 200 C 1200 -400, 1600 200, 1800 800"
+						stroke="url(#grad1)"
+						strokeWidth="2"
+						fill="none"
+						className="animate-[dash_20s_linear_infinite]"
+						strokeDasharray="10 10"
+					/>
+					<path
+						d="M-100 800 C 300 600, 500 900, 900 300 C 1300 -300, 1700 300, 1900 900"
+						stroke="url(#grad2)"
+						strokeWidth="1"
+						fill="none"
+						opacity="0.5"
+					/>
+					<defs>
+						<linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+							<stop offset="0%" stopColor="rgba(236, 72, 153, 0)" />
+							<stop offset="50%" stopColor="rgba(236, 72, 153, 0.3)" />
+							<stop offset="100%" stopColor="rgba(236, 72, 153, 0)" />
+						</linearGradient>
+						<linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="0%">
+							<stop offset="0%" stopColor="rgba(244, 63, 94, 0)" />
+							<stop offset="50%" stopColor="rgba(244, 63, 94, 0.2)" />
+							<stop offset="100%" stopColor="rgba(244, 63, 94, 0)" />
+						</linearGradient>
+					</defs>
+				</svg>
 			</div>
 
-			{/* Main Content */}
-			<div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-24">
-				{/* Hero Section */}
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.6 }}
-					className="text-center mb-16 sm:mb-20"
-				>
-					{/* Badge */}
-					<motion.div
-						initial={{ opacity: 0, y: 10 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ delay: 0.2, duration: 0.5 }}
-						className="mb-6"
-					>
-					<Badge 
-						color="purple" 
-							variant="soft" 
-							size="2"
-							className="inline-flex items-center gap-2 bg-pink-500/20 border-pink-500/30 !bg-pink-500/20"
-						>
-							<svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-							</svg>
-							<span className="text-white">Introducing Channel DNA Analyzer</span>
-						</Badge>
-					</motion.div>
+			{/* Noise film grain */}
+			<div
+				className="absolute inset-0 opacity-[0.04] pointer-events-none z-0 mix-blend-overlay"
+				style={{
+					backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+				}}
+			/>
 
-					{/* Main Headline */}
-					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ delay: 0.3, duration: 0.6 }}
-						className="mb-6"
-					>
-						<h1 className="text-[3rem] sm:text-[3.6rem] lg:text-[4.4rem] font-bold mb-4 text-white leading-tight tracking-tight">
-							Reverse-Engineer What Makes{" "}
-								<span
-									className="inline-block"
-									style={{
-										backgroundImage: "linear-gradient(90deg, #ff5abf 0%, #ff3ea7 45%, #d742ff 80%, #ff8bf5 100%)",
-										backgroundClip: "text",
-										WebkitBackgroundClip: "text",
-										WebkitTextFillColor: "transparent",
-										color: "#ff5abf",
-									}}
-								>
-								YouTube Channels Win
-							</span>
-						</h1>
-					</motion.div>
+			{/* Content */}
+			<div className="relative z-10 w-full px-4 py-12 sm:py-16 lg:py-20 flex flex-col items-center">
+				{/* Badge */}
+				<div className="mb-8">
+					<div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md shadow-[0_0_15px_rgba(236,72,153,0.15)]">
+						<svg className="w-3 h-3 text-pink-400" viewBox="0 0 20 20" fill="currentColor">
+							<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.38 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+						</svg>
+						<span className="text-xs font-medium tracking-wider text-pink-100/90 uppercase">
+							Introducing Channel DNA Analyzer
+						</span>
+					</div>
+				</div>
 
-					{/* Subtitle */}
-					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ delay: 0.4, duration: 0.6 }}
-						className="mb-12"
-					>
-						<Text size="3" className="text-white max-w-3xl mx-auto">
-							Analyze posting patterns, titles, thumbnails, and content strategy — instantly.
-						</Text>
-					</motion.div>
+				{/* Hero text */}
+				<div className="text-center mb-12 space-y-6 max-w-4xl">
+					<h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white tracking-tight leading-[1.1]">
+						Reverse-Engineer What Makes{" "}
+						<span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-rose-300 to-pink-400">
+							YouTube Channels Win
+						</span>
+					</h1>
+					<p className="text-lg md:text-xl text-white/70 font-light tracking-wide max-w-2xl mx-auto leading-relaxed">
+						Analyze posting patterns, titles, thumbnails, and content strategy — instantly.
+					</p>
+				</div>
 
-					{/* Input Section */}
-					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ delay: 0.5, duration: 0.6 }}
-						className="max-w-3xl mx-auto"
-					>
-						<div className="relative p-[2px] mb-2 rounded-2xl bg-gradient-to-r from-pink-500/50 via-pink-400/20 to-pink-500/50 shadow-[0_0_35px_rgba(255,60,160,0.3)] backdrop-blur-md">
-							<div className="relative rounded-[14px] bg-[#0a0013]/90 px-4 py-4 pl-12 pr-4 shadow-[inset_0_0_18px_rgba(0,0,0,0.65)] border border-pink-500/10 flex flex-col gap-2">
-								{/* Icon on far left */}
-								<div className="absolute left-4 top-4 text-pink-200">
-									<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-									</svg>
-								</div>
-
-								<div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+				{/* Input card */}
+				<div className="w-full max-w-3xl">
+					<div className="relative group">
+						<div className="absolute -inset-1 bg-gradient-to-r from-pink-600/30 via-rose-600/30 to-pink-600/30 rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity duration-500" />
+						<div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a]/70 backdrop-blur-2xl p-3 shadow-2xl">
+							<form
+								onSubmit={(e) => {
+									e.preventDefault();
+									void handleAnalyze();
+								}}
+								className="flex flex-col md:flex-row gap-2"
+							>
+								<div className="flex-1 relative">
+									<div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+										<svg className="w-5 h-5 text-white/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+											<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+										</svg>
+									</div>
 									<input
 										type="url"
 										value={channelUrl}
 										onChange={(e) => setChannelUrl(e.target.value)}
-										onKeyDown={(e) => {
-											if (e.key === "Enter") {
-												handleAnalyze();
-											}
-										}}
 										placeholder="Paste your YouTube URL here... (e.g., youtube.com/@channelname)"
-										className="w-full bg-transparent !bg-transparent appearance-none border-0 text-sm sm:text-base text-white placeholder:text-white/70 focus:outline-none focus:text-white focus:bg-transparent transition-colors pl-8 sm:pl-10"
-										style={{
-											backgroundColor: "transparent",
-											color: "#ffffff",
-											WebkitTextFillColor: "#ffffff",
-											caretColor: "#ffffff",
-										}}
+										className="w-full h-14 pl-12 pr-4 bg-transparent text-white placeholder:text-white/40 focus:outline-none text-base md:text-lg font-light tracking-wide rounded-xl transition-colors focus:bg-white/5"
 										autoComplete="off"
 									/>
-
-									<button
-										onClick={handleAnalyze}
-										className="px-5 py-2 rounded-lg text-white text-sm font-semibold hover:scale-[1.02] active:scale-[0.98] transition-transform disabled:opacity-60 disabled:cursor-not-allowed bg-transparent"
-										disabled={loading}
-									>
-										{loading ? "Analyzing..." : "Start Analyzing"}
-										<span className="ml-1 text-lg">›</span>
-									</button>
 								</div>
-
-								<Text
-									size="1"
-									className="text-white text-[10px] sm:text-[11px] pl-8 sm:pl-10"
+								<button
+									type="submit"
+									disabled={loading}
+									className="liquid-btn md:w-auto w-full h-14 md:px-8 text-base shadow-none hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
 								>
+									{loading ? "Analyzing..." : "Start Analyzing"}
+									<ArrowRightIcon className="w-4 h-4 ml-1 inline-block" />
+								</button>
+							</form>
+							<div className="px-4 py-2 flex justify-center md:justify-start">
+								<p className="text-[10px] text-white/30 uppercase tracking-widest font-medium">
 									Example: youtube.com/@channelname
-								</Text>
+								</p>
 							</div>
+							{error && (
+								<div className="px-4 pb-2 text-center md:text-left">
+									<Text size="2" className="text-red-400">{error}</Text>
+								</div>
+							)}
 						</div>
-						{error && (
-							<div className="text-center mt-1">
-								<Text size="2" className="text-red-400">{error}</Text>
-							</div>
-						)}
-					</motion.div>
-				</motion.div>
+					</div>
+				</div>
 
-				{/* Bottom brand mark */}
-				<motion.div
-					initial={{ opacity: 0, y: 10 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ delay: 0.6, duration: 0.6 }}
-					className="mt-10 text-center"
-				>
-					<Text size="5" className="text-white font-bold tracking-tight">
+				{/* Brand footer */}
+				<div className="mt-20 text-center">
+					<span className="text-2xl font-bold tracking-tight text-white/90">
 						CreatorOS
-					</Text>
-				</motion.div>
-
+					</span>
+				</div>
 			</div>
-		</div>
+		</main>
 	);
 }
