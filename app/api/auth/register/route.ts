@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { setUserSession } from "@/lib/auth";
 import bcrypt from "bcryptjs";
 import { userAccounts, type UserAccount } from "@/lib/user-accounts";
 
