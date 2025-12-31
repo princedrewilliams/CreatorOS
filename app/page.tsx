@@ -98,7 +98,13 @@ export default function HomePage() {
 											value={channelUrl}
 											onChange={(e) => setChannelUrl(e.target.value)}
 											placeholder="Paste your YouTube URL here... (e.g., youtube.com/@channelname)"
-											className="w-full bg-transparent text-white placeholder:text-white/65 focus:outline-none text-base md:text-lg"
+											className="w-full bg-transparent text-white placeholder:text-white/65 text-base md:text-lg border-0 outline-none ring-0 focus:outline-none focus:ring-0"
+											style={{
+												backgroundColor: "transparent",
+												WebkitAppearance: "none",
+												WebkitTextFillColor: "#ffffff",
+												WebkitBoxShadow: "0 0 0px 1000px transparent inset",
+											}}
 											autoComplete="off"
 										/>
 									</div>
