@@ -65,7 +65,7 @@ export default function HomePage() {
 
 				{/* Hero text */}
 				<div className="text-center space-y-4 md:space-y-6 max-w-4xl">
-					<h1 className="text-[52px] md:text-[76px] lg:text-[100px] font-bold leading-tight md:leading-[1.02] tracking-tight">
+					<h1 className="text-[72px] md:text-[112px] lg:text-[144px] font-bold leading-tight md:leading-[1.02] tracking-tight">
 						Reverse-Engineer What Makes
 						<br className="hidden md:block" />
 						<span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#ff5abf] via-[#ff3ea7] to-[#ff8bf5]">
