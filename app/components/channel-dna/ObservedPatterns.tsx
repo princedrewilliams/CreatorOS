@@ -61,7 +61,7 @@ export function ObservedPatterns({ recommendations = [] }: ObservedPatternsProps
 			</div>
 
 			<div className="flex flex-col gap-4 flex-1 relative">
-				<div className="absolute left-[26px] top-8 bottom-8 w-0.5 bg-gradient-to-b from-white/10 via-white/5 to-transparent -z-10" />
+							<div className="absolute left-[26px] top-8 bottom-8 w-0.5 bg-gradient-to-b from-pink-500/20 via-pink-500/10 to-transparent -z-10" />
 
 				{patterns.map((pattern, index) => {
 					const Icon = pattern.icon;
@@ -114,8 +114,8 @@ export function ObservedPatterns({ recommendations = [] }: ObservedPatternsProps
 												exit={{ height: 0, opacity: 0, marginTop: 0 }}
 												className="overflow-hidden"
 											>
-												<div className="pt-3 border-t border-white/10 text-xs text-white/50 italic flex items-center gap-2">
-													<div className="w-1 h-1 rounded-full bg-green-400" />
+												<div className="pt-3 border-t border-pink-500/20 text-xs text-white/50 italic flex items-center gap-2">
+													<div className="w-1 h-1 rounded-full bg-pink-400" />
 													{pattern.details}
 												</div>
 											</motion.div>

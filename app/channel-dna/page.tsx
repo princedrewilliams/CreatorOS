@@ -153,7 +153,7 @@ function ChannelDNAContent() {
 
 	if (loading) {
 	return (
-			<div className="min-h-screen flex items-center justify-center bg-[#0a0a0f] text-white">
+			<div className="min-h-screen flex items-center justify-center bg-pink-950 text-white">
 				<div className="text-lg">Analyzing channel...</div>
 			</div>
 		);
@@ -161,14 +161,14 @@ function ChannelDNAContent() {
 
 	if (!baseStats || !score) {
 		return (
-			<div className="min-h-screen flex items-center justify-center bg-[#0a0a0f] text-white">
+			<div className="min-h-screen flex items-center justify-center bg-pink-950 text-white">
 				<div className="text-lg">No channel data available</div>
 			</div>
 		);
 	}
 
 	return (
-		<div className="min-h-screen w-full bg-[#0a0a0f] text-white font-sans selection:bg-pink-500/30 overflow-x-hidden">
+		<div className="min-h-screen w-full bg-pink-950 text-white font-sans selection:bg-pink-500/30 overflow-x-hidden">
 			{/* Ambient Background Effects */}
 			<div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
 					<motion.div
@@ -187,7 +187,7 @@ function ChannelDNAContent() {
 			{/* Sticky Header Background */}
 			<motion.div
 				style={{ opacity: headerOpacity, y: headerY }}
-				className="fixed top-0 left-0 right-0 h-20 bg-[#0a0a0f]/80 backdrop-blur-xl z-40 border-b border-white/5"
+				className="fixed top-0 left-0 right-0 h-20 bg-pink-950/60 backdrop-blur-xl z-40 border-b border-pink-800/20"
 			/>
 
 			<div className="relative z-10 mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
@@ -197,7 +197,7 @@ function ChannelDNAContent() {
 						whileHover={{ scale: 1.05, x: -5 }}
 						whileTap={{ scale: 0.95 }}
 						onClick={() => router.push("/")}
-						className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors backdrop-blur-md group"
+						className="flex items-center gap-2 px-4 py-2 rounded-full bg-pink-500/10 border border-pink-500/20 hover:bg-pink-500/20 transition-colors backdrop-blur-md group"
 					>
 						<ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
 						<span className="text-sm font-medium">Back</span>
@@ -216,10 +216,10 @@ function ChannelDNAContent() {
 								</div>
 
 					<motion.button
-						whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(255,255,255,0.1)" }}
+						whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(236,72,153,0.3)" }}
 						whileTap={{ scale: 0.95 }}
 						onClick={() => router.push("/")}
-						className="px-5 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors backdrop-blur-md text-sm font-medium flex items-center gap-2 group"
+						className="px-5 py-2 rounded-full bg-pink-500/10 border border-pink-500/20 hover:bg-pink-500/20 transition-colors backdrop-blur-md text-sm font-medium flex items-center gap-2 group"
 					>
 						<Sparkles className="w-4 h-4 text-pink-400 group-hover:rotate-12 transition-transform" />
 						Analyze Another Channel
@@ -253,7 +253,7 @@ function ChannelDNAContent() {
 										<Icon className={`w-4 h-4 ${isActive ? "animate-pulse" : ""}`} />
 										{tab.label}
 										{tab.badge && isActive && (
-											<span className="text-[10px] px-1.5 py-0.5 rounded border bg-white/20 border-white/20">
+											<span className="text-[10px] px-1.5 py-0.5 rounded border bg-pink-500/20 border-pink-500/30">
 												{tab.badge}
 											</span>
 										)}
@@ -278,7 +278,7 @@ function ChannelDNAContent() {
 						{activeTab === "thumb" && <ThumbComparisonChart />}
 						{activeTab === "topics" && <WinningTopicsBubbleChart />}
 						{activeTab === "identity" && <IdentityRadarChart />}
-					</div>
+									</div>
 								</div>
 
 			</div>
@@ -399,7 +399,7 @@ function getMockPayload(url: string) {
 
 function PageFallback() {
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-[#0a0a0f] text-white">
+		<div className="min-h-screen flex items-center justify-center bg-pink-950 text-white">
 			<div className="text-lg">Loading channel analysis…</div>
 		</div>
 	);

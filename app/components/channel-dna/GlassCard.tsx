@@ -49,7 +49,7 @@ export function GlassCard({
 	const glowBackground = useMotionTemplate`
     radial-gradient(
       600px circle at ${springX}px ${springY}px,
-      rgba(255, 255, 255, 0.1),
+      rgba(236, 72, 153, 0.15),
       transparent 40%
     )
   `;
@@ -72,12 +72,12 @@ export function GlassCard({
 				hoverEffect
 					? {
 							scale: 1.01,
-							boxShadow: "0 20px 40px -10px rgba(120, 50, 255, 0.2)",
+							boxShadow: "0 20px 40px -10px rgba(236, 72, 153, 0.3)",
 						}
 					: undefined
 			}
 			className={cn(
-				"relative overflow-hidden rounded-3xl border border-pink-500/10 bg-pink-500/3 p-6 backdrop-blur-xl shadow-xl group",
+				"relative overflow-hidden rounded-3xl border border-pink-500/20 bg-pink-950/20 backdrop-blur-xl shadow-xl group",
 				className
 			)}
 		>
@@ -85,11 +85,11 @@ export function GlassCard({
 				className="pointer-events-none absolute -inset-px opacity-0 transition-opacity duration-300 group-hover:opacity-100"
 				style={{ background: glowBackground }}
 			/>
-			<div className="absolute inset-0 rounded-3xl p-[1px] bg-gradient-to-br from-white/20 via-white/5 to-transparent opacity-50 pointer-events-none" />
+			<div className="absolute inset-0 rounded-3xl p-[1px] bg-gradient-to-br from-pink-500/20 via-pink-500/10 to-transparent opacity-50 pointer-events-none" />
 			{shimmer && (
-				<div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent z-0 pointer-events-none" />
+				<div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-pink-500/10 to-transparent z-0 pointer-events-none" />
 			)}
-			<div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-30 pointer-events-none z-0" />
+			<div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 to-transparent opacity-30 pointer-events-none z-0" />
 			<div className="relative z-10">{children}</div>
 		</motion.div>
 	);

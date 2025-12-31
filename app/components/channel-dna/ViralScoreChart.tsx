@@ -34,13 +34,13 @@ export function ViralScoreChart() {
 				<Info className="w-3 h-3" />
 			</p>
 
-			<div className="relative flex-1 rounded-2xl bg-pink-500/5 border border-pink-500/10 p-6 overflow-hidden group">
+			<div className="relative flex-1 rounded-2xl bg-pink-950/20 border border-pink-500/20 p-6 overflow-hidden group">
 				<div className="absolute inset-0 opacity-10">
 					<div className="absolute inset-0 bg-[linear-gradient(to_right,#ec489912_1px,transparent_1px),linear-gradient(to_bottom,#ec489912_1px,transparent_1px)] bg-[size:24px_24px]" />
 					<motion.div
 						animate={{ backgroundPosition: ["0% 0%", "100% 100%"] }}
 						transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-						className="absolute inset-0 bg-[radial-gradient(circle_800px_at_50%_50%,rgba(255,255,255,0.05),transparent)]"
+						className="absolute inset-0 bg-[radial-gradient(circle_800px_at_50%_50%,rgba(236,72,153,0.05),transparent)]"
 					/>
 				</div>
 
@@ -61,7 +61,7 @@ export function ViralScoreChart() {
 							}}
 							onMouseEnter={() => setHoveredPoint(i)}
 							onMouseLeave={() => setHoveredPoint(null)}
-							className={`absolute w-4 h-4 rounded-full ${point.color} shadow-[0_0_15px_rgba(236,72,153,0.5)] cursor-pointer border-2 border-white/20 z-20`}
+							className={`absolute w-4 h-4 rounded-full ${point.color} shadow-[0_0_15px_rgba(236,72,153,0.5)] cursor-pointer border-2 border-pink-200/30 z-20`}
 							style={{
 								left: `${point.x}%`,
 								bottom: `${point.y}%`,
@@ -75,14 +75,14 @@ export function ViralScoreChart() {
 										initial={{ opacity: 0, y: 10, scale: 0.8 }}
 										animate={{ opacity: 1, y: -10, scale: 1 }}
 										exit={{ opacity: 0, y: 10, scale: 0.8 }}
-										className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-[#1a1a24] border border-white/10 px-3 py-2 rounded-xl shadow-xl whitespace-nowrap min-w-[100px]"
+										className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-pink-950 border border-pink-500/30 px-3 py-2 rounded-xl shadow-xl whitespace-nowrap min-w-[100px]"
 									>
 										<div className="text-xs font-bold text-white mb-0.5">{point.label}</div>
 										<div className="text-[10px] text-white/60 flex justify-between">
 											<span>Score: {point.y}</span>
-											<span className="text-green-400">{point.views}</span>
+											<span className="text-pink-400">{point.views}</span>
 										</div>
-										<div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-[#1a1a24]" />
+										<div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-pink-950" />
 									</motion.div>
 								)}
 							</AnimatePresence>

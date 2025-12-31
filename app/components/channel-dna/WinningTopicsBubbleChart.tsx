@@ -31,7 +31,7 @@ export function WinningTopicsBubbleChart() {
 				A small number of topic clusters drive the majority of total views.
 			</p>
 
-			<div className="relative flex-1 rounded-2xl bg-pink-500/5 border border-pink-500/10 p-6 overflow-hidden group">
+			<div className="relative flex-1 rounded-2xl bg-pink-950/20 border border-pink-500/20 p-6 overflow-hidden group">
 				<div className="absolute inset-0 opacity-10">
 					<div className="absolute inset-0 bg-[linear-gradient(to_right,#ec489912_1px,transparent_1px),linear-gradient(to_bottom,#ec489912_1px,transparent_1px)] bg-[size:24px_24px]" />
 				</div>

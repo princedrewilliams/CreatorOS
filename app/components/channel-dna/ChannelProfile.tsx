@@ -146,10 +146,10 @@ export function ChannelProfile({ baseStats, score }: ChannelProfileProps) {
 									alt="Channel Avatar"
 									width={96}
 									height={96}
-									className="relative h-24 w-24 rounded-full border-2 border-white/20 object-cover shadow-2xl z-10"
+									className="relative h-24 w-24 rounded-full border-2 border-pink-500/30 object-cover shadow-2xl z-10"
 								/>
 							) : (
-								<div className="relative h-24 w-24 rounded-full border-2 border-white/20 bg-white/10 flex items-center justify-center text-white/50 text-xs">
+								<div className="relative h-24 w-24 rounded-full border-2 border-pink-500/30 bg-pink-500/10 flex items-center justify-center text-white/50 text-xs">
 									No avatar
 								</div>
 							)}
@@ -160,7 +160,7 @@ export function ChannelProfile({ baseStats, score }: ChannelProfileProps) {
 									delay: 1,
 									type: "spring",
 								}}
-								className="absolute bottom-0 right-0 z-20 bg-pink-500 rounded-full p-1 border-2 border-[#0a0a0f]"
+								className="absolute bottom-0 right-0 z-20 bg-pink-500 rounded-full p-1 border-2 border-pink-950"
 							>
 								<CheckCircle2 className="w-4 h-4 text-white" />
 							</motion.div>
@@ -211,14 +211,14 @@ export function ChannelProfile({ baseStats, score }: ChannelProfileProps) {
 				<div className="flex-shrink-0">
 					<motion.div
 						whileHover={{ scale: 1.05, rotate: 5 }}
-						className="relative flex h-36 w-36 items-center justify-center rounded-full bg-black/40 border border-white/10 shadow-[0_0_40px_-10px_rgba(236,72,153,0.3)] group cursor-pointer"
+						className="relative flex h-36 w-36 items-center justify-center rounded-full bg-pink-950/30 border border-pink-500/20 shadow-[0_0_40px_-10px_rgba(236,72,153,0.3)] group cursor-pointer"
 					>
 						<svg
 							className="absolute inset-0 h-full w-full -rotate-90 transform"
 							viewBox="0 0 100 100"
 						>
 							<circle
-								className="text-white/5"
+								className="text-pink-500/10"
 								strokeWidth="6"
 								stroke="currentColor"
 								fill="transparent"
@@ -293,7 +293,7 @@ export function ChannelProfile({ baseStats, score }: ChannelProfileProps) {
 				</div>
 			</div>
 
-			<div className="mt-8 pt-8 border-t border-pink-500/10">
+			<div className="mt-8 pt-8 border-t border-pink-500/20">
 				<div className="flex items-center gap-2 mb-6">
 					<h3 className="text-lg font-bold text-white">Performance Snapshot</h3>
 					<span className="text-sm text-white/40">

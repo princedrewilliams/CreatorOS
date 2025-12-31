@@ -26,7 +26,7 @@ export function ThumbComparisonChart() {
 				High-performing thumbnails correlate with significantly higher view velocity.
 			</p>
 
-			<div className="relative flex-1 rounded-2xl bg-pink-500/5 border border-pink-500/10 p-6 overflow-hidden group">
+			<div className="relative flex-1 rounded-2xl bg-pink-950/20 border border-pink-500/20 p-6 overflow-hidden group">
 				<div className="absolute inset-0 opacity-10">
 					<div className="absolute inset-0 bg-[linear-gradient(to_right,#ec489912_1px,transparent_1px),linear-gradient(to_bottom,#ec489912_1px,transparent_1px)] bg-[size:24px_24px]" />
 				</div>
@@ -47,7 +47,7 @@ export function ThumbComparisonChart() {
 							<motion.div
 								animate={{ y: ["0%", "100%"] }}
 								transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-								className="absolute inset-0 bg-gradient-to-t from-transparent via-white/20 to-transparent"
+								className="absolute inset-0 bg-gradient-to-t from-transparent via-pink-300/20 to-transparent"
 							/>
 						</motion.div>
 						<span className="text-xs text-white/60 font-medium">{bottomThumbs.label}</span>
@@ -71,7 +71,7 @@ export function ThumbComparisonChart() {
 							<motion.div
 								animate={{ y: ["0%", "100%"] }}
 								transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-								className="absolute inset-0 bg-gradient-to-t from-transparent via-white/20 to-transparent"
+								className="absolute inset-0 bg-gradient-to-t from-transparent via-pink-300/20 to-transparent"
 							/>
 						</motion.div>
 						<span className="text-xs text-white/60 font-medium">{topThumbs.label}</span>
