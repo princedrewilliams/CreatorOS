@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { analyticsMocks, type AnalyticsPlatform, type PlatformAnalyticsSnapshot } from "@/lib/mockAnalytics";
+import { analyticsMocks, type AnalyticsPlatform } from "@/lib/mockAnalytics";
 
 // Valid platform values
 const VALID_PLATFORMS: readonly AnalyticsPlatform[] = ["youtube"] as const;
