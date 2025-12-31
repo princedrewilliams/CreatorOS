@@ -24,6 +24,8 @@ const nextConfig: NextConfig = {
       dynamic: 30,
       static: 30,
     },
+    // Disable Lightning CSS optimization to avoid @property warnings from imported styles
+    optimizeCss: false,
   },
 };
 
