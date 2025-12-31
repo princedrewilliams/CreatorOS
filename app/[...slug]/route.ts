@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 // Handles any TikTok verification file name pattern
 // Accessible at: https://creatoros.online/[any-tiktok-verification-file]
 export async function GET(
-	request: NextRequest,
+	_request: NextRequest,
 	{ params }: { params: Promise<{ slug: string[] }> }
 ) {
 	const { slug } = await params;
