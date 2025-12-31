@@ -58,14 +58,9 @@ export default function HomePage() {
 			/>
 
 			<section className="relative z-10 max-w-6xl mx-auto px-5 md:px-10 py-16 md:py-24 lg:py-28 flex flex-col items-center gap-10">
-				{/* Badge */}
-				<div className="rounded-full px-4 py-2 border border-white/10 bg-white/5 backdrop-blur-md text-xs uppercase tracking-[0.2em] text-pink-100/85 shadow-[0_0_25px_rgba(236,72,153,0.25)]">
-					Introducing Channel DNA Analyzer
-				</div>
-
 				{/* Hero text */}
 				<div className="text-center space-y-4 md:space-y-6 max-w-4xl">
-					<h1 className="text-[72px] md:text-[112px] lg:text-[144px] font-bold leading-tight md:leading-[1.02] tracking-tight">
+					<h1 className="text-[96px] md:text-[144px] lg:text-[180px] font-bold leading-tight md:leading-[1.02] tracking-tight">
 						Reverse-Engineer What Makes
 						<br className="hidden md:block" />
 						<span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#ff5abf] via-[#ff3ea7] to-[#ff8bf5]">
