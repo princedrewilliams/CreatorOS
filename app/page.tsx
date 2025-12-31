@@ -43,10 +43,10 @@ export default function HomePage() {
 			{/* Radial glows */}
 			<div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_20%_25%,rgba(255,66,166,0.35),transparent_40%),radial-gradient(circle_at_80%_25%,rgba(255,130,230,0.32),transparent_45%),radial-gradient(circle_at_50%_78%,rgba(120,0,90,0.22),transparent_55%),radial-gradient(circle_at_70%_70%,rgba(255,30,140,0.2),transparent_55%)]" />
 			{/* Subtle curved strokes */}
-			<div className="absolute inset-0 pointer-events-none opacity-60 mix-blend-screen">
+			<div className="absolute inset-0 pointer-events-none opacity-80 mix-blend-screen">
 				<svg className="w-full h-full" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg">
-					<path d="M0 640 C 260 520, 480 760, 820 240 C 1160 -280, 1520 220, 1700 820" stroke="rgba(255,92,177,0.16)" strokeWidth="2" fill="none" strokeDasharray="6 10" />
-					<path d="M-40 820 C 320 660, 540 920, 960 320 C 1320 -180, 1640 320, 1840 860" stroke="rgba(255,92,177,0.12)" strokeWidth="2" fill="none" strokeDasharray="8 14" />
+					<path d="M0 640 C 260 520, 480 760, 820 240 C 1160 -280, 1520 220, 1700 820" stroke="rgba(255,92,177,0.38)" strokeWidth="2" fill="none" strokeDasharray="6 10" />
+					<path d="M-40 820 C 320 660, 540 920, 960 320 C 1320 -180, 1640 320, 1840 860" stroke="rgba(255,92,177,0.26)" strokeWidth="2" fill="none" strokeDasharray="8 14" />
 				</svg>
 			</div>
 			{/* Noise */}
@@ -65,7 +65,7 @@ export default function HomePage() {
 
 				{/* Hero text */}
 				<div className="text-center space-y-4 md:space-y-6 max-w-4xl">
-					<h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight md:leading-[1.05] tracking-tight">
+					<h1 className="text-5xl md:text-7xl lg:text-8xl font-bold leading-tight md:leading-[1.02] tracking-tight">
 						Reverse-Engineer What Makes
 						<br className="hidden md:block" />
 						<span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#ff5abf] via-[#ff3ea7] to-[#ff8bf5]">
@@ -89,7 +89,7 @@ export default function HomePage() {
 								className="flex flex-col md:flex-row items-stretch gap-3"
 							>
 								<div className="flex-1">
-									<div className="flex items-center gap-3 bg-white/5 rounded-xl px-4 h-14 border border-white/5">
+									<div className="flex items-center gap-3 bg-black/10 rounded-xl px-4 h-14 border border-pink-500/10 backdrop-blur-xl">
 										<svg className="w-5 h-5 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 											<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
 										</svg>
