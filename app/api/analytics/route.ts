@@ -82,7 +82,7 @@ interface InstagramInsightsResponse {
 	data?: InstagramInsightData[];
 }
 
-async function fetchTikTokAnalytics(secUid: string): Promise<PlatformAnalyticsSnapshot | null> {
+async function _fetchTikTokAnalytics(secUid: string): Promise<PlatformAnalyticsSnapshot | null> {
 	if (!RAPIDAPI_TIKTOK_ANALYTICS_KEY) {
 		console.warn("[analytics] TikTok RapidAPI key missing, using mock data");
 		return null;
@@ -204,7 +204,7 @@ async function fetchTikTokAnalytics(secUid: string): Promise<PlatformAnalyticsSn
 	}
 }
 
-async function fetchInstagramAnalytics(userId?: string): Promise<PlatformAnalyticsSnapshot | null> {
+async function _fetchInstagramAnalytics(userId?: string): Promise<PlatformAnalyticsSnapshot | null> {
 	if (!INSTAGRAM_ACCESS_TOKEN) {
 		console.warn("[analytics] Instagram access token missing, using mock data");
 		return null;
@@ -375,7 +375,7 @@ function isValidPlatform(platform: string): platform is AnalyticsPlatform {
 	return VALID_PLATFORMS.includes(platform as AnalyticsPlatform);
 }
 
-async function fetchTikTokAnalyticsWithAccessToken(accessToken: string): Promise<PlatformAnalyticsSnapshot | null> {
+async function _fetchTikTokAnalyticsWithAccessToken(accessToken: string): Promise<PlatformAnalyticsSnapshot | null> {
 	try {
 		// Fetch user profile (to get follower count, etc.)
 		const userResponse = await fetch("https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name,username,follower_count,following_count,likes_count,video_count", {
@@ -531,7 +531,7 @@ async function fetchTikTokAnalyticsWithAccessToken(accessToken: string): Promise
 	}
 }
 
-async function fetchYouTubeAnalytics(accessToken: string): Promise<PlatformAnalyticsSnapshot | null> {
+async function _fetchYouTubeAnalytics(accessToken: string): Promise<PlatformAnalyticsSnapshot | null> {
 	// This function is now integrated inline in the GET handler
 	// Keeping this as a placeholder for potential future refactoring
 	return null;
