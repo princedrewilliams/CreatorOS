@@ -1,0 +1,3 @@
+{
+  "/api/auth/instagram/callback/route": "app/api/auth/instagram/callback/route.js"
+}

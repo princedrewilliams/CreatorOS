@@ -1,0 +1,3 @@
+{
+  "/api/generate-thumbnail/route": "app/api/generate-thumbnail/route.js"
+}

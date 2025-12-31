@@ -7,6 +7,11 @@ import { ArrowLeft, Search, Sparkles, Zap, TrendingUp, Image as ImageIcon, Hash,
 import { ChannelProfile } from "../components/channel-dna/ChannelProfile";
 import { ObservedPatterns } from "../components/channel-dna/ObservedPatterns";
 import { ViralScoreChart } from "../components/channel-dna/ViralScoreChart";
+import { DiscoveryLineChart } from "../components/channel-dna/DiscoveryLineChart";
+import { ConsistencyBarChart } from "../components/channel-dna/ConsistencyBarChart";
+import { ThumbComparisonChart } from "../components/channel-dna/ThumbComparisonChart";
+import { WinningTopicsBubbleChart } from "../components/channel-dna/WinningTopicsBubbleChart";
+import { IdentityRadarChart } from "../components/channel-dna/IdentityRadarChart";
 
 const TABS = [
 	{ id: "viral", label: "Viral Score", badge: "FREE", icon: Zap },
@@ -147,7 +152,7 @@ function ChannelDNAContent() {
 	const headerY = useTransform(scrollY, [0, 100], [-20, 0]);
 
 	if (loading) {
-		return (
+	return (
 			<div className="min-h-screen flex items-center justify-center bg-[#0a0a0f] text-white">
 				<div className="text-lg">Analyzing channel...</div>
 			</div>
@@ -166,18 +171,18 @@ function ChannelDNAContent() {
 		<div className="min-h-screen w-full bg-[#0a0a0f] text-white font-sans selection:bg-pink-500/30 overflow-x-hidden">
 			{/* Ambient Background Effects */}
 			<div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-				<motion.div
-					animate={{ scale: [1, 1.1, 1], opacity: [0.2, 0.3, 0.2] }}
-					transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-					className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-purple-900/20 blur-[120px]"
-				/>
-				<motion.div
-					animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.3, 0.2] }}
-					transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-					className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-pink-900/20 blur-[120px]"
-				/>
-				<div className="absolute top-[40%] left-[30%] w-[30%] h-[30%] rounded-full bg-blue-900/10 blur-[100px]" />
-			</div>
+					<motion.div
+						animate={{ scale: [1, 1.1, 1], opacity: [0.2, 0.3, 0.2] }}
+						transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+						className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-pink-900/20 blur-[120px]"
+					/>
+					<motion.div
+						animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.3, 0.2] }}
+						transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+						className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-pink-800/20 blur-[120px]"
+					/>
+					<div className="absolute top-[40%] left-[30%] w-[30%] h-[30%] rounded-full bg-pink-900/10 blur-[100px]" />
+					</div>
 
 			{/* Sticky Header Background */}
 			<motion.div
@@ -199,16 +204,16 @@ function ChannelDNAContent() {
 					</motion.button>
 
 					<div className="relative">
-						<h1 className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-purple-200 to-white animate-gradient-x bg-[length:200%_auto]">
+						<h1 className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-200 to-white animate-gradient-x bg-[length:200%_auto]">
 							Channel Analyzer
 						</h1>
 						<motion.div
-							className="absolute -bottom-1 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-purple-500 to-transparent"
+							className="absolute -bottom-1 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-pink-500 to-transparent"
 							initial={{ scaleX: 0 }}
 							animate={{ scaleX: 1 }}
 							transition={{ delay: 0.5, duration: 1 }}
 						/>
-					</div>
+								</div>
 
 					<motion.button
 						whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(255,255,255,0.1)" }}
@@ -216,7 +221,7 @@ function ChannelDNAContent() {
 						onClick={() => router.push("/")}
 						className="px-5 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors backdrop-blur-md text-sm font-medium flex items-center gap-2 group"
 					>
-						<Sparkles className="w-4 h-4 text-purple-400 group-hover:rotate-12 transition-transform" />
+						<Sparkles className="w-4 h-4 text-pink-400 group-hover:rotate-12 transition-transform" />
 						Analyze Another Channel
 					</motion.button>
 				</header>
@@ -236,7 +241,7 @@ function ChannelDNAContent() {
 									{isActive && (
 										<motion.div
 											layoutId="activeTab"
-											className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-600/80 to-pink-600/80 shadow-[0_0_20px_rgba(236,72,153,0.4)]"
+											className="absolute inset-0 rounded-full bg-gradient-to-r from-pink-600/80 to-pink-500/80 shadow-[0_0_20px_rgba(236,72,153,0.4)]"
 											transition={{ type: "spring", stiffness: 300, damping: 30 }}
 										/>
 									)}
@@ -256,7 +261,7 @@ function ChannelDNAContent() {
 								</button>
 							);
 						})}
-					</div>
+									</div>
 				</nav>
 
 				{/* Main Content */}
@@ -267,9 +272,14 @@ function ChannelDNAContent() {
 					{/* Bottom Section: Split View */}
 					<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-auto lg:h-[450px]">
 						<ObservedPatterns recommendations={aiSummary?.recommendations || aiSummary?.improvements || []} />
-						<ViralScoreChart />
+						{activeTab === "viral" && <ViralScoreChart />}
+						{activeTab === "search" && <DiscoveryLineChart />}
+						{activeTab === "upload" && <ConsistencyBarChart />}
+						{activeTab === "thumb" && <ThumbComparisonChart />}
+						{activeTab === "topics" && <WinningTopicsBubbleChart />}
+						{activeTab === "identity" && <IdentityRadarChart />}
 					</div>
-				</div>
+								</div>
 
 			</div>
 		</div>

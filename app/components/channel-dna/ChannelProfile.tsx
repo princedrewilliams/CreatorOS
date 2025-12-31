@@ -60,7 +60,7 @@ function MetricBar({
 					</motion.div>
 				</span>
 			</div>
-			<div className="h-2 w-full bg-white/5 rounded-full overflow-hidden relative">
+			<div className="h-2 w-full bg-pink-500/5 rounded-full overflow-hidden relative">
 				<motion.div
 					className={`h-full ${color} rounded-full shadow-[0_0_10px_rgba(255,255,255,0.3)] relative overflow-hidden`}
 					initial={{ width: 0 }}
@@ -137,7 +137,7 @@ export function ChannelProfile({ baseStats, score }: ChannelProfileProps) {
 								repeat: Infinity,
 								ease: "linear",
 							}}
-							className="absolute -inset-1 rounded-full bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 opacity-75 blur-md group-hover:opacity-100 transition-opacity"
+							className="absolute -inset-1 rounded-full bg-gradient-to-r from-pink-600 via-pink-500 to-pink-400 opacity-75 blur-md group-hover:opacity-100 transition-opacity"
 						/>
 						<div className="relative">
 							{baseStats?.thumbnail ? (
@@ -160,7 +160,7 @@ export function ChannelProfile({ baseStats, score }: ChannelProfileProps) {
 									delay: 1,
 									type: "spring",
 								}}
-								className="absolute bottom-0 right-0 z-20 bg-blue-500 rounded-full p-1 border-2 border-[#0a0a0f]"
+								className="absolute bottom-0 right-0 z-20 bg-pink-500 rounded-full p-1 border-2 border-[#0a0a0f]"
 							>
 								<CheckCircle2 className="w-4 h-4 text-white" />
 							</motion.div>
@@ -175,22 +175,22 @@ export function ChannelProfile({ baseStats, score }: ChannelProfileProps) {
 							className="text-3xl font-bold text-white mb-2 tracking-tight flex items-center gap-2 justify-center md:justify-start"
 						>
 							{baseStats?.title || "Channel"}
-							<span className="px-2 py-0.5 rounded-full bg-white/10 text-xs font-normal text-white/60 border border-white/10">
+							<span className="px-2 py-0.5 rounded-full bg-pink-500/10 text-xs font-normal text-white/60 border border-pink-500/10">
 								Verified
 							</span>
 						</motion.h2>
 
 						<div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm text-white/60 mb-3">
-							<div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 transition-colors border border-white/5">
-								<Users className="w-3.5 h-3.5 text-purple-400" />
+							<div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/5 hover:bg-pink-500/10 transition-colors border border-pink-500/10">
+								<Users className="w-3.5 h-3.5 text-pink-400" />
 								<span className="font-medium text-white">{formatNumber(baseStats?.subscribers)}</span>{" "}
 								subscribers
 							</div>
-							<div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 transition-colors border border-white/5">
-								<Eye className="w-3.5 h-3.5 text-blue-400" />
+							<div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/5 hover:bg-pink-500/10 transition-colors border border-pink-500/10">
+								<Eye className="w-3.5 h-3.5 text-pink-400" />
 								<span className="font-medium text-white">{formatNumber(baseStats?.views)}</span> views
 							</div>
-							<div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 transition-colors border border-white/5">
+							<div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/5 hover:bg-pink-500/10 transition-colors border border-pink-500/10">
 								<Calendar className="w-3.5 h-3.5 text-pink-400" />
 								<span className="font-medium text-white">{baseStats?.postingFrequency || "Daily"}</span>{" "}
 								uploads
@@ -293,7 +293,7 @@ export function ChannelProfile({ baseStats, score }: ChannelProfileProps) {
 				</div>
 			</div>
 
-			<div className="mt-8 pt-8 border-t border-white/10">
+			<div className="mt-8 pt-8 border-t border-pink-500/10">
 				<div className="flex items-center gap-2 mb-6">
 					<h3 className="text-lg font-bold text-white">Performance Snapshot</h3>
 					<span className="text-sm text-white/40">
@@ -302,8 +302,8 @@ export function ChannelProfile({ baseStats, score }: ChannelProfileProps) {
 				</div>
 
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-					<MetricBar label="Discoverability" value={discoverability} color="bg-blue-500" delay={0.6} />
-					<MetricBar label="Consistency" value={consistency} color="bg-purple-500" delay={0.7} />
+					<MetricBar label="Discoverability" value={discoverability} color="bg-pink-500" delay={0.6} />
+					<MetricBar label="Consistency" value={consistency} color="bg-pink-500" delay={0.7} />
 					<MetricBar label="Engagement" value={engagement} color="bg-yellow-500" delay={0.8} />
 					<MetricBar label="Winning Topics" value={winningTopics} color="bg-green-500" delay={0.9} />
 				</div>

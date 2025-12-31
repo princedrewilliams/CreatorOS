@@ -1,0 +1,3 @@
+{
+  "/api/auth/stripe/route": "app/api/auth/stripe/route.js"
+}

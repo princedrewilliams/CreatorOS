@@ -77,7 +77,7 @@ export function GlassCard({
 					: undefined
 			}
 			className={cn(
-				"relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl shadow-xl group",
+				"relative overflow-hidden rounded-3xl border border-pink-500/10 bg-pink-500/3 p-6 backdrop-blur-xl shadow-xl group",
 				className
 			)}
 		>

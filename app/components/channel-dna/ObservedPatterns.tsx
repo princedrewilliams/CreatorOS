@@ -20,8 +20,8 @@ export function ObservedPatterns({ recommendations = [] }: ObservedPatternsProps
 				recommendations[0] ||
 				"Pick 2 topic clusters and publish 3-in-a-row; group them into playlists.",
 			icon: Layers,
-			color: "text-blue-400",
-			bg: "bg-blue-500/10",
+			color: "text-pink-400",
+			bg: "bg-pink-500/10",
 			details: "This strategy increases session time by 45% on average.",
 		},
 		{
@@ -31,8 +31,8 @@ export function ObservedPatterns({ recommendations = [] }: ObservedPatternsProps
 				recommendations[1] ||
 				"Test 3 new hooks and measure 48h views/sub ratio; double down on winners.",
 			icon: Zap,
-			color: "text-yellow-400",
-			bg: "bg-yellow-500/10",
+			color: "text-pink-400",
+			bg: "bg-pink-500/10",
 			details: "Channels using this A/B testing see 2x growth in 3 months.",
 		},
 		{
@@ -51,11 +51,11 @@ export function ObservedPatterns({ recommendations = [] }: ObservedPatternsProps
 	return (
 		<GlassCard className="h-full flex flex-col" delay={0.2} hoverEffect={true}>
 			<div className="flex items-center gap-2 mb-6">
-				<div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
-					<Sparkles className="w-5 h-5 text-purple-400" />
+				<div className="p-2 rounded-lg bg-pink-500/10 border border-pink-500/20">
+					<Sparkles className="w-5 h-5 text-pink-400" />
 				</div>
 				<h3 className="text-xl font-bold text-white">Observed Patterns</h3>
-				<span className="ml-auto text-xs font-medium px-2 py-1 rounded-full bg-white/5 text-white/40 border border-white/5">
+				<span className="ml-auto text-xs font-medium px-2 py-1 rounded-full bg-pink-500/5 text-white/40 border border-pink-500/10">
 					{patterns.length} New
 				</span>
 			</div>
@@ -78,8 +78,8 @@ export function ObservedPatterns({ recommendations = [] }: ObservedPatternsProps
 							onClick={() => setExpandedId(isExpanded ? null : pattern.id)}
 							className={`group relative p-4 rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden ${
 								isExpanded
-									? "bg-white/10 border-white/20 shadow-lg"
-									: "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
+									? "bg-pink-500/10 border-pink-500/20 shadow-lg"
+									: "bg-pink-500/5 border-pink-500/10 hover:bg-pink-500/10 hover:border-pink-500/20"
 							}`}
 						>
 							<div className="flex gap-4">
