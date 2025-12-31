@@ -65,7 +65,7 @@ export default function HomePage() {
 
 				{/* Hero text */}
 				<div className="text-center space-y-4 md:space-y-6 max-w-4xl">
-					<h1 className="text-5xl md:text-7xl lg:text-8xl font-bold leading-tight md:leading-[1.02] tracking-tight">
+					<h1 className="text-[52px] md:text-[76px] lg:text-[100px] font-bold leading-tight md:leading-[1.02] tracking-tight">
 						Reverse-Engineer What Makes
 						<br className="hidden md:block" />
 						<span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#ff5abf] via-[#ff3ea7] to-[#ff8bf5]">
@@ -89,7 +89,7 @@ export default function HomePage() {
 								className="flex flex-col md:flex-row items-stretch gap-3"
 							>
 								<div className="flex-1">
-									<div className="flex items-center gap-3 rounded-xl px-4 h-14 bg-black/30 border border-pink-500/20 backdrop-blur-xl shadow-[0_10px_40px_rgba(255,90,191,0.15)]">
+									<div className="flex items-center gap-3 rounded-xl px-4 h-14 bg-transparent border border-pink-500/20 backdrop-blur-xl">
 										<svg className="w-5 h-5 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 											<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
 										</svg>
@@ -100,10 +100,12 @@ export default function HomePage() {
 											placeholder="Paste your YouTube URL here... (e.g., youtube.com/@channelname)"
 											className="w-full bg-transparent text-white placeholder:text-white/65 text-base md:text-lg border-0 outline-none ring-0 focus:outline-none focus:ring-0"
 											style={{
-												backgroundColor: "transparent",
+												backgroundColor: "transparent !important",
+												background: "transparent !important",
 												WebkitAppearance: "none",
 												WebkitTextFillColor: "#ffffff",
-												WebkitBoxShadow: "0 0 0px 1000px transparent inset",
+												WebkitBoxShadow: "0 0 0px 1000px transparent inset !important",
+												boxShadow: "none !important",
 											}}
 											autoComplete="off"
 										/>
