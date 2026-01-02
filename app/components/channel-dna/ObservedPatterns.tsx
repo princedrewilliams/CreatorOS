@@ -83,10 +83,6 @@ export function ObservedPatterns({ activeTab, score, recommendations = [] }: Obs
 				<div className="flex flex-col gap-3 flex-1 mb-4">
 					{viralSignals.map((signal, index) => {
 						const isExpanded = expandedId === signal.id;
-						const strengthColor = 
-							signal.strength === "Strong" ? "text-green-400" :
-							signal.strength === "Moderate" ? "text-yellow-400" :
-							"text-blue-400";
 						
 						return (
 							<motion.div
