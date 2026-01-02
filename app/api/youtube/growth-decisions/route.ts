@@ -146,7 +146,6 @@ export async function GET(request: NextRequest) {
 
 		// Get analytics data if available - comprehensive metrics
 		let analyticsData: any = null;
-		let retentionData: any = null;
 		try {
 			// Get comprehensive video analytics
 			const analyticsResponse = await fetch(
@@ -161,35 +160,15 @@ export async function GET(request: NextRequest) {
 			if (analyticsResponse.ok) {
 				analyticsData = await analyticsResponse.json();
 			}
-
-			// Get audience retention data (if available)
-			try {
-				const retentionResponse = await fetch(
-					`https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==${channelId}&startDate=${new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]}&endDate=${new Date().toISOString().split("T")[0]}&metrics=audienceWatchRatio&dimensions=video`,
-					{
-						headers: {
-							Authorization: `Bearer ${youtubeAccessToken}`,
-						},
-					}
-				);
-
-				if (retentionResponse.ok) {
-					retentionData = await retentionResponse.json();
-				}
-			} catch (error) {
-				console.warn("[Growth Decisions] Retention API not available:", error);
-			}
 		} catch (error) {
 			console.warn("[Growth Decisions] Analytics API not available:", error);
 		}
 
 		// Process analytics to calculate channel averages
 		let channelAvgCTR = 0;
-		let channelAvgRetention = 0;
 		let channelAvgWatchTimePerImpression = 0;
 		let channelMedianImpressions = 0;
 		let channelAvgSubscriberConversion = 0;
-		let channelAvgRevenuePerView = 0;
 		const videoAnalyticsMap: Record<string, any> = {};
 
 		if (analyticsData?.rows) {

@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { getUserSocialConnections } from "@/lib/user-data";
 
 // In-memory store for user profiles (replace with database in production)
 export const userProfiles = new Map<string, any>();
 export const userProfilePictures = new Map<string, string>();
 
-export async function GET(request: NextRequest) {
+export async function GET() {
 	try {
 		const user = await getCurrentUser();
 		

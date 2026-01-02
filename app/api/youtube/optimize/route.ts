@@ -11,7 +11,7 @@ interface OptimizationSuggestion {
 export async function POST(request: NextRequest) {
 	try {
 		const body = await request.json();
-		const { videoId, title, description, publishedAt } = body;
+		const { videoId, title, description } = body;
 
 		if (!videoId) {
 			return NextResponse.json(

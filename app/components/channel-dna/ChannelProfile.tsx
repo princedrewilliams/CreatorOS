@@ -8,11 +8,9 @@ import { CheckCircle2, TrendingUp, Users, Eye, Calendar } from "lucide-react";
 
 function Counter({
 	value,
-	suffix = "",
 	duration = 2,
 }: {
 	value: number;
-	suffix?: string;
 	duration?: number;
 }) {
 	const count = useSpring(0, {

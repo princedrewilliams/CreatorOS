@@ -25,7 +25,7 @@ export function GlassCard({
 	shimmer = true,
 }: GlassCardProps) {
 	const ref = useRef<HTMLDivElement>(null);
-	const [isHovered, setIsHovered] = useState(false);
+	const [_isHovered, setIsHovered] = useState(false);
 	const mouseX = useMotionValue(0);
 	const mouseY = useMotionValue(0);
 	const springConfig = {

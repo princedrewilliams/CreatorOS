@@ -85,7 +85,6 @@ export async function GET(request: NextRequest) {
 		}
 
 		const channelId = channelData.items[0].id;
-		const channelStats = channelData.items[0].statistics;
 
 		// Get videos with analytics data
 		// First, get video list

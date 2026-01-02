@@ -22,15 +22,6 @@ const TABS = [
 	{ id: "identity", label: "Channel Identity", icon: Fingerprint },
 ];
 
-const TAB_TO_ANALYSIS: Record<string, string> = {
-	"Viral Score": "Viral Potential",
-	"Search & Discovery": "SEO Strategy",
-	"Upload Consistency": "Posting Consistency",
-	"Thumbnail Performance": "Thumbnail Strategy",
-	"Winning Topics": "Content Clusters",
-	"Channel Identity": "Channel Positioning",
-};
-
 export default function ChannelDNAPage() {
 	return (
 		<Suspense fallback={<PageFallback />}>
@@ -45,8 +36,8 @@ function ChannelDNAContent() {
 	const [channelUrl, setChannelUrl] = useState("");
 	const [activeTab, setActiveTab] = useState<string>(TABS[0].id);
 	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
-	const [info, setInfo] = useState<string | null>(null);
+	const [_error, setError] = useState<string | null>(null);
+	const [_info, setInfo] = useState<string | null>(null);
 	const [analysis, setAnalysis] = useState<any>(null);
 	const [channelData, setChannelData] = useState<any>(null);
 	const [score, setScore] = useState<any>(null);

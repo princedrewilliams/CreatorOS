@@ -62,7 +62,7 @@ export function IdentityRadarChart() {
 							/>
 						))}
 						{/* Axes lines */}
-						{axes.map((axis, i) => {
+						{axes.map((_, i) => {
 							const angle = i * angleStep - Math.PI / 2;
 							const x = centerX + radius * Math.cos(angle);
 							const y = centerY + radius * Math.sin(angle);

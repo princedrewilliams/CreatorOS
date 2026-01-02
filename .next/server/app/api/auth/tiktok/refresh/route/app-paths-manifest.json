@@ -1,0 +1,3 @@
+{
+  "/api/auth/tiktok/refresh/route": "app/api/auth/tiktok/refresh/route.js"
+}

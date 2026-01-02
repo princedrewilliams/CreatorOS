@@ -1,14 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { useAppStore } from "@/lib/store";
+import { useRouter } from "next/navigation";
 
 // Redirect to main dashboard - Whop may pass companyId but we use a single dashboard
 export default function DashboardCompanyPage() {
-	const params = useParams();
 	const router = useRouter();
-	const companyId = params?.companyId as string;
 
 	useEffect(() => {
 		// Redirect to main dashboard page

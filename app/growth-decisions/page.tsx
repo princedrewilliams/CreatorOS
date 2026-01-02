@@ -6,7 +6,6 @@ import {
 	LightningBoltIcon,
 	ExclamationTriangleIcon,
 	CheckIcon,
-	TargetIcon,
 	ArrowRightIcon,
 	ChevronDownIcon,
 	ChevronUpIcon,

@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { Heading, Text, Card, Button, Badge, Dialog, Separator } from "@whop/react/components";
-import { PlusIcon, FileTextIcon, ExternalLinkIcon, ArrowRightIcon, DownloadIcon, FileIcon, TrashIcon, Cross2Icon } from "@radix-ui/react-icons";
+import { PlusIcon, FileTextIcon, ArrowRightIcon, DownloadIcon, FileIcon, TrashIcon, Cross2Icon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { BackButton } from "@/components/BackButton";

@@ -2,7 +2,7 @@
 
 import { Heading, Text, Card, Button } from "@whop/react/components";
 import Link from "next/link";
-import { TrashIcon, ExternalLinkIcon } from "@radix-ui/react-icons";
+import { TrashIcon } from "@radix-ui/react-icons";
 import { BackButton } from "@/components/BackButton";
 
 export default function DataDeletionPage() {

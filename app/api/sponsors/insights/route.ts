@@ -102,7 +102,7 @@ Keep it concise, professional, and data-driven. Do NOT make up metrics or predic
 	} catch (error) {
 		console.error("[Sponsor Insights] Error:", error);
 		// Return a fallback summary if AI fails
-		const { performance, dealValue } = await request.json().catch(() => ({ performance: null, dealValue: 0 }));
+		const { performance } = await request.json().catch(() => ({ performance: null }));
 		if (performance) {
 			return NextResponse.json({
 				success: false,

@@ -203,8 +203,7 @@ export async function POST(request: NextRequest) {
 				try {
 					// Instagram Graph API video upload
 					// Note: This is a simplified version - real implementation would need to handle upload sessions
-					const videoBuffer = await video.arrayBuffer();
-					const videoBlob = new Blob([videoBuffer], { type: video.type });
+					await video.arrayBuffer(); // Process video buffer (placeholder)
 
 					// TODO: Implement actual Instagram Content Publishing API
 					// For now, return success (actual posting would require Instagram Content Publishing API setup)

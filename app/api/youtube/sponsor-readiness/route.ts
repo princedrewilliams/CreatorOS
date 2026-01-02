@@ -56,7 +56,6 @@ export async function GET(request: NextRequest) {
 		const channelStats = channel.statistics;
 		const channelSnippet = channel.snippet;
 		const subscribers = Number(channelStats.subscriberCount || 0);
-		const videoCount = Number(channelStats.videoCount || 0);
 
 		// Get recent videos for engagement calculation
 		const videosResponse = await fetch(

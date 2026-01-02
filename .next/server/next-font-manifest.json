@@ -6,10 +6,13 @@
     "[project]/app/about/page": [
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2"
     ],
-    "[project]/app/analytics/page": [
+    "[project]/app/analytics/posts/page": [
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2"
     ],
-    "[project]/app/analytics/posts/page": [
+    "[project]/app/channel-dna/page": [
+      "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2"
+    ],
+    "[project]/app/dashboard/[companyId]/page": [
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2"
     ],
     "[project]/app/dashboard/page": [
@@ -19,6 +22,9 @@
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2"
     ],
     "[project]/app/discover/page": [
+      "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2"
+    ],
+    "[project]/app/growth-decisions/page": [
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2"
     ],
     "[project]/app/library/page": [
@@ -37,6 +43,9 @@
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2"
     ],
     "[project]/app/profile/page": [
+      "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2"
+    ],
+    "[project]/app/sponsors/[id]/page": [
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2"
     ],
     "[project]/app/sponsors/page": [

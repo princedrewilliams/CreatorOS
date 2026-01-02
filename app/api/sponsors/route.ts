@@ -5,7 +5,6 @@ import {
 	createSponsor,
 	type Sponsor,
 	type DealStatus,
-	type PaymentStatus,
 } from "@/lib/sponsor-data";
 import { validateSponsor, calculateSponsorSummary, groupSponsorsByStatus } from "@/lib/sponsor-business-logic";
 

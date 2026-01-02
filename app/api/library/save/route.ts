@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
 }
 
 // GET endpoint to retrieve library items
-export async function GET(request: NextRequest) {
+export async function GET() {
 	try {
 		const user = await getCurrentUser();
 		

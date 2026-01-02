@@ -1,7 +1,7 @@
 "use client";
 
-import { Heading, Text, Card, Button } from "@whop/react/components";
-import { CalendarIcon, ArrowRightIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
+import { Heading, Text, Button } from "@whop/react/components";
+import { CalendarIcon, ArrowRightIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { motion } from "framer-motion";
 

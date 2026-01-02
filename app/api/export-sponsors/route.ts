@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 // Note: This route is a placeholder. The actual CSV export is handled client-side
 // in the sponsors page component using data from the Zustand store.
 // In a production app with a database, you could fetch sponsor data here and return CSV.
 
-export async function GET(request: NextRequest) {
+export async function GET() {
 	try {
 		// Return a CSV template with headers
 		// In production, fetch sponsor data from your database/API here

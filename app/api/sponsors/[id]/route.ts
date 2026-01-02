@@ -5,8 +5,6 @@ import {
 	updateSponsor,
 	deleteSponsor,
 	type Sponsor,
-	type DealStatus,
-	type PaymentStatus,
 } from "@/lib/sponsor-data";
 import { validateSponsor, checkOverdueWarnings } from "@/lib/sponsor-business-logic";
 
@@ -15,7 +13,7 @@ import { validateSponsor, checkOverdueWarnings } from "@/lib/sponsor-business-lo
  * Get a single sponsor by ID
  */
 export async function GET(
-	request: NextRequest,
+	_request: NextRequest,
 	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
@@ -137,7 +135,7 @@ export async function PUT(
  * Soft delete a sponsor
  */
 export async function DELETE(
-	request: NextRequest,
+	_request: NextRequest,
 	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
