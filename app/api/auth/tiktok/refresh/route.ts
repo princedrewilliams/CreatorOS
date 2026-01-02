@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { getUserSocialConnections, setUserSocialConnection } from "@/lib/user-data";
 
-export async function POST(request: NextRequest) {
+export async function POST() {
 	try {
 		const user = await getCurrentUser();
 		if (!user) {
