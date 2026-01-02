@@ -18,7 +18,7 @@ export default function DashboardPage() {
 			<div className="relative space-y-6 sm:space-y-8 max-w-7xl mx-auto px-3 py-4 sm:px-4 sm:py-6 lg:px-8 lg:py-8">
 				{/* Header */}
 				<div className="text-center pt-8 pb-12">
-					<Heading size="7" as="h1" className="mb-4 text-white sm:text-8">
+					<Heading size="9" as="h1" className="mb-4 text-white sm:text-9">
 						Reverse-Engineer What Makes YouTube Channels Win
 					</Heading>
 					<Text size="4" className="text-gray-300 sm:text-5 max-w-2xl mx-auto">
