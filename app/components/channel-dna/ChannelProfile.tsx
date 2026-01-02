@@ -202,28 +202,6 @@ export function ChannelProfile({ baseStats, score }: ChannelProfileProps) {
 								</span>
 							</div>
 						</div>
-						{/* Score Composition Micro-Section */}
-						<div className="absolute -bottom-20 left-0 right-0 mt-6 space-y-2 text-xs z-20">
-							<div className="text-white/40 text-center mb-2">How this score is formed</div>
-							<div className="grid grid-cols-2 gap-2">
-								<div className="text-center">
-									<div className="text-white/60">Views vs subscriber</div>
-									<div className="text-white font-medium">{(totalScore * 0.3).toFixed(0)}</div>
-								</div>
-								<div className="text-center">
-									<div className="text-white/60">Upload consistency</div>
-									<div className="text-white font-medium">{(totalScore * 0.25).toFixed(0)}</div>
-								</div>
-								<div className="text-center">
-									<div className="text-white/60">Engagement velocity</div>
-									<div className="text-white font-medium">{(totalScore * 0.25).toFixed(0)}</div>
-								</div>
-								<div className="text-center">
-									<div className="text-white/60">Topic repeatability</div>
-									<div className="text-white font-medium">{(totalScore * 0.2).toFixed(0)}</div>
-								</div>
-							</div>
-						</div>
 
 						<motion.div
 							animate={{
@@ -253,7 +231,30 @@ export function ChannelProfile({ baseStats, score }: ChannelProfileProps) {
 				</div>
 			</div>
 
-			<div className="mt-24 pt-8">
+			{/* Score Composition Micro-Section */}
+			<div className="mt-6 pt-6 space-y-3">
+				<div className="text-white/40 text-center text-xs mb-3">How this score is formed</div>
+				<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+					<div className="text-center">
+						<div className="text-white/60 text-xs mb-1">Views vs subscriber</div>
+						<div className="text-white font-medium text-lg">{(totalScore * 0.3).toFixed(0)}</div>
+					</div>
+					<div className="text-center">
+						<div className="text-white/60 text-xs mb-1">Upload consistency</div>
+						<div className="text-white font-medium text-lg">{(totalScore * 0.25).toFixed(0)}</div>
+					</div>
+					<div className="text-center">
+						<div className="text-white/60 text-xs mb-1">Engagement velocity</div>
+						<div className="text-white font-medium text-lg">{(totalScore * 0.25).toFixed(0)}</div>
+					</div>
+					<div className="text-center">
+						<div className="text-white/60 text-xs mb-1">Topic repeatability</div>
+						<div className="text-white font-medium text-lg">{(totalScore * 0.2).toFixed(0)}</div>
+					</div>
+				</div>
+			</div>
+
+			<div className="mt-8 pt-8">
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 					<div className="space-y-1">
 						<div className="text-sm text-white/60">Discoverability</div>
