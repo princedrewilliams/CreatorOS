@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { Heading, Text, Card, Button, Badge, Separator } from "@whop/react/components";
 import {
-	LightningBoltIcon,
 	ExclamationTriangleIcon,
 	CheckIcon,
 	ArrowRightIcon,
