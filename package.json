@@ -17,6 +17,7 @@
 		"@whop/react": "0.3.0",
 		"@whop/sdk": "0.0.3",
 		"bcryptjs": "^3.0.3",
+		"charts.css": "^1.2.0",
 		"clsx": "^2.1.1",
 		"date-fns": "^4.1.0",
 		"framer-motion": "^12.23.24",

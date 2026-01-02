@@ -36,6 +36,9 @@ importers:
       bcryptjs:
         specifier: ^3.0.3
         version: 3.0.3
+      charts.css:
+        specifier: ^1.2.0
+        version: 1.2.0
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -1955,6 +1958,9 @@ packages:
   canvg@3.0.11:
     resolution: {integrity: sha512-5ON+q7jCTgMp9cjpu4Jo6XbvfYwSB2Ow3kzHKfIyJfaCAOHLbdKPQqGKgfED/R5B+3TFFfe8pegYA+b423SRyA==}
     engines: {node: '>=10.0.0'}
+
+  charts.css@1.2.0:
+    resolution: {integrity: sha512-/NCeCMOYZHHeS5vR/32Ubl84Ob500SGriFUxUReMYFPnBIsaBcfO91EQsRHp6/1LwraXTqizCx+iSQ7XSsy4WA==}
 
   chownr@3.0.0:
     resolution: {integrity: sha512-+IxzY9BZOQd/XuYPRmrvEVjF/nqj5kgT4kEq7VofrDoM1MxoRjEWkrCC3EtLi59TVawxTAn+orJwFQcrqEN1+g==}
@@ -5008,6 +5014,8 @@ snapshots:
       stackblur-canvas: 2.7.0
       svg-pathdata: 6.0.3
     optional: true
+
+  charts.css@1.2.0: {}
 
   chownr@3.0.0: {}
 

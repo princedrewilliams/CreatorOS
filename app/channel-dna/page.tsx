@@ -7,6 +7,8 @@ import { ArrowLeft, Search, Sparkles, Zap, TrendingUp, Image as ImageIcon, Hash,
 import { ChannelProfile } from "../components/channel-dna/ChannelProfile";
 import { ObservedPatterns } from "../components/channel-dna/ObservedPatterns";
 import { ViralScoreChart } from "../components/channel-dna/ViralScoreChart";
+import { ViralScoreSummary } from "../components/channel-dna/ViralScoreSummary";
+import { ScoreBreakdownBar } from "../components/channel-dna/ScoreBreakdownBar";
 import { DiscoveryLineChart } from "../components/channel-dna/DiscoveryLineChart";
 import { ConsistencyBarChart } from "../components/channel-dna/ConsistencyBarChart";
 import { ThumbComparisonChart } from "../components/channel-dna/ThumbComparisonChart";
@@ -263,20 +265,38 @@ function ChannelDNAContent() {
 					{/* Top Section: Channel Profile & Metrics */}
 					<ChannelProfile baseStats={baseStats} score={score} />
 
-					{/* Bottom Section: Split View */}
-					<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-auto lg:h-[450px]">
-						<ObservedPatterns 
-							activeTab={activeTab}
-							score={score}
-							recommendations={aiSummary?.recommendations || aiSummary?.improvements || []} 
-						/>
-						{activeTab === "viral" && <ViralScoreChart score={score} />}
-						{activeTab === "search" && <DiscoveryLineChart />}
-						{activeTab === "upload" && <ConsistencyBarChart />}
-						{activeTab === "thumb" && <ThumbComparisonChart />}
-						{activeTab === "topics" && <WinningTopicsBubbleChart />}
-						{activeTab === "identity" && <IdentityRadarChart />}
-									</div>
+					{/* Bottom Section: Dynamic Layout Based on Tab */}
+					{activeTab === "viral" ? (
+						<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+							<ViralScoreSummary score={score?.total ?? 58} />
+							<ScoreBreakdownBar totalScore={score?.total ?? 58} />
+							<ViralScoreChart score={score} />
+						</div>
+					) : (
+						<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-auto lg:h-[450px]">
+							<ObservedPatterns 
+								activeTab={activeTab}
+								score={score}
+								recommendations={aiSummary?.recommendations || aiSummary?.improvements || []} 
+							/>
+							{activeTab === "search" && <DiscoveryLineChart />}
+							{activeTab === "upload" && <ConsistencyBarChart />}
+							{activeTab === "thumb" && <ThumbComparisonChart />}
+							{activeTab === "topics" && <WinningTopicsBubbleChart />}
+							{activeTab === "identity" && <IdentityRadarChart />}
+						</div>
+					)}
+					
+					{/* Observed Patterns for Viral Tab - Below Charts */}
+					{activeTab === "viral" && (
+						<div className="mt-6">
+							<ObservedPatterns 
+								activeTab={activeTab}
+								score={score}
+								recommendations={aiSummary?.recommendations || aiSummary?.improvements || []} 
+							/>
+						</div>
+					)}
 								</div>
 
 			</div>

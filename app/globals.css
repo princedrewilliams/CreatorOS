@@ -4,6 +4,7 @@
 @import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css" layer(utilities);
 @import "@whop/react/styles.css" layer(frosted_ui);
+@import "charts.css/dist/charts.min.css";
 
 /* biome-ignore lint/suspicious/noUnknownAtRules: this rule is imported from whop */
 @config '../tailwind.config.ts';

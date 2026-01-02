@@ -27,16 +27,29 @@ export function ViralScoreChart({ score: _score }: ViralScoreChartProps) {
 					<div className="p-2 rounded-lg bg-pink-500/10">
 						<TrendingUp className="w-5 h-5 text-pink-400" />
 					</div>
-					<h3 className="text-xl font-bold text-white">This Channel vs Similar Channels</h3>
+					<h3 className="text-xl font-bold text-white">Audience Reach Efficiency</h3>
 				</div>
 				<button className="p-2 rounded-full hover:bg-white/10 transition-colors text-white/40 hover:text-white">
 					<Maximize2 className="w-4 h-4" />
 				</button>
 			</div>
-			<p className="text-sm text-white/40 mb-6 flex items-center gap-2">
-				Visualization for this tab
-				<Info className="w-3 h-3" />
+			<p className="text-sm text-white/40 mb-4">
+				This channel averages 3.1× views per subscriber
 			</p>
+			<div className="flex items-center gap-2 mb-6">
+				<div className="flex items-center gap-2 text-xs">
+					<div className="w-2 h-2 rounded-full bg-pink-400"></div>
+					<span className="text-white/60">Above Average</span>
+				</div>
+				<div className="flex items-center gap-2 text-xs">
+					<div className="w-2 h-2 rounded-full bg-white/30"></div>
+					<span className="text-white/60">Average</span>
+				</div>
+				<div className="flex items-center gap-2 text-xs">
+					<div className="w-2 h-2 rounded-full bg-white/10"></div>
+					<span className="text-white/60">Below Average</span>
+				</div>
+			</div>
 
 			<div className="relative flex-1 rounded-2xl bg-pink-950/20 p-6 overflow-hidden group">
 				<div className="absolute inset-0 opacity-10">
@@ -48,9 +61,12 @@ export function ViralScoreChart({ score: _score }: ViralScoreChartProps) {
 					/>
 				</div>
 
-				<h4 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-4 relative z-10">
-					Views per video vs Subscriber size
-				</h4>
+				<div className="relative z-10 mb-4">
+					<h4 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">
+						Subscriber count
+					</h4>
+					<p className="text-[10px] text-white/30">Average views per video (30-day)</p>
+				</div>
 
 				<div className="relative h-48 w-full z-10">
 					{/* Peer average cluster cloud */}
@@ -146,7 +162,7 @@ export function ViralScoreChart({ score: _score }: ViralScoreChartProps) {
 
 				<div className="mt-4 text-center relative z-10">
 					<p className="text-xs text-white/40 bg-pink-500/5 inline-block px-3 py-1 rounded-full">
-						This channel (highlighted) vs peer average (faint cluster)
+						For a channel with 7.2M subscribers, peer average is ~420K views/video
 					</p>
 				</div>
 			</div>

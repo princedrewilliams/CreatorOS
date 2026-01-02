@@ -14,73 +14,61 @@ interface ObservedPatternsProps {
 export function ObservedPatterns({ activeTab, score, recommendations = [] }: ObservedPatternsProps) {
 	const [expandedId, setExpandedId] = useState<number | null>(null);
 
-	// Viral Score Tab - Redesigned
+	// Viral Score Tab - Redesigned with Evidence-Based Patterns
 	if (activeTab === "viral") {
-		const viralScore = score?.total ?? 58;
-		const percentile = Math.round(viralScore * 0.95);
-		
 		const viralSignals = [
 			{
 				id: 1,
-				strength: "Strong" as const,
-				strengthValue: 85,
-				pattern: "Observed across top 20% of videos: Title hooks appear in first 40 characters with clear outcome promise.",
-				evidence: "Correlates with 2.3x higher views in first 48h compared to videos without this pattern.",
+				confidence: "High" as const,
+				pattern: "This channel frequently front-loads keywords in titles.",
+				evidence: "Observed across 80% of top-performing videos.",
+				videoCount: 8,
 			},
 			{
 				id: 2,
-				strength: "Moderate" as const,
-				strengthValue: 72,
-				pattern: "Appears consistently in viral content: Thumbnail features single high-contrast subject with minimal text overlay.",
+				confidence: "High" as const,
+				pattern: "Thumbnail features single high-contrast subject with minimal text overlay.",
 				evidence: "Found in 78% of videos exceeding channel average by 3x or more.",
+				videoCount: 12,
 			},
 			{
 				id: 3,
-				strength: "Supporting" as const,
-				strengthValue: 58,
-				pattern: "Observed pattern: Videos released in 2-3 upload clusters show sustained view velocity.",
+				confidence: "Medium" as const,
+				pattern: "Videos released in 2-3 upload clusters show sustained view velocity.",
 				evidence: "Session time increases by 45% when this pattern is present.",
+				videoCount: 5,
 			},
 			{
 				id: 4,
-				strength: "Supporting" as const,
-				strengthValue: 45,
-				pattern: "Consistent signal: Engagement rate spikes when CTA appears within first 30 seconds.",
+				confidence: "Medium" as const,
+				pattern: "Engagement rate spikes when CTA appears within first 30 seconds.",
 				evidence: "Appears in 65% of top-performing videos.",
+				videoCount: 6,
+			},
+			{
+				id: 5,
+				confidence: "Low" as const,
+				pattern: "Title hooks appear in first 40 characters with clear outcome promise.",
+				evidence: "Correlates with 2.3x higher views in first 48h.",
+				videoCount: 3,
 			},
 		];
 
-		const maxStrength = Math.max(...viralSignals.map(s => s.strengthValue));
-
 		return (
 			<GlassCard className="h-full flex flex-col" delay={0.2} hoverEffect={true}>
-				{/* Top Summary */}
-				<div className="mb-6 space-y-3">
-					<div className="flex items-baseline gap-3">
-						<div className="text-4xl font-bold text-white">{viralScore}</div>
-						<div className="text-sm text-white/60">/100</div>
-					</div>
-					<div className="text-sm text-white/60">
-						{percentile}th percentile vs similar-sized channels
-					</div>
-					<div className="text-xs text-white/50 italic">
-						Reflects repeatable performance above subscriber baseline
-					</div>
-				</div>
-
 				{/* Viral Signature Section */}
 				<div className="flex items-center gap-2 mb-6">
 					<div className="p-2 rounded-lg bg-pink-500/10">
 						<Zap className="w-5 h-5 text-pink-400" />
 					</div>
 					<div className="flex-1">
-						<h3 className="text-xl font-bold text-white">Viral Signature</h3>
+						<h3 className="text-xl font-bold text-white">What This Channel Repeats</h3>
 						<p className="text-xs text-white/50">Patterns consistently observed across top-performing videos.</p>
 					</div>
 				</div>
 
-				{/* Signal Cards */}
-				<div className="flex flex-col gap-3 flex-1 mb-4">
+				{/* Pattern Cards with View Examples */}
+				<div className="flex flex-col gap-3 flex-1">
 					{viralSignals.map((signal, index) => {
 						const isExpanded = expandedId === signal.id;
 						
@@ -90,8 +78,7 @@ export function ObservedPatterns({ activeTab, score, recommendations = [] }: Obs
 								initial={{ opacity: 0, x: -20 }}
 								animate={{ opacity: 1, x: 0 }}
 								transition={{ delay: 0.4 + index * 0.1, type: "spring" }}
-								onClick={() => setExpandedId(isExpanded ? null : signal.id)}
-								className={`group relative p-4 rounded-2xl transition-all duration-300 cursor-pointer overflow-hidden ${
+								className={`group relative p-4 rounded-2xl transition-all duration-300 overflow-hidden ${
 									isExpanded
 										? "bg-pink-500/10 shadow-lg"
 										: "bg-pink-500/5 hover:bg-pink-500/10"
@@ -100,58 +87,36 @@ export function ObservedPatterns({ activeTab, score, recommendations = [] }: Obs
 								<div className="flex items-start justify-between gap-3 mb-2">
 									<div className="flex items-center gap-2">
 										<span className={`text-xs font-bold px-2 py-0.5 rounded ${
-											signal.strength === "Strong" ? "text-green-400 bg-green-400/10" :
-											signal.strength === "Moderate" ? "text-yellow-400 bg-yellow-400/10" :
+											signal.confidence === "High" ? "text-green-400 bg-green-400/10" :
+											signal.confidence === "Medium" ? "text-yellow-400 bg-yellow-400/10" :
 											"text-blue-400 bg-blue-400/10"
 										}`}>
-											{signal.strength}
+											{signal.confidence} Confidence
 										</span>
-										<span className="text-xs text-white/40">{signal.strengthValue}/100</span>
 									</div>
 								</div>
 								<p className="text-sm text-white/80 leading-relaxed mb-2">
 									{signal.pattern}
 								</p>
-								<AnimatePresence>
-									{isExpanded && (
-										<motion.div
-											initial={{ height: 0, opacity: 0, marginTop: 0 }}
-											animate={{ height: "auto", opacity: 1, marginTop: 8 }}
-											exit={{ height: 0, opacity: 0, marginTop: 0 }}
-											className="overflow-hidden"
-										>
-											<div className="text-xs text-white/50 italic">
-												{signal.evidence}
-											</div>
-										</motion.div>
-									)}
-								</AnimatePresence>
+								<div className="text-xs text-white/50 italic mb-3">
+									{signal.evidence}
+								</div>
+								<button
+									onClick={(e) => {
+										e.stopPropagation();
+										// TODO: Open video examples modal
+										console.log("View examples for pattern", signal.id);
+									}}
+									className="w-full px-3 py-2 rounded-lg bg-pink-500/10 hover:bg-pink-500/20 text-xs font-medium text-pink-400 hover:text-pink-300 transition-colors flex items-center justify-center gap-2"
+								>
+									View {signal.videoCount} Matching Videos
+									<svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+									</svg>
+								</button>
 							</motion.div>
 						);
 					})}
-				</div>
-
-				{/* Viral Signal Strength Bar Chart */}
-				<div className="mt-4 pt-4 space-y-2">
-					<div className="text-xs font-bold text-white/60 uppercase tracking-wider mb-3">
-						Viral Signal Strength
-					</div>
-					{viralSignals.map((signal, i) => (
-						<div key={i} className="space-y-1">
-							<div className="flex justify-between items-center text-xs">
-								<span className="text-white/60">{signal.pattern.split(':')[0]}</span>
-								<span className="text-white/40">{signal.strengthValue}</span>
-							</div>
-							<div className="h-1.5 w-full bg-pink-500/5 rounded-full overflow-hidden">
-								<motion.div
-									className="h-full bg-gradient-to-r from-pink-500 to-pink-400 rounded-full"
-									initial={{ width: 0 }}
-									animate={{ width: `${(signal.strengthValue / maxStrength) * 100}%` }}
-									transition={{ delay: 0.8 + i * 0.1, duration: 0.5 }}
-								/>
-							</div>
-						</div>
-					))}
 				</div>
 			</GlassCard>
 		);
