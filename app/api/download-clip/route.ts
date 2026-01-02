@@ -3,9 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(request: NextRequest) {
 	try {
 		const searchParams = request.nextUrl.searchParams;
-		const clipId = searchParams.get("clipId");
-		const start = searchParams.get("start");
-		const end = searchParams.get("end");
 		const source = searchParams.get("source");
 
 		if (!source) {
