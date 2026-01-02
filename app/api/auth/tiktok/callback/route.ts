@@ -305,7 +305,7 @@ export async function GET(request: NextRequest) {
 				grantedScopes: grantedScopes,
 			});
 			
-			const savedConnection = setUserSocialConnection(user.whop_user_id, connection);
+			setUserSocialConnection(user.whop_user_id, connection);
 			
 			// Verify it was saved
 			const verifyConnections = getUserSocialConnections(user.whop_user_id);
