@@ -53,8 +53,6 @@ export function ScoreBreakdownBar({ totalScore }: ScoreBreakdownBarProps) {
 		},
 	];
 
-	const maxScore = Math.max(...breakdown.map((item) => item.score));
-
 	return (
 		<>
 			<GlassCard className="h-full flex flex-col" delay={0.25} hoverEffect={true}>
