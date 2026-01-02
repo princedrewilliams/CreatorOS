@@ -300,7 +300,7 @@ function buildHeuristicAnalysis(payload: {
 	videos: YoutubeVideo[];
 	metrics: ReturnType<typeof deriveMetrics>;
 }) {
-	const { metrics, videos } = payload;
+	const { metrics } = payload;
 
 	const baseScore = (boost: number) => {
 		let score = 50 + boost;
