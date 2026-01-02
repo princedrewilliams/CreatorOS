@@ -4,7 +4,6 @@ import { useState, useEffect, Suspense } from "react";
 import { format } from "date-fns";
 import { Heading, Text, Card, Button, Badge, Separator } from "@whop/react/components";
 import { PlusIcon, CheckIcon, Pencil1Icon, TrashIcon, PaperPlaneIcon, LightningBoltIcon, Cross2Icon } from "@radix-ui/react-icons";
-import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppStore, type Task, type SocialConnection } from "@/lib/store";
 import { Calendar } from "@/components/Calendar";
