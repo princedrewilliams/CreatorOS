@@ -19,7 +19,7 @@ function PlannerContent() {
 	const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 	const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 	const [editingTask, setEditingTask] = useState<Task | undefined>(undefined);
-	const [filterPlatform, setFilterPlatform] = useState<"all" | "youtube">("all");
+	const [filterPlatform, _setFilterPlatform] = useState<"all" | "youtube">("all");
 	const [filterStatus, setFilterStatus] = useState<"all" | "planned" | "scheduled" | "posted" | "cancelled">("all");
 	const [isPostVideoModalOpen, setIsPostVideoModalOpen] = useState(false);
 	const [isAutoGenerateModalOpen, setIsAutoGenerateModalOpen] = useState(false);
