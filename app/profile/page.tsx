@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { Heading, Text, Card, Button, Badge } from "@whop/react/components";
 import { PersonIcon, Pencil1Icon, VideoIcon, Link2Icon } from "@radix-ui/react-icons";
-import { motion } from "framer-motion";
 import { useAppStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import { BackButton } from "@/components/BackButton";
