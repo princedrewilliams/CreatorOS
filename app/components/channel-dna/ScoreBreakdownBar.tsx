@@ -71,7 +71,7 @@ export function ScoreBreakdownBar({ totalScore }: ScoreBreakdownBarProps) {
 
 				{/* Charts.css Column Chart */}
 				<div id="score-breakdown-chart" className="w-full">
-					<table className="charts-css column show-labels show-heading" style={{ "--aspect-ratio": "4 / 3" }}>
+					<table className="charts-css column show-labels show-heading" style={{"--aspect-ratio": "4 / 3"} as React.CSSProperties}>
 						<caption className="sr-only">Score Breakdown by Component</caption>
 						<thead>
 							<tr>
