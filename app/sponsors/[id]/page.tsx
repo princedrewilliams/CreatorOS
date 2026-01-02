@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Heading, Text, Card, Button, Badge, Separator } from "@whop/react/components";
+import { Heading, Text, Card, Button, Badge } from "@whop/react/components";
 import { ArrowLeftIcon, ExternalLinkIcon, FileTextIcon, DownloadIcon, Share1Icon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { BackButton } from "@/components/BackButton";
