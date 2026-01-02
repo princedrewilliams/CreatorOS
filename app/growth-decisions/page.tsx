@@ -62,7 +62,6 @@ export default function GrowthDecisionsPage() {
 	const [doubleDown, setDoubleDown] = useState<DoubleDownInsight[]>([]);
 	const [loadingExplanations, setLoadingExplanations] = useState<Record<string, boolean>>({});
 	const [expandedExplanations, setExpandedExplanations] = useState<Record<string, boolean>>({});
-	const [showMetrics, setShowMetrics] = useState(false);
 
 	const youtubeConnected = socialConnections.find((c) => c.platform === "youtube" && c.connected);
 
