@@ -1,10 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 // Catch-all route for TikTok verification files in /privacy/ path
 // Handles any TikTok verification file name pattern
 // Accessible at: https://creatoros.online/privacy/[any-tiktok-verification-file]
 export async function GET(
-	request: NextRequest,
 	{ params }: { params: Promise<{ slug: string[] }> }
 ) {
 	const { slug } = await params;
