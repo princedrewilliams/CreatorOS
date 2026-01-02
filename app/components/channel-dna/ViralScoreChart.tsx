@@ -9,7 +9,7 @@ interface ViralScoreChartProps {
 	score?: any;
 }
 
-export function ViralScoreChart({ score }: ViralScoreChartProps) {
+export function ViralScoreChart({ score: _score }: ViralScoreChartProps) {
 	const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
 
 	const points = [
