@@ -178,7 +178,7 @@ function ChannelDNAContent() {
 			{/* Sticky Header Background */}
 			<motion.div
 				style={{ opacity: headerOpacity, y: headerY }}
-				className="fixed top-0 left-0 right-0 h-20 bg-pink-950/60 backdrop-blur-xl z-40 border-b border-pink-800/20"
+				className="fixed top-0 left-0 right-0 h-20 bg-pink-950/60 backdrop-blur-xl z-40"
 			/>
 
 			<div className="relative z-10 mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
@@ -188,7 +188,7 @@ function ChannelDNAContent() {
 						whileHover={{ scale: 1.05, x: -5 }}
 						whileTap={{ scale: 0.95 }}
 						onClick={() => router.push("/")}
-						className="flex items-center gap-2 px-4 py-2 rounded-full bg-pink-500/10 border border-pink-500/20 hover:bg-pink-500/20 transition-colors backdrop-blur-md group"
+						className="flex items-center gap-2 px-4 py-2 rounded-full bg-pink-500/10 hover:bg-pink-500/20 transition-colors backdrop-blur-md group"
 					>
 						<ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
 						<span className="text-sm font-medium">Back</span>
@@ -207,10 +207,10 @@ function ChannelDNAContent() {
 								</div>
 
 					<motion.button
-						whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(236,72,153,0.3)" }}
+						whileHover={{ scale: 1.05 }}
 						whileTap={{ scale: 0.95 }}
 						onClick={() => router.push("/")}
-						className="px-5 py-2 rounded-full bg-pink-500/10 border border-pink-500/20 hover:bg-pink-500/20 transition-colors backdrop-blur-md text-sm font-medium flex items-center gap-2 group"
+						className="px-5 py-2 rounded-full bg-pink-500/10 hover:bg-pink-500/20 transition-colors backdrop-blur-md text-sm font-medium flex items-center gap-2 group"
 					>
 						<Sparkles className="w-4 h-4 text-pink-400 group-hover:rotate-12 transition-transform" />
 						Analyze Another Channel
@@ -236,6 +236,9 @@ function ChannelDNAContent() {
 											transition={{ type: "spring", stiffness: 300, damping: 30 }}
 										/>
 									)}
+									{!isActive && (
+										<div className="absolute inset-0 rounded-full bg-pink-500/5" />
+									)}
 									<span
 										className={`relative z-10 flex items-center gap-2 ${
 											isActive ? "text-white" : "text-white/60 hover:text-white"
@@ -244,7 +247,7 @@ function ChannelDNAContent() {
 										<Icon className={`w-4 h-4 ${isActive ? "animate-pulse" : ""}`} />
 										{tab.label}
 										{tab.badge && isActive && (
-											<span className="text-[10px] px-1.5 py-0.5 rounded border bg-pink-500/20 border-pink-500/30">
+											<span className="text-[10px] px-1.5 py-0.5 rounded bg-pink-500/20">
 												{tab.badge}
 											</span>
 										)}
@@ -378,7 +381,7 @@ function getMockPayload(url: string) {
 			"Open with proof that matches the promise.",
 			"Keep intros under 12 seconds.",
 		]),
-		"Replication Score": mk(78, "Strong foundation; polish packaging.", [
+		"Replication Score": mk(78, "This channel shows consistent patterns that can be replicated.", [
 			"Standardize title formula for 5 uploads.",
 			"Document thumbnail template for speed.",
 			"Script retention saves at 30s/90s marks.",

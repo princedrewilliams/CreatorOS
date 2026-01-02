@@ -20,10 +20,10 @@ export function ViralScoreChart() {
 		<GlassCard className="h-full flex flex-col" delay={0.3} hoverEffect={true}>
 			<div className="flex items-center justify-between mb-2">
 				<div className="flex items-center gap-2">
-					<div className="p-2 rounded-lg bg-pink-500/10 border border-pink-500/20">
+					<div className="p-2 rounded-lg bg-pink-500/10">
 						<TrendingUp className="w-5 h-5 text-pink-400" />
 					</div>
-					<h3 className="text-xl font-bold text-white">Viral Score Chart</h3>
+					<h3 className="text-xl font-bold text-white">This Channel vs Similar Channels</h3>
 				</div>
 				<button className="p-2 rounded-full hover:bg-white/10 transition-colors text-white/40 hover:text-white">
 					<Maximize2 className="w-4 h-4" />
@@ -34,7 +34,7 @@ export function ViralScoreChart() {
 				<Info className="w-3 h-3" />
 			</p>
 
-			<div className="relative flex-1 rounded-2xl bg-pink-950/20 border border-pink-500/20 p-6 overflow-hidden group">
+			<div className="relative flex-1 rounded-2xl bg-pink-950/20 p-6 overflow-hidden group">
 				<div className="absolute inset-0 opacity-10">
 					<div className="absolute inset-0 bg-[linear-gradient(to_right,#ec489912_1px,transparent_1px),linear-gradient(to_bottom,#ec489912_1px,transparent_1px)] bg-[size:24px_24px]" />
 					<motion.div
@@ -45,10 +45,24 @@ export function ViralScoreChart() {
 				</div>
 
 				<h4 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-4 relative z-10">
-					Viral Scatter
+					Views per video vs Subscriber size
 				</h4>
 
 				<div className="relative h-48 w-full z-10">
+					{/* Peer average cluster cloud */}
+					<div className="absolute inset-0 opacity-20">
+						{Array.from({ length: 15 }).map((_, i) => (
+							<div
+								key={`peer-${i}`}
+								className="absolute w-2 h-2 rounded-full bg-white/30"
+								style={{
+									left: `${20 + Math.random() * 60}%`,
+									bottom: `${30 + Math.random() * 50}%`,
+								}}
+							/>
+						))}
+					</div>
+					{/* This channel highlight */}
 					{points.map((point, i) => (
 						<motion.div
 							key={i}
@@ -61,7 +75,7 @@ export function ViralScoreChart() {
 							}}
 							onMouseEnter={() => setHoveredPoint(i)}
 							onMouseLeave={() => setHoveredPoint(null)}
-							className={`absolute w-4 h-4 rounded-full ${point.color} shadow-[0_0_15px_rgba(236,72,153,0.5)] cursor-pointer border-2 border-pink-200/30 z-20`}
+							className={`absolute w-5 h-5 rounded-full ${point.color} shadow-[0_0_20px_rgba(236,72,153,0.8)] cursor-pointer z-30 ring-2 ring-pink-400/50`}
 							style={{
 								left: `${point.x}%`,
 								bottom: `${point.y}%`,
@@ -127,8 +141,8 @@ export function ViralScoreChart() {
 				</div>
 
 				<div className="mt-4 text-center relative z-10">
-					<p className="text-xs text-white/40 bg-pink-500/5 inline-block px-3 py-1 rounded-full border border-pink-500/10">
-						This channel consistently produces videos that outperform its own average.
+					<p className="text-xs text-white/40 bg-pink-500/5 inline-block px-3 py-1 rounded-full">
+						This channel (highlighted) vs peer average (faint cluster)
 					</p>
 				</div>
 			</div>

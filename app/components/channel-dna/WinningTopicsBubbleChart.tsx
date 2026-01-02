@@ -18,7 +18,7 @@ export function WinningTopicsBubbleChart() {
 		<GlassCard className="h-full flex flex-col" delay={0.3} hoverEffect={true}>
 			<div className="flex items-center justify-between mb-2">
 				<div className="flex items-center gap-2">
-					<div className="p-2 rounded-lg bg-pink-500/10 border border-pink-500/20">
+					<div className="p-2 rounded-lg bg-pink-500/10">
 						<Hash className="w-5 h-5 text-pink-400" />
 					</div>
 					<h3 className="text-xl font-bold text-white">Winning Topics</h3>
@@ -31,7 +31,7 @@ export function WinningTopicsBubbleChart() {
 				A small number of topic clusters drive the majority of total views.
 			</p>
 
-			<div className="relative flex-1 rounded-2xl bg-pink-950/20 border border-pink-500/20 p-6 overflow-hidden group">
+			<div className="relative flex-1 rounded-2xl bg-pink-950/20 p-6 overflow-hidden group">
 				<div className="absolute inset-0 opacity-10">
 					<div className="absolute inset-0 bg-[linear-gradient(to_right,#ec489912_1px,transparent_1px),linear-gradient(to_bottom,#ec489912_1px,transparent_1px)] bg-[size:24px_24px]" />
 				</div>
@@ -42,7 +42,7 @@ export function WinningTopicsBubbleChart() {
 						return (
 							<motion.div
 								key={i}
-								className="absolute rounded-full bg-gradient-to-br from-pink-500 to-pink-600 shadow-[0_0_20px_rgba(236,72,153,0.4)] border-2 border-pink-400/30 flex items-center justify-center cursor-pointer"
+								className="absolute rounded-full bg-gradient-to-br from-pink-500 to-pink-600 shadow-[0_0_20px_rgba(236,72,153,0.4)] flex items-center justify-center cursor-pointer"
 								style={{
 									left: `${topic.x}%`,
 									top: `${topic.y}%`,
@@ -67,8 +67,8 @@ export function WinningTopicsBubbleChart() {
 				</div>
 
 				<div className="mt-4 text-center relative z-10">
-					<p className="text-xs text-white/40 bg-pink-500/5 inline-block px-3 py-1 rounded-full border border-pink-500/10">
-						Topics inferred using title + description semantic similarity.
+					<p className="text-xs text-white/40 bg-pink-500/5 inline-block px-3 py-1 rounded-full">
+						Bubble chart: X = Avg views, Y = Frequency, Size = Engagement
 					</p>
 				</div>
 			</div>

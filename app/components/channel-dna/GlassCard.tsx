@@ -77,15 +77,15 @@ export function GlassCard({
 					: undefined
 			}
 			className={cn(
-				"relative overflow-hidden rounded-3xl border border-pink-500/20 bg-pink-950/20 backdrop-blur-xl shadow-xl group",
+				"relative overflow-hidden rounded-3xl bg-pink-950/20 backdrop-blur-xl shadow-xl group",
 				className
 			)}
 		>
+			{/* Glow only on hover for floating effect */}
 			<motion.div
-				className="pointer-events-none absolute -inset-px opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+				className="pointer-events-none absolute -inset-px opacity-0 transition-opacity duration-300 group-hover:opacity-30"
 				style={{ background: glowBackground }}
 			/>
-			<div className="absolute inset-0 rounded-3xl p-[1px] bg-gradient-to-br from-pink-500/20 via-pink-500/10 to-transparent opacity-50 pointer-events-none" />
 			{shimmer && (
 				<div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-pink-500/10 to-transparent z-0 pointer-events-none" />
 			)}

@@ -13,7 +13,7 @@ export function ThumbComparisonChart() {
 		<GlassCard className="h-full flex flex-col" delay={0.3} hoverEffect={true}>
 			<div className="flex items-center justify-between mb-2">
 				<div className="flex items-center gap-2">
-					<div className="p-2 rounded-lg bg-pink-500/10 border border-pink-500/20">
+					<div className="p-2 rounded-lg bg-pink-500/10">
 						<ImageIcon className="w-5 h-5 text-pink-400" />
 					</div>
 					<h3 className="text-xl font-bold text-white">Thumbnail Performance</h3>
@@ -26,7 +26,7 @@ export function ThumbComparisonChart() {
 				High-performing thumbnails correlate with significantly higher view velocity.
 			</p>
 
-			<div className="relative flex-1 rounded-2xl bg-pink-950/20 border border-pink-500/20 p-6 overflow-hidden group">
+			<div className="relative flex-1 rounded-2xl bg-pink-950/20 p-6 overflow-hidden group">
 				<div className="absolute inset-0 opacity-10">
 					<div className="absolute inset-0 bg-[linear-gradient(to_right,#ec489912_1px,transparent_1px),linear-gradient(to_bottom,#ec489912_1px,transparent_1px)] bg-[size:24px_24px]" />
 				</div>
@@ -82,8 +82,8 @@ export function ThumbComparisonChart() {
 				</div>
 
 				<div className="mt-4 text-center relative z-10">
-					<p className="text-xs text-white/40 bg-pink-500/5 inline-block px-3 py-1 rounded-full border border-pink-500/10">
-						Performance inferred from post-publish view acceleration.
+					<p className="text-xs text-white/40 bg-pink-500/5 inline-block px-3 py-1 rounded-full">
+						CTR proxy: Views in first 24h vs channel median (outperform/underperform clusters)
 					</p>
 				</div>
 			</div>

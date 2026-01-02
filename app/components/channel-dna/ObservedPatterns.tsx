@@ -15,48 +15,63 @@ export function ObservedPatterns({ recommendations = [] }: ObservedPatternsProps
 	const patterns = [
 		{
 			id: 1,
-			title: "Pattern 1",
+			title: "Recurring Signal 1",
 			description:
-				recommendations[0] ||
-				"Pick 2 topic clusters and publish 3-in-a-row; group them into playlists.",
+				recommendations[0]?.replace(/^Pick|^Test|^Add/, (match) => {
+					if (match === "Pick") return "Videos perform best when released in short topic runs (2-3 uploads).";
+					if (match === "Test") return "This channel tends to test new hooks and measure 48h performance.";
+					if (match === "Add") return "This channel consistently uses specific CTAs and replies quickly.";
+					return match;
+				}) ||
+				"Videos perform best when released in short topic runs (2-3 uploads). This builds trust.",
 			icon: Layers,
 			color: "text-pink-400",
 			bg: "bg-pink-500/10",
-			details: "This strategy increases session time by 45% on average.",
+			details: "Session time increases by 45% when this pattern is used.",
 		},
 		{
 			id: 2,
-			title: "Pattern 2",
+			title: "Recurring Signal 2",
 			description:
-				recommendations[1] ||
-				"Test 3 new hooks and measure 48h views/sub ratio; double down on winners.",
+				recommendations[1]?.replace(/^Pick|^Test|^Add/, (match) => {
+					if (match === "Pick") return "Videos perform best when released in short topic runs (2-3 uploads).";
+					if (match === "Test") return "This channel tends to test new hooks and measure 48h performance.";
+					if (match === "Add") return "This channel consistently uses specific CTAs and replies quickly.";
+					return match;
+				}) ||
+				"This channel tends to test new hooks and measure 48h views/sub ratio before doubling down.",
 			icon: Zap,
 			color: "text-pink-400",
 			bg: "bg-pink-500/10",
-			details: "Channels using this A/B testing see 2x growth in 3 months.",
+			details: "Channels using this approach see 2x growth in 3 months.",
 		},
 		{
 			id: 3,
-			title: "Pattern 3",
+			title: "Recurring Signal 3",
 			description:
-				recommendations[2] ||
-				"Add a single, specific CTA and reply to top 10 comments within 1 hour.",
+				recommendations[2]?.replace(/^Pick|^Test|^Add/, (match) => {
+					if (match === "Pick") return "Videos perform best when released in short topic runs (2-3 uploads).";
+					if (match === "Test") return "This channel tends to test new hooks and measure 48h performance.";
+					if (match === "Add") return "This channel consistently uses specific CTAs and replies quickly.";
+					return match;
+				}) ||
+				"This channel consistently uses specific CTAs and replies to top comments within 1 hour.",
 			icon: MessageCircle,
 			color: "text-pink-400",
 			bg: "bg-pink-500/10",
-			details: "Boosts engagement rate by 3.5% and triggers algorithm push.",
+			details: "Engagement rate increases by 3.5% when this pattern is consistent.",
 		},
 	].slice(0, recommendations.length || 3);
 
 	return (
 		<GlassCard className="h-full flex flex-col" delay={0.2} hoverEffect={true}>
 			<div className="flex items-center gap-2 mb-6">
-				<div className="p-2 rounded-lg bg-pink-500/10 border border-pink-500/20">
+				<div className="p-2 rounded-lg bg-pink-500/10">
 					<Sparkles className="w-5 h-5 text-pink-400" />
 				</div>
-				<h3 className="text-xl font-bold text-white">Observed Patterns</h3>
-				<span className="ml-auto text-xs font-medium px-2 py-1 rounded-full bg-pink-500/5 text-white/40 border border-pink-500/10">
-					{patterns.length} New
+				<h3 className="text-xl font-bold text-white">What This Channel Repeats</h3>
+				<span className="ml-auto text-xs font-medium px-2 py-1 rounded-full bg-pink-500/5 text-white/40">
+					{patterns.length} Signals
 				</span>
 			</div>
 
@@ -76,10 +91,10 @@ export function ObservedPatterns({ recommendations = [] }: ObservedPatternsProps
 								type: "spring",
 							}}
 							onClick={() => setExpandedId(isExpanded ? null : pattern.id)}
-							className={`group relative p-4 rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden ${
+							className={`group relative p-4 rounded-2xl transition-all duration-300 cursor-pointer overflow-hidden ${
 								isExpanded
-									? "bg-pink-500/10 border-pink-500/20 shadow-lg"
-									: "bg-pink-500/5 border-pink-500/10 hover:bg-pink-500/10 hover:border-pink-500/20"
+									? "bg-pink-500/10 shadow-lg"
+									: "bg-pink-500/5 hover:bg-pink-500/10"
 							}`}
 						>
 							<div className="flex gap-4">
@@ -114,7 +129,7 @@ export function ObservedPatterns({ recommendations = [] }: ObservedPatternsProps
 												exit={{ height: 0, opacity: 0, marginTop: 0 }}
 												className="overflow-hidden"
 											>
-												<div className="pt-3 border-t border-pink-500/20 text-xs text-white/50 italic flex items-center gap-2">
+												<div className="pt-3 text-xs text-white/50 italic flex items-center gap-2">
 													<div className="w-1 h-1 rounded-full bg-pink-400" />
 													{pattern.details}
 												</div>

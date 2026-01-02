@@ -529,9 +529,9 @@ function computeScores(input: { channel: YoutubeChannel; videos: YoutubeVideo[];
 	const improvements = weaknesses.map((w) => {
 		switch (w.category) {
 			case "Viral Potential":
-				return "Test 3 new hooks and measure 48h views/sub ratio; double down on winners.";
+				return "This channel tends to test new hooks and measure 48h performance before doubling down.";
 			case "Audience Engagement":
-				return "Add a single, specific CTA and reply to top 10 comments within 1 hour.";
+				return "This channel consistently uses specific CTAs and replies to top comments quickly.";
 			case "Discoverability / SEO":
 				return "Front-load 1 keyword in the first 40 chars of title and first line of description.";
 			case "Upload Consistency":
@@ -539,7 +539,7 @@ function computeScores(input: { channel: YoutubeChannel; videos: YoutubeVideo[];
 			case "Thumbnail Performance":
 				return "Standardize a template: bold 1-3 words, strong face/emotion, consistent palette.";
 			case "Channel Identity & Focus":
-				return "Pick 2 topic clusters and publish 3-in-a-row; group them into playlists.";
+				return "This channel tends to perform best when videos are released in short topic runs (2-3 uploads).";
 			default:
 				return "Tighten packaging and cadence across next 5 uploads.";
 		}
@@ -547,7 +547,7 @@ function computeScores(input: { channel: YoutubeChannel; videos: YoutubeVideo[];
 
 	const percentile = clamp(Math.round(total * 0.95));
 	const contextLabel =
-		total >= 86 ? "Elite" : total >= 71 ? "High Growth" : total >= 41 ? "Strong Foundation" : "Needs Work";
+		total >= 86 ? "Elite" : total >= 71 ? "High Growth" : total >= 41 ? "Growing" : "Emerging";
 
 	return {
 		total: Math.round(total),

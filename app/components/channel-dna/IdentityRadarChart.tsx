@@ -22,7 +22,7 @@ export function IdentityRadarChart() {
 		<GlassCard className="h-full flex flex-col" delay={0.3} hoverEffect={true}>
 			<div className="flex items-center justify-between mb-2">
 				<div className="flex items-center gap-2">
-					<div className="p-2 rounded-lg bg-pink-500/10 border border-pink-500/20">
+					<div className="p-2 rounded-lg bg-pink-500/10">
 						<Fingerprint className="w-5 h-5 text-pink-400" />
 					</div>
 					<h3 className="text-xl font-bold text-white">Channel Identity</h3>
@@ -35,7 +35,7 @@ export function IdentityRadarChart() {
 				The channel maintains a clear and repeatable content identity.
 			</p>
 
-			<div className="relative flex-1 rounded-2xl bg-pink-950/20 border border-pink-500/20 p-6 overflow-hidden group">
+			<div className="relative flex-1 rounded-2xl bg-pink-950/20 p-6 overflow-hidden group">
 				<div className="absolute inset-0 opacity-10">
 					<div className="absolute inset-0 bg-[linear-gradient(to_right,#ec489912_1px,transparent_1px),linear-gradient(to_bottom,#ec489912_1px,transparent_1px)] bg-[size:24px_24px]" />
 				</div>
@@ -140,8 +140,8 @@ export function IdentityRadarChart() {
 				</div>
 
 				<div className="mt-4 text-center relative z-10">
-					<p className="text-xs text-white/40 bg-pink-500/5 inline-block px-3 py-1 rounded-full border border-pink-500/10">
-						Identity strength reflects how predictable the channel's content promise is.
+					<p className="text-xs text-white/40 bg-pink-500/5 inline-block px-3 py-1 rounded-full">
+						Radar: Topic focus, Format consistency, Title style, Visual consistency
 					</p>
 				</div>
 			</div>
