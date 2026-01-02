@@ -6,7 +6,6 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowLeft, Search, Sparkles, Zap, TrendingUp, Image as ImageIcon, Hash, Fingerprint } from "lucide-react";
 import { ChannelProfile } from "../components/channel-dna/ChannelProfile";
 import { ObservedPatterns } from "../components/channel-dna/ObservedPatterns";
-import { ViralScoreChart } from "../components/channel-dna/ViralScoreChart";
 import { ScoreBreakdownBar } from "../components/channel-dna/ScoreBreakdownBar";
 import { DiscoveryLineChart } from "../components/channel-dna/DiscoveryLineChart";
 import { ConsistencyBarChart } from "../components/channel-dna/ConsistencyBarChart";
