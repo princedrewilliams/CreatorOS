@@ -57,7 +57,6 @@ export async function POST(request: NextRequest) {
 
 		// Extract channel ID or handle from URL
 		let channelId = extractChannelId(channelUrl);
-		let isHandle = false;
 
 		if (!channelId) {
 			// Try to extract handle from URL
@@ -65,7 +64,6 @@ export async function POST(request: NextRequest) {
 			if (handleMatch) {
 				const handle = handleMatch[1];
 				channelId = await getChannelIdFromHandle(handle, apiKey);
-				isHandle = true;
 			}
 		}
 
