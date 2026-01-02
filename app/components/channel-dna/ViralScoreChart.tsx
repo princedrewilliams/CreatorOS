@@ -5,7 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "./GlassCard";
 import { TrendingUp, Info, Maximize2 } from "lucide-react";
 
-export function ViralScoreChart() {
+interface ViralScoreChartProps {
+	score?: any;
+}
+
+export function ViralScoreChart({ score }: ViralScoreChartProps) {
 	const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
 
 	const points = [

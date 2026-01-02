@@ -163,16 +163,16 @@ function ChannelDNAContent() {
 			{/* Ambient Background Effects */}
 			<div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
 					<motion.div
-						animate={{ scale: [1, 1.1, 1], opacity: [0.2, 0.3, 0.2] }}
+						animate={{ scale: [1, 1.1, 1], opacity: [0.08, 0.12, 0.08] }}
 						transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
 						className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-pink-900/20 blur-[120px]"
 					/>
 					<motion.div
-						animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.3, 0.2] }}
+						animate={{ scale: [1, 1.2, 1], opacity: [0.08, 0.12, 0.08] }}
 						transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
 						className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-pink-800/20 blur-[120px]"
 					/>
-					<div className="absolute top-[40%] left-[30%] w-[30%] h-[30%] rounded-full bg-pink-900/10 blur-[100px]" />
+					<div className="absolute top-[40%] left-[30%] w-[30%] h-[30%] rounded-full bg-pink-900/5 blur-[100px]" />
 					</div>
 
 			{/* Sticky Header Background */}
@@ -265,8 +265,12 @@ function ChannelDNAContent() {
 
 					{/* Bottom Section: Split View */}
 					<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-auto lg:h-[450px]">
-						<ObservedPatterns recommendations={aiSummary?.recommendations || aiSummary?.improvements || []} />
-						{activeTab === "viral" && <ViralScoreChart />}
+						<ObservedPatterns 
+							activeTab={activeTab}
+							score={score}
+							recommendations={aiSummary?.recommendations || aiSummary?.improvements || []} 
+						/>
+						{activeTab === "viral" && <ViralScoreChart score={score} />}
 						{activeTab === "search" && <DiscoveryLineChart />}
 						{activeTab === "upload" && <ConsistencyBarChart />}
 						{activeTab === "thumb" && <ThumbComparisonChart />}

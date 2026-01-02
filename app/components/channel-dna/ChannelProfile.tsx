@@ -203,7 +203,7 @@ export function ChannelProfile({ baseStats, score }: ChannelProfileProps) {
 							</div>
 						</div>
 						{/* Score Composition Micro-Section */}
-						<div className="absolute -bottom-16 left-0 right-0 mt-4 space-y-2 text-xs">
+						<div className="absolute -bottom-20 left-0 right-0 mt-6 space-y-2 text-xs z-20">
 							<div className="text-white/40 text-center mb-2">How this score is formed</div>
 							<div className="grid grid-cols-2 gap-2">
 								<div className="text-center">
@@ -228,7 +228,7 @@ export function ChannelProfile({ baseStats, score }: ChannelProfileProps) {
 						<motion.div
 							animate={{
 								scale: [1, 1.2, 1],
-								opacity: [0.2, 0.4, 0.2],
+								opacity: [0.1, 0.15, 0.1],
 							}}
 							transition={{
 								duration: 3,
@@ -253,27 +253,23 @@ export function ChannelProfile({ baseStats, score }: ChannelProfileProps) {
 				</div>
 			</div>
 
-			<div className="mt-8 pt-8">
+			<div className="mt-24 pt-8">
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 					<div className="space-y-1">
 						<div className="text-sm text-white/60">Discoverability</div>
 						<div className="text-2xl font-bold text-white">{discoverability}</div>
-						<div className="text-xs text-white/40">Below peer average for channels this size</div>
 					</div>
 					<div className="space-y-1">
 						<div className="text-sm text-white/60">Consistency</div>
 						<div className="text-2xl font-bold text-white">{consistency}</div>
-						<div className="text-xs text-white/40">Above peer average for channels this size</div>
 					</div>
 					<div className="space-y-1">
 						<div className="text-sm text-white/60">Engagement</div>
 						<div className="text-2xl font-bold text-white">{engagement}</div>
-						<div className="text-xs text-white/40">Below peer average for channels this size</div>
 					</div>
 					<div className="space-y-1">
 						<div className="text-sm text-white/60">Winning Topics</div>
 						<div className="text-2xl font-bold text-white">{winningTopics}</div>
-						<div className="text-xs text-white/40">Above peer average for channels this size</div>
 					</div>
 				</div>
 			</div>
