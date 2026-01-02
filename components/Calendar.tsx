@@ -14,7 +14,7 @@ interface CalendarProps {
 
 export function Calendar({ selectedDate, onDateSelect }: CalendarProps) {
 	const [currentMonth, setCurrentMonth] = useState(new Date());
-	const { tasks, getTasksByDate } = useAppStore();
+	const { getTasksByDate } = useAppStore();
 
 	const monthStart = startOfMonth(currentMonth);
 	const monthEnd = endOfMonth(currentMonth);

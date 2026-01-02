@@ -1,4 +1,3 @@
-import React from 'react';
 import { Eye, Heart, Share2, MessageCircle, TrendingUp } from 'lucide-react';
 const metrics = [{
   label: 'Total Views',

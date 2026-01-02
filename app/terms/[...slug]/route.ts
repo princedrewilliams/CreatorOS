@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 // Catch-all route for TikTok verification files in /terms/ path
 // Handles any TikTok verification file name pattern
 export async function GET(
-	request: NextRequest,
+	_request: NextRequest,
 	{ params }: { params: Promise<{ slug: string[] }> }
 ) {
 	const { slug } = await params;

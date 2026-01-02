@@ -1,7 +1,0 @@
-{
-  "/api/channel-analyze/route": "app/api/channel-analyze/route.js",
-  "/channel-dna/page": "app/channel-dna/page.js",
-  "/dashboard/[companyId]/page": "app/dashboard/[companyId]/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
-  "/page": "app/page.js"
-}

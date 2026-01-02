@@ -1,14 +1,10 @@
 "use client";
 
-import { Button, Text, Separator } from "@whop/react/components";
+import { Button } from "@whop/react/components";
 import {
 	Cross2Icon,
 	HomeIcon,
 	CalendarIcon,
-	FileTextIcon,
-	BarChartIcon,
-	LightningBoltIcon,
-	TargetIcon,
 } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

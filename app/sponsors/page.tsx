@@ -1,17 +1,14 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { Heading, Text, Card, Button, Badge, Dialog, Separator } from "@whop/react/components";
+import { Heading, Text, Card, Button, Badge, Dialog } from "@whop/react/components";
 import { PlusIcon, FileTextIcon, ArrowRightIcon, DownloadIcon, FileIcon, TrashIcon, Cross2Icon } from "@radix-ui/react-icons";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { BackButton } from "@/components/BackButton";
 import { SponsorModal } from "@/components/SponsorModal";
 import { useAppStore } from "@/lib/store";
 import type { Sponsor, DealStatus, PaymentStatus } from "@/lib/sponsor-data";
-
-const statusOptions: DealStatus[] = ["lead", "negotiating", "active", "completed", "rejected"];
-const paymentStatusOptions: PaymentStatus[] = ["unpaid", "invoiced", "paid"];
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
 	style: "currency",

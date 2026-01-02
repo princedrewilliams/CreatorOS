@@ -1,5 +1,5 @@
 // Business logic helpers for sponsor management
-import type { Sponsor, DealStatus, PaymentStatus } from "./sponsor-data";
+import type { Sponsor, DealStatus } from "./sponsor-data";
 
 export interface SponsorSummary {
 	activeDealsCount: number;

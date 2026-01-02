@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/kutek/whop-nextjs-app-template-main/app/channel-dna/page.tsx"],"sourcesContent":["\"use client\";\r\n\r\nimport { redirect } from \"next/navigation\";\r\n\r\n// Deprecated: keep users on the homepage flow instead of this page.\r\nexport default function ChannelDNAPageRedirect() {\r\n\tredirect(\"/\");\r\n}\r\n\r\n"],"names":[],"mappings":";;;;AAEA;AAFA;;AAKe,SAAS;IACvB,IAAA,gRAAQ,EAAC;AACV;KAFwB"}},
-    {"offset": {"line": 23, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/kutek/whop-nextjs-app-template-main/node_modules/.pnpm/next%4016.0.7_react-dom%4019.2.0_react%4019.2.0__react%4019.2.0/node_modules/next/navigation.js"],"sourcesContent":["module.exports = require('./dist/client/components/navigation')\n"],"names":[],"mappings":"AAAA,OAAO,OAAO","ignoreList":[0]}}]
-}

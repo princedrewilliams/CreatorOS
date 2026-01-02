@@ -1,9 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { Card, Button, Text, Heading } from "@whop/react/components";
-import { LightningBoltIcon, CheckIcon, Cross2Icon } from "@radix-ui/react-icons";
-import { motion, AnimatePresence } from "framer-motion";
+import { LightningBoltIcon, CheckIcon } from "@radix-ui/react-icons";
 
 interface AutomationFeature {
 	id: string;

@@ -1,6 +1,6 @@
-import React from 'react';
+import type { ButtonHTMLAttributes } from 'react';
 import { Loader2 } from 'lucide-react';
-interface GlassButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface GlassButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   isLoading?: boolean;
   variant?: 'primary' | 'secondary' | 'ghost';
 }

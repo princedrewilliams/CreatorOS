@@ -44,7 +44,7 @@ export function InvoiceModal({ isOpen, onClose, onGenerate, initialData }: Invoi
 	const [deliverableInput, setDeliverableInput] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const [logoFile, setLogoFile] = useState<File | null>(null);
+	const [, setLogoFile] = useState<File | null>(null);
 	const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
 	const handleSubmit = async (e: FormEvent) => {

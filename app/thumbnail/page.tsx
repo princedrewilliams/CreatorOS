@@ -2,7 +2,6 @@
 
 import { Heading, Text, Card, Button } from "@whop/react/components";
 import { ImageIcon } from "@radix-ui/react-icons";
-import Link from "next/link";
 import { motion } from "framer-motion";
 import { BackButton } from "@/components/BackButton";
 

@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { Card, Button, Text, Heading, Badge } from "@whop/react/components";
-import { VideoIcon, Cross2Icon, CheckIcon } from "@radix-ui/react-icons";
+import { VideoIcon, Cross2Icon } from "@radix-ui/react-icons";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface AutoFormatModalProps {

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Play, Calendar, Clock, MoreVertical } from 'lucide-react';
 export function VideoPreview() {
   return <div className="group relative h-full overflow-hidden rounded-2xl border border-white/20 bg-white/10 p-4 shadow-2xl backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5">

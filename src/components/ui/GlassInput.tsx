@@ -1,6 +1,6 @@
-import React from 'react';
+import type { InputHTMLAttributes } from 'react';
 import { BoxIcon } from 'lucide-react';
-interface GlassInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface GlassInputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   icon?: BoxIcon;
   containerClassName?: string;

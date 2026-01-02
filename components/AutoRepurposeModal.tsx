@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Card, Button, Text, Heading, Badge } from "@whop/react/components";
+import { Card, Button, Text, Heading } from "@whop/react/components";
 import { VideoIcon, Cross2Icon, DownloadIcon } from "@radix-ui/react-icons";
 import { motion, AnimatePresence } from "framer-motion";
 

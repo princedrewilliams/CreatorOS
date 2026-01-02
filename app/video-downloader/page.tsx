@@ -8,7 +8,6 @@ import {
 	CheckIcon,
 	VideoIcon,
 } from "@radix-ui/react-icons";
-import Link from "next/link";
 import { BackButton } from "@/components/BackButton";
 
 type PlatformId = "tiktok" | "instagram" | "youtube";

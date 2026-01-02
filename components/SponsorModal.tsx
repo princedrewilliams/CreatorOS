@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, ReactNode, useState, useEffect } from "react";
-import { Heading, Text, Card, Button, Dialog } from "@whop/react/components";
+import { Heading, Text, Button, Dialog } from "@whop/react/components";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import type { Sponsor, DealStatus, PaymentStatus } from "@/lib/sponsor-data";
 

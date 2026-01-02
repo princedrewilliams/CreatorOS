@@ -1,4 +1,3 @@
-import React from 'react';
 import { Users, Globe } from 'lucide-react';
 const demographics = [{
   label: '18-24',

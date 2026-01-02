@@ -1,8 +1,7 @@
 "use client";
 
 import { Heading, Text, Card, Button, Badge, Separator } from "@whop/react/components";
-import { ArrowLeftIcon, CheckIcon, StarIcon } from "@radix-ui/react-icons";
-import Link from "next/link";
+import { CheckIcon, StarIcon } from "@radix-ui/react-icons";
 import { motion } from "framer-motion";
 import { useAppStore } from "@/lib/store";
 import { useState, useEffect } from "react";
