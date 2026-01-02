@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { Heading, Text, Card, Button, Badge, Separator } from "@whop/react/components";
 import {
 	ExclamationTriangleIcon,
-	CheckIcon,
 	ArrowRightIcon,
 	ChevronDownIcon,
 	ChevronUpIcon,
