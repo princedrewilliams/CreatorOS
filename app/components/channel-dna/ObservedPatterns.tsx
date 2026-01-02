@@ -11,7 +11,7 @@ interface ObservedPatternsProps {
 	recommendations?: string[];
 }
 
-export function ObservedPatterns({ activeTab, score, recommendations = [] }: ObservedPatternsProps) {
+export function ObservedPatterns({ activeTab, score: _score, recommendations = [] }: ObservedPatternsProps) {
 	const [expandedId, setExpandedId] = useState<number | null>(null);
 
 	// Viral Score Tab - Redesigned with Evidence-Based Patterns
