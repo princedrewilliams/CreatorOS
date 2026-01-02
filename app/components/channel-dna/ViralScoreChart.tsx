@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "./GlassCard";
-import { TrendingUp, Info, Maximize2 } from "lucide-react";
+import { TrendingUp, Maximize2 } from "lucide-react";
 
 interface ViralScoreChartProps {
 	score?: any;
