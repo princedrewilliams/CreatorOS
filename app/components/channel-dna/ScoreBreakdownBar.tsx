@@ -95,7 +95,7 @@ export function ScoreBreakdownBar({ totalScore }: ScoreBreakdownBarProps) {
 											</span>
 										</th>
 										<td
-											style={{ "--size": normalizedSize }}
+											style={{"--size": normalizedSize} as React.CSSProperties}
 											onMouseEnter={() => setHoveredIndex(index)}
 											onMouseLeave={() => setHoveredIndex(null)}
 											className="relative cursor-pointer group"
