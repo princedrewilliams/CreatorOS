@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
 	try {
-		const body = await request.json();
-		const { platform, timeframe = "24h" } = body;
+		await request.json(); // Parse body but don't use it (mock endpoint)
 
 		// In production, this would:
 		// 1. Fetch latest analytics from connected platforms
