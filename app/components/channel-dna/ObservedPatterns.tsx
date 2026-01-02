@@ -14,11 +14,8 @@ interface ObservedPatternsProps {
 export function ObservedPatterns({ activeTab, score: _score, recommendations = [] }: ObservedPatternsProps) {
 	const [expandedId, setExpandedId] = useState<number | null>(null);
 
-	// Viral Score Tab - Restored previous design
+	// Viral Score Tab - Simplified: Just 3 AI tips
 	if (activeTab === "viral") {
-		const viralScore = _score?.total ?? 58;
-		const percentile = Math.round(viralScore * 0.95);
-		
 		const viralSignals = [
 			{
 				id: 1,
@@ -41,33 +38,10 @@ export function ObservedPatterns({ activeTab, score: _score, recommendations = [
 				pattern: "Observed pattern: Videos released in 2-3 upload clusters show sustained view velocity.",
 				evidence: "Session time increases by 45% when this pattern is present.",
 			},
-			{
-				id: 4,
-				strength: "Supporting" as const,
-				strengthValue: 45,
-				pattern: "Consistent signal: Engagement rate spikes when CTA appears within first 30 seconds.",
-				evidence: "Appears in 65% of top-performing videos.",
-			},
 		];
-
-		const maxStrength = Math.max(...viralSignals.map(s => s.strengthValue));
 
 		return (
 			<GlassCard className="h-full flex flex-col" delay={0.2} hoverEffect={true}>
-				{/* Top Summary */}
-				<div className="mb-6 space-y-3">
-					<div className="flex items-baseline gap-3">
-						<div className="text-4xl font-bold text-white">{viralScore}</div>
-						<div className="text-sm text-white/60">/100</div>
-					</div>
-					<div className="text-sm text-white/60">
-						{percentile}th percentile vs similar-sized channels
-					</div>
-					<div className="text-xs text-white/50 italic">
-						Reflects repeatable performance above subscriber baseline
-					</div>
-				</div>
-
 				{/* Viral Signature Section */}
 				<div className="flex items-center gap-2 mb-6">
 					<div className="p-2 rounded-lg bg-pink-500/10">
@@ -79,8 +53,8 @@ export function ObservedPatterns({ activeTab, score: _score, recommendations = [
 					</div>
 				</div>
 
-				{/* Signal Cards */}
-				<div className="flex flex-col gap-3 flex-1 mb-4">
+				{/* Signal Cards - Just 3 AI Tips */}
+				<div className="flex flex-col gap-3 flex-1">
 					{viralSignals.map((signal, index) => {
 						const isExpanded = expandedId === signal.id;
 						
@@ -129,29 +103,6 @@ export function ObservedPatterns({ activeTab, score: _score, recommendations = [
 							</motion.div>
 						);
 					})}
-				</div>
-
-				{/* Viral Signal Strength Bar Chart */}
-				<div className="mt-4 pt-4 space-y-2">
-					<div className="text-xs font-bold text-white/60 uppercase tracking-wider mb-3">
-						Viral Signal Strength
-					</div>
-					{viralSignals.map((signal, i) => (
-						<div key={i} className="space-y-1">
-							<div className="flex justify-between items-center text-xs">
-								<span className="text-white/60">{signal.pattern.split(':')[0]}</span>
-								<span className="text-white/40">{signal.strengthValue}</span>
-							</div>
-							<div className="h-1.5 w-full bg-pink-500/5 rounded-full overflow-hidden">
-								<motion.div
-									className="h-full bg-gradient-to-r from-pink-500 to-pink-400 rounded-full"
-									initial={{ width: 0 }}
-									animate={{ width: `${(signal.strengthValue / maxStrength) * 100}%` }}
-									transition={{ delay: 0.8 + i * 0.1, duration: 0.5 }}
-								/>
-							</div>
-						</div>
-					))}
 				</div>
 			</GlassCard>
 		);

@@ -272,10 +272,7 @@ function ChannelDNAContent() {
 								score={score}
 								recommendations={aiSummary?.recommendations || aiSummary?.improvements || []} 
 							/>
-							<div className="flex flex-col gap-6">
-								<ScoreBreakdownBar totalScore={score?.total ?? 58} />
-								<ViralScoreChart score={score} />
-							</div>
+							<ScoreBreakdownBar totalScore={score?.total ?? 58} />
 						</div>
 					) : (
 						<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-auto lg:h-[450px]">
