@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(request: NextRequest) {
 	try {
 		const body = await request.json();
-		const { taskId, title, description, platforms } = body;
+		const { title, description, platforms } = body;
 
 		if (!title || !platforms || platforms.length === 0) {
 			return NextResponse.json(
@@ -172,10 +172,6 @@ export async function POST(request: NextRequest) {
 		);
 	}
 }
-
-
-
-
 
 
 
