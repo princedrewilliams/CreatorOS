@@ -1,7 +1,6 @@
 "use client";
 
-import { GlassCard } from "./GlassCard";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -48,144 +47,169 @@ export function ScoreBreakdownBar({ totalScore }: ScoreBreakdownBarProps) {
 	];
 
 	const maxScore = Math.max(...breakdown.map(b => b.score));
+	const avgScore = Math.round(breakdown.reduce((sum, b) => sum + b.score, 0) / breakdown.length);
 
 	return (
 		<>
-			<GlassCard className="h-full flex flex-col p-6" delay={0.25} hoverEffect={false}>
-				<div className="flex items-center justify-between mb-6">
-					<h3 className="text-lg font-semibold text-white">Score Breakdown</h3>
-					<button
+			<div className="w-full h-full bg-white/[0.03] rounded-xl p-5 md:p-6">
+				{/* Header */}
+				<div className="flex justify-between items-start border-b border-white/10 pb-4">
+					<dl>
+						<dt className="text-sm text-white/50 mb-1">Score Breakdown</dt>
+						<dd className="text-2xl font-semibold text-white">{totalScore}</dd>
+					</dl>
+					<div className="flex items-center gap-2">
+						<span className="inline-flex items-center bg-green-500/10 text-green-400 text-xs font-medium px-2 py-1 rounded-md">
+							<TrendingUp className="w-3.5 h-3.5 mr-1" />
+							Above avg
+						</span>
+						<button
+							onClick={() => setShowModal(true)}
+							className="p-1.5 rounded-lg hover:bg-white/5 transition-colors text-white/30 hover:text-white/60"
+							title="How this score is calculated"
+						>
+							<HelpCircle className="w-4 h-4" />
+						</button>
+					</div>
+				</div>
+
+				{/* Stats Grid */}
+				<div className="grid grid-cols-2 py-4 border-b border-white/10">
+					<dl>
+						<dt className="text-xs text-white/40 mb-0.5">Highest</dt>
+						<dd className="text-base font-semibold text-green-400">
+							{breakdown.reduce((max, b) => b.score > max.score ? b : max, breakdown[0]).label}
+						</dd>
+					</dl>
+					<dl>
+						<dt className="text-xs text-white/40 mb-0.5">Lowest</dt>
+						<dd className="text-base font-semibold text-pink-400">
+							{breakdown.reduce((min, b) => b.score < min.score ? b : min, breakdown[0]).label}
+						</dd>
+					</dl>
+				</div>
+
+				{/* Bar Chart */}
+				<div className="pt-6 pb-2">
+					<div className="flex items-end justify-between gap-2 h-[180px]">
+						{breakdown.map((item, index) => {
+							const heightPercent = (item.score / maxScore) * 100;
+							const isHovered = hoveredIndex === index;
+							const isAboveAvg = item.score >= avgScore;
+							
+							return (
+								<div 
+									key={index} 
+									className="flex flex-col items-center flex-1 h-full justify-end relative cursor-pointer"
+									onMouseEnter={() => setHoveredIndex(index)}
+									onMouseLeave={() => setHoveredIndex(null)}
+								>
+									{/* Tooltip */}
+									<AnimatePresence>
+										{isHovered && (
+											<motion.div
+												initial={{ opacity: 0, y: 5 }}
+												animate={{ opacity: 1, y: 0 }}
+												exit={{ opacity: 0, y: 5 }}
+												className="absolute bottom-full mb-2 bg-neutral-900 px-3 py-2 rounded-lg z-50 min-w-[120px] text-center shadow-lg"
+											>
+												<div className="text-xs font-medium text-white">{item.label}</div>
+												<div className="text-lg font-bold text-white">{item.score}</div>
+												<div className="text-[10px] text-white/50">{item.explanation}</div>
+											</motion.div>
+										)}
+									</AnimatePresence>
+
+									{/* Bar */}
+									<motion.div
+										initial={{ height: 0 }}
+										animate={{ height: `${heightPercent}%` }}
+										transition={{ duration: 0.6, delay: 0.08 * index, ease: "easeOut" }}
+										className={`w-full max-w-[28px] rounded-t transition-all duration-200 ${
+											isHovered 
+												? isAboveAvg ? "bg-green-400" : "bg-pink-400"
+												: isAboveAvg ? "bg-green-500/50" : "bg-pink-500/50"
+										}`}
+									/>
+									
+									{/* Label */}
+									<div className={`text-[10px] mt-2 text-center leading-tight transition-colors ${
+										isHovered ? "text-white" : "text-white/40"
+									}`}>
+										{item.label.slice(0, 6)}
+									</div>
+								</div>
+							);
+						})}
+					</div>
+				</div>
+
+				{/* Footer */}
+				<div className="flex justify-between items-center pt-3 border-t border-white/10">
+					<span className="text-xs text-white/40">
+						Based on last 30 videos
+					</span>
+					<button 
 						onClick={() => setShowModal(true)}
-						className="p-1.5 rounded-lg hover:bg-white/5 transition-colors text-white/30 hover:text-white/60"
-						title="How this score is calculated"
+						className="text-xs text-pink-400 hover:text-pink-300 transition-colors"
 					>
-						<HelpCircle className="w-4 h-4" />
+						View methodology →
 					</button>
 				</div>
+			</div>
 
-				{/* Clean vertical bar chart */}
-				<div className="flex-1 flex items-end justify-between gap-3 px-2">
-					{breakdown.map((item, index) => {
-						const heightPercent = (item.score / maxScore) * 100;
-						const isHovered = hoveredIndex === index;
-						
-						return (
-							<div 
-								key={index} 
-								className="flex flex-col items-center flex-1 h-full justify-end relative"
-								onMouseEnter={() => setHoveredIndex(index)}
-								onMouseLeave={() => setHoveredIndex(null)}
-							>
-								{/* Tooltip */}
-								<AnimatePresence>
-									{isHovered && (
-										<motion.div
-											initial={{ opacity: 0, y: 5 }}
-											animate={{ opacity: 1, y: 0 }}
-											exit={{ opacity: 0, y: 5 }}
-											className="absolute bottom-full mb-2 bg-pink-950/90 backdrop-blur-sm px-3 py-2 rounded-lg z-50 min-w-[140px] text-center"
-										>
-											<div className="text-xs font-medium text-white mb-0.5">{item.label}</div>
-											<div className="text-[10px] text-white/50">{item.explanation}</div>
-										</motion.div>
-									)}
-								</AnimatePresence>
-
-								{/* Score label */}
-								<div className="text-xs font-medium text-white/80 mb-2">{item.score}</div>
-								
-								{/* Bar */}
-								<motion.div
-									initial={{ height: 0 }}
-									animate={{ height: `${heightPercent}%` }}
-									transition={{ duration: 0.8, delay: 0.1 * index, ease: "easeOut" }}
-									className={`w-full max-w-[32px] rounded-t-md transition-colors duration-200 ${
-										isHovered ? "bg-pink-400" : "bg-pink-500/60"
-									}`}
-									style={{ minHeight: "20px" }}
-								/>
-								
-								{/* Label */}
-								<div className="text-[10px] text-white/40 mt-3 text-center leading-tight">
-									{item.label}
-								</div>
-							</div>
-						);
-					})}
-				</div>
-			</GlassCard>
-
-			{/* How this score is calculated Modal */}
+			{/* Modal */}
 			<AnimatePresence>
 				{showModal && (
-					<>
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						onClick={() => setShowModal(false)}
+						className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+					>
 						<motion.div
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							exit={{ opacity: 0 }}
-							onClick={() => setShowModal(false)}
-							className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+							initial={{ scale: 0.95, opacity: 0 }}
+							animate={{ scale: 1, opacity: 1 }}
+							exit={{ scale: 0.95, opacity: 0 }}
+							onClick={(e) => e.stopPropagation()}
+							className="bg-neutral-900 rounded-xl p-6 max-w-md w-full shadow-2xl"
 						>
-							<motion.div
-								initial={{ scale: 0.9, opacity: 0 }}
-								animate={{ scale: 1, opacity: 1 }}
-								exit={{ scale: 0.9, opacity: 0 }}
-								onClick={(e) => e.stopPropagation()}
-								className="bg-pink-950/90 backdrop-blur-xl rounded-2xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto"
-							>
-								<div className="flex items-center justify-between mb-4">
-									<h3 className="text-xl font-bold text-white">How this score is calculated</h3>
-									<button
-										onClick={() => setShowModal(false)}
-										className="p-2 rounded-full hover:bg-white/10 transition-colors text-white/40 hover:text-white"
-									>
-										×
-									</button>
+							<div className="flex items-center justify-between mb-4">
+								<h3 className="text-lg font-semibold text-white">Score Methodology</h3>
+								<button
+									onClick={() => setShowModal(false)}
+									className="p-1.5 rounded-lg hover:bg-white/10 transition-colors text-white/40 hover:text-white text-xl leading-none"
+								>
+									×
+								</button>
+							</div>
+
+							<div className="space-y-4 text-sm">
+								<p className="text-white/60">
+									Viral Score = weighted average of key performance indicators, normalized against channels within ±20% subscriber size.
+								</p>
+								
+								<div className="space-y-2">
+									{breakdown.map((item, index) => (
+										<div key={index} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
+											<span className="text-white/80">{item.label}</span>
+											<span className="text-white font-medium">{item.score}</span>
+										</div>
+									))}
 								</div>
 
-								<div className="space-y-4 text-sm text-white/80">
-									<div>
-										<div className="font-bold text-white mb-2">Viral Score Formula</div>
-										<div className="bg-pink-500/10 rounded-lg p-4 font-mono text-xs">
-											Viral Score = Weighted average of:
-											<ul className="list-disc list-inside mt-2 space-y-1 text-white/70">
-												<li>Views per video vs peer median (25%)</li>
-												<li>Engagement rate vs peer median (25%)</li>
-												<li>Upload cadence stability (20%)</li>
-												<li>Topic repetition across top 30 videos (20%)</li>
-												<li>CTR proxy (title + thumbnail changes) (10%)</li>
-											</ul>
-										</div>
-									</div>
-
-									<div>
-										<div className="font-bold text-white mb-2">Normalization</div>
-										<p className="text-white/70">
-											All metrics are normalized against channels within ±20% subscriber size. This ensures
-											fair comparison regardless of channel size.
-										</p>
-									</div>
-
-									<div>
-										<div className="font-bold text-white mb-2">Component Details</div>
-										<div className="space-y-3">
-											{breakdown.map((item, index) => (
-												<div key={index} className="bg-white/[0.02] rounded-lg p-3">
-													<div className="font-semibold text-white mb-1">
-														{item.label}
-													</div>
-													<div className="text-xs text-white/60">{item.explanation}</div>
-												</div>
-											))}
-										</div>
-									</div>
-								</div>
-							</motion.div>
+								<button
+									onClick={() => setShowModal(false)}
+									className="w-full mt-4 py-2.5 rounded-lg bg-pink-500/20 hover:bg-pink-500/30 text-pink-400 font-medium transition-colors text-sm"
+								>
+									Got it
+								</button>
+							</div>
 						</motion.div>
-					</>
+					</motion.div>
 				)}
 			</AnimatePresence>
 		</>
 	);
 }
-
