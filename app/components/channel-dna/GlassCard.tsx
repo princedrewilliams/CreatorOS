@@ -71,25 +71,23 @@ export function GlassCard({
 			whileHover={
 				hoverEffect
 					? {
-							scale: 1.01,
-							boxShadow: "0 20px 40px -10px rgba(236, 72, 153, 0.3)",
+							scale: 1.005,
 						}
 					: undefined
 			}
 			className={cn(
-				"relative overflow-hidden rounded-3xl bg-pink-950/20 backdrop-blur-xl shadow-xl group",
+				"relative overflow-hidden rounded-2xl bg-pink-950/15 backdrop-blur-md group p-6",
 				className
 			)}
 		>
-			{/* Glow only on hover for floating effect */}
+			{/* Subtle glow only on hover */}
 			<motion.div
-				className="pointer-events-none absolute -inset-px opacity-0 transition-opacity duration-300 group-hover:opacity-30"
+				className="pointer-events-none absolute -inset-px opacity-0 transition-opacity duration-500 group-hover:opacity-15"
 				style={{ background: glowBackground }}
 			/>
 			{shimmer && (
-				<div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-pink-500/10 to-transparent z-0 pointer-events-none" />
+				<div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_3s_infinite] bg-gradient-to-r from-transparent via-white/3 to-transparent z-0 pointer-events-none" />
 			)}
-			<div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 to-transparent opacity-30 pointer-events-none z-0" />
 			<div className="relative z-10">{children}</div>
 		</motion.div>
 	);

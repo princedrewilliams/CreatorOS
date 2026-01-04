@@ -75,7 +75,7 @@ export function ChannelProfile({ baseStats, score }: ChannelProfileProps) {
 								repeat: Infinity,
 								ease: "linear",
 							}}
-							className="absolute -inset-1 rounded-full bg-gradient-to-r from-pink-600 via-pink-500 to-pink-400 opacity-75 blur-md group-hover:opacity-100 transition-opacity"
+							className="absolute -inset-1 rounded-full bg-gradient-to-r from-pink-600 via-pink-500 to-pink-400 opacity-30 blur-sm group-hover:opacity-50 transition-opacity"
 						/>
 						<div className="relative">
 							{baseStats?.thumbnail ? (
@@ -148,8 +148,8 @@ export function ChannelProfile({ baseStats, score }: ChannelProfileProps) {
 
 				<div className="flex-shrink-0">
 					<motion.div
-						whileHover={{ scale: 1.05, rotate: 5 }}
-						className="relative flex h-36 w-36 items-center justify-center rounded-full bg-pink-950/30 shadow-[0_0_40px_-10px_rgba(236,72,153,0.3)] group cursor-pointer"
+						whileHover={{ scale: 1.02 }}
+						className="relative flex h-36 w-36 items-center justify-center rounded-full bg-pink-950/20 group cursor-pointer"
 					>
 						<svg
 							className="absolute inset-0 h-full w-full -rotate-90 transform"
@@ -165,7 +165,7 @@ export function ChannelProfile({ baseStats, score }: ChannelProfileProps) {
 								cy="50"
 							/>
 							<motion.circle
-								className="text-pink-500 drop-shadow-[0_0_8px_rgba(236,72,153,0.8)]"
+								className="text-pink-500"
 								strokeWidth="6"
 								strokeLinecap="round"
 								stroke="currentColor"
@@ -203,58 +203,11 @@ export function ChannelProfile({ baseStats, score }: ChannelProfileProps) {
 							</div>
 						</div>
 
-						<motion.div
-							animate={{
-								scale: [1, 1.2, 1],
-								opacity: [0.1, 0.15, 0.1],
-							}}
-							transition={{
-								duration: 3,
-								repeat: Infinity,
-								ease: "easeInOut",
-							}}
-							className="absolute inset-0 rounded-full bg-pink-500/20 blur-2xl -z-10"
-						/>
-
-						<motion.div
-							animate={{ rotate: 360 }}
-							transition={{
-								duration: 10,
-								repeat: Infinity,
-								ease: "linear",
-							}}
-							className="absolute inset-0 rounded-full"
-						>
-							<div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1 w-2 h-2 bg-white rounded-full shadow-[0_0_10px_white]" />
-						</motion.div>
 					</motion.div>
 				</div>
 			</div>
 
-			{/* Score Composition Micro-Section */}
-			<div className="mt-6 pt-6 space-y-3">
-				<div className="text-white/40 text-center text-xs mb-3">How this score is formed</div>
-				<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-					<div className="text-center">
-						<div className="text-white/60 text-xs mb-1">Views vs subscriber</div>
-						<div className="text-white font-medium text-lg">{(totalScore * 0.3).toFixed(0)}</div>
-					</div>
-					<div className="text-center">
-						<div className="text-white/60 text-xs mb-1">Upload consistency</div>
-						<div className="text-white font-medium text-lg">{(totalScore * 0.25).toFixed(0)}</div>
-					</div>
-					<div className="text-center">
-						<div className="text-white/60 text-xs mb-1">Engagement velocity</div>
-						<div className="text-white font-medium text-lg">{(totalScore * 0.25).toFixed(0)}</div>
-					</div>
-					<div className="text-center">
-						<div className="text-white/60 text-xs mb-1">Topic repeatability</div>
-						<div className="text-white font-medium text-lg">{(totalScore * 0.2).toFixed(0)}</div>
-					</div>
-				</div>
-			</div>
-
-			<div className="mt-8 pt-8">
+			<div className="mt-8 pt-6">
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 					<div className="space-y-1">
 						<div className="text-sm text-white/60">Discoverability</div>

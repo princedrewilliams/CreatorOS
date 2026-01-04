@@ -14,90 +14,62 @@ interface ObservedPatternsProps {
 export function ObservedPatterns({ activeTab, score: _score, recommendations = [] }: ObservedPatternsProps) {
 	const [expandedId, setExpandedId] = useState<number | null>(null);
 
-	// Viral Score Tab - Simplified: Just 3 AI tips
+	// Viral Score Tab - Simplified: Just 3 observational patterns
 	if (activeTab === "viral") {
-		const viralSignals = [
+		const patterns = [
 			{
 				id: 1,
-				strength: "Strong" as const,
-				strengthValue: 85,
-				pattern: "Observed across top 20% of videos: Title hooks appear in first 40 characters with clear outcome promise.",
-				evidence: "Correlates with 2.3x higher views in first 48h compared to videos without this pattern.",
+				pattern: "Title hooks appear in first 40 characters with clear outcome promise.",
+				evidence: "Observed across top 20% of videos. Correlates with 2.3× higher first-48h views.",
 			},
 			{
 				id: 2,
-				strength: "Moderate" as const,
-				strengthValue: 72,
-				pattern: "Appears consistently in viral content: Thumbnail features single high-contrast subject with minimal text overlay.",
-				evidence: "Found in 78% of videos exceeding channel average by 3x or more.",
+				pattern: "Thumbnails feature single high-contrast subject with minimal text.",
+				evidence: "Found in 78% of videos exceeding channel average by 3× or more.",
 			},
 			{
 				id: 3,
-				strength: "Supporting" as const,
-				strengthValue: 58,
-				pattern: "Observed pattern: Videos released in 2-3 upload clusters show sustained view velocity.",
+				pattern: "Videos released in 2-3 upload clusters show sustained view velocity.",
 				evidence: "Session time increases by 45% when this pattern is present.",
 			},
 		];
 
 		return (
-			<GlassCard className="h-full flex flex-col" delay={0.2} hoverEffect={true}>
-				{/* Viral Signature Section */}
-				<div className="flex items-center gap-2 mb-6">
-					<div className="p-2 rounded-lg bg-pink-500/10">
-						<Zap className="w-5 h-5 text-pink-400" />
-					</div>
-					<div className="flex-1">
-						<h3 className="text-xl font-bold text-white">Viral Signature</h3>
-						<p className="text-xs text-white/50">Patterns consistently observed across top-performing videos.</p>
+			<GlassCard className="h-full flex flex-col" delay={0.2} hoverEffect={false}>
+				<div className="flex items-center gap-3 mb-6">
+					<Zap className="w-5 h-5 text-pink-400" />
+					<div>
+						<h3 className="text-lg font-semibold text-white">Observed Patterns</h3>
+						<p className="text-xs text-white/40">Patterns across top-performing videos</p>
 					</div>
 				</div>
 
-				{/* Signal Cards - Just 3 AI Tips */}
-				<div className="flex flex-col gap-3 flex-1">
-					{viralSignals.map((signal, index) => {
-						const isExpanded = expandedId === signal.id;
+				<div className="flex flex-col gap-4 flex-1">
+					{patterns.map((item, index) => {
+						const isExpanded = expandedId === item.id;
 						
 						return (
 							<motion.div
-								key={signal.id}
-								initial={{ opacity: 0, x: -20 }}
-								animate={{ opacity: 1, x: 0 }}
-								transition={{ delay: 0.4 + index * 0.1, type: "spring" }}
-								onClick={() => setExpandedId(isExpanded ? null : signal.id)}
-								className={`group relative p-4 rounded-2xl transition-all duration-300 cursor-pointer overflow-hidden ${
-									isExpanded
-										? "bg-pink-500/10 shadow-lg"
-										: "bg-pink-500/5 hover:bg-pink-500/10"
-								}`}
+								key={item.id}
+								initial={{ opacity: 0, y: 10 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ delay: 0.3 + index * 0.1 }}
+								onClick={() => setExpandedId(isExpanded ? null : item.id)}
+								className="p-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors cursor-pointer"
 							>
-								<div className="flex items-start justify-between gap-3 mb-2">
-									<div className="flex items-center gap-2">
-										<span className={`text-xs font-bold px-2 py-0.5 rounded ${
-											signal.strength === "Strong" ? "text-green-400 bg-green-400/10" :
-											signal.strength === "Moderate" ? "text-yellow-400 bg-yellow-400/10" :
-											"text-blue-400 bg-blue-400/10"
-										}`}>
-											{signal.strength}
-										</span>
-										<span className="text-xs text-white/40">{signal.strengthValue}/100</span>
-									</div>
-								</div>
-								<p className="text-sm text-white/80 leading-relaxed mb-2">
-									{signal.pattern}
+								<p className="text-sm text-white/80 leading-relaxed">
+									{item.pattern}
 								</p>
 								<AnimatePresence>
 									{isExpanded && (
-										<motion.div
-											initial={{ height: 0, opacity: 0, marginTop: 0 }}
+										<motion.p
+											initial={{ height: 0, opacity: 0 }}
 											animate={{ height: "auto", opacity: 1, marginTop: 8 }}
 											exit={{ height: 0, opacity: 0, marginTop: 0 }}
-											className="overflow-hidden"
+											className="text-xs text-white/40 overflow-hidden"
 										>
-											<div className="text-xs text-white/50 italic">
-												{signal.evidence}
-											</div>
-										</motion.div>
+											{item.evidence}
+										</motion.p>
 									)}
 								</AnimatePresence>
 							</motion.div>
