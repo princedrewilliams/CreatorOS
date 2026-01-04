@@ -91,16 +91,17 @@ export function ScoreBreakdownBar({ totalScore }: ScoreBreakdownBarProps) {
 
 				{/* Bar Chart */}
 				<div className="pt-6 pb-2">
-					<div className="flex items-end justify-between gap-2 h-[180px]">
+					<div className="flex items-end justify-between gap-3">
 						{breakdown.map((item, index) => {
-							const heightPercent = (item.score / maxScore) * 100;
+							const maxBarHeight = 140; // pixels
+							const barHeight = Math.round((item.score / maxScore) * maxBarHeight);
 							const isHovered = hoveredIndex === index;
 							const isAboveAvg = item.score >= avgScore;
 							
 							return (
 								<div 
 									key={index} 
-									className="flex flex-col items-center flex-1 h-full justify-end relative cursor-pointer"
+									className="flex flex-col items-center flex-1 relative cursor-pointer"
 									onMouseEnter={() => setHoveredIndex(index)}
 									onMouseLeave={() => setHoveredIndex(null)}
 								>
@@ -120,15 +121,18 @@ export function ScoreBreakdownBar({ totalScore }: ScoreBreakdownBarProps) {
 										)}
 									</AnimatePresence>
 
+									{/* Score above bar */}
+									<div className="text-xs font-medium text-white/70 mb-1">{item.score}</div>
+
 									{/* Bar */}
 									<motion.div
 										initial={{ height: 0 }}
-										animate={{ height: `${heightPercent}%` }}
+										animate={{ height: barHeight }}
 										transition={{ duration: 0.6, delay: 0.08 * index, ease: "easeOut" }}
-										className={`w-full max-w-[28px] rounded-t transition-all duration-200 ${
+										className={`w-8 rounded-t transition-colors duration-200 ${
 											isHovered 
 												? isAboveAvg ? "bg-green-400" : "bg-pink-400"
-												: isAboveAvg ? "bg-green-500/50" : "bg-pink-500/50"
+												: isAboveAvg ? "bg-green-500/60" : "bg-pink-500/60"
 										}`}
 									/>
 									
