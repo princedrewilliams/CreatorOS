@@ -144,7 +144,7 @@ function ChannelDNAContent() {
 
 	if (loading) {
 	return (
-			<div className="min-h-screen flex items-center justify-center bg-pink-950 text-white">
+			<div className="min-h-screen flex items-center justify-center bg-neutral-950 text-white">
 				<div className="text-lg">Analyzing channel...</div>
 			</div>
 		);
@@ -152,7 +152,7 @@ function ChannelDNAContent() {
 
 	if (!baseStats || !score) {
 		return (
-			<div className="min-h-screen flex items-center justify-center bg-pink-950 text-white">
+			<div className="min-h-screen flex items-center justify-center bg-neutral-950 text-white">
 				<div className="text-lg">No channel data available</div>
 			</div>
 		);
@@ -173,7 +173,7 @@ function ChannelDNAContent() {
 						whileHover={{ scale: 1.05, x: -5 }}
 						whileTap={{ scale: 0.95 }}
 						onClick={() => router.push("/")}
-						className="flex items-center gap-2 px-4 py-2 rounded-full bg-pink-500/10 hover:bg-pink-500/20 transition-colors backdrop-blur-md group"
+						className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors backdrop-blur-md group"
 					>
 						<ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
 						<span className="text-sm font-medium">Back</span>
@@ -195,9 +195,9 @@ function ChannelDNAContent() {
 						whileHover={{ scale: 1.05 }}
 						whileTap={{ scale: 0.95 }}
 						onClick={() => router.push("/")}
-						className="px-5 py-2 rounded-full bg-pink-500/10 hover:bg-pink-500/20 transition-colors backdrop-blur-md text-sm font-medium flex items-center gap-2 group"
+						className="px-5 py-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors backdrop-blur-md text-sm font-medium flex items-center gap-2 group"
 					>
-						<Sparkles className="w-4 h-4 text-pink-400 group-hover:rotate-12 transition-transform" />
+						<Sparkles className="w-4 h-4 text-white/60 group-hover:rotate-12 transition-transform" />
 						Analyze Another Channel
 					</motion.button>
 				</header>
@@ -217,12 +217,12 @@ function ChannelDNAContent() {
 									{isActive && (
 										<motion.div
 											layoutId="activeTab"
-											className="absolute inset-0 rounded-full bg-gradient-to-r from-pink-600/80 to-pink-500/80 shadow-[0_0_20px_rgba(236,72,153,0.4)]"
+											className="absolute inset-0 rounded-full bg-white/10"
 											transition={{ type: "spring", stiffness: 300, damping: 30 }}
 										/>
 									)}
 									{!isActive && (
-										<div className="absolute inset-0 rounded-full bg-pink-500/5" />
+										<div className="absolute inset-0 rounded-full bg-white/[0.02]" />
 									)}
 									<span
 										className={`relative z-10 flex items-center gap-2 ${
@@ -232,7 +232,7 @@ function ChannelDNAContent() {
 										<Icon className={`w-4 h-4 ${isActive ? "animate-pulse" : ""}`} />
 										{tab.label}
 										{tab.badge && isActive && (
-											<span className="text-[10px] px-1.5 py-0.5 rounded bg-pink-500/20">
+											<span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10">
 												{tab.badge}
 											</span>
 										)}
@@ -258,6 +258,9 @@ function ChannelDNAContent() {
 							/>
 							<ScoreBreakdownBar totalScore={score?.total ?? 58} />
 						</div>
+					) : activeTab === "search" ? (
+						/* Search tab uses full-width two-column layout */
+						<DiscoveryLineChart />
 					) : (
 						<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-auto lg:h-[450px]">
 							<ObservedPatterns 
@@ -265,7 +268,6 @@ function ChannelDNAContent() {
 								score={score}
 								recommendations={aiSummary?.recommendations || aiSummary?.improvements || []} 
 							/>
-							{activeTab === "search" && <DiscoveryLineChart />}
 							{activeTab === "upload" && <ConsistencyBarChart />}
 							{activeTab === "thumb" && <ThumbComparisonChart />}
 							{activeTab === "topics" && <WinningTopicsBubbleChart />}
@@ -392,7 +394,7 @@ function getMockPayload(url: string) {
 
 function PageFallback() {
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-pink-950 text-white">
+		<div className="min-h-screen flex items-center justify-center bg-neutral-950 text-white">
 			<div className="text-lg">Loading channel analysis…</div>
 		</div>
 	);
