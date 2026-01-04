@@ -160,20 +160,10 @@ function ChannelDNAContent() {
 
 	return (
 		<div className="min-h-screen w-full bg-pink-950 text-white font-sans selection:bg-pink-500/30 overflow-x-hidden">
-			{/* Ambient Background Effects */}
+			{/* Subtle Background Gradient - no distracting animations */}
 			<div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-					<motion.div
-						animate={{ scale: [1, 1.1, 1], opacity: [0.08, 0.12, 0.08] }}
-						transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-						className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-pink-900/20 blur-[120px]"
-					/>
-					<motion.div
-						animate={{ scale: [1, 1.2, 1], opacity: [0.08, 0.12, 0.08] }}
-						transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-						className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-pink-800/20 blur-[120px]"
-					/>
-					<div className="absolute top-[40%] left-[30%] w-[30%] h-[30%] rounded-full bg-pink-900/5 blur-[100px]" />
-					</div>
+				<div className="absolute inset-0 bg-gradient-to-br from-pink-950 via-pink-950 to-pink-900/50" />
+			</div>
 
 			{/* Sticky Header Background */}
 			<motion.div
