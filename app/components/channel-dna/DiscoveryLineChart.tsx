@@ -22,7 +22,6 @@ export function DiscoveryLineChart() {
 
 	const maxMultiplier = Math.max(...videoData.map(d => d.multiplier));
 	const chartHeight = 180;
-	const chartWidth = 100; // percentage
 
 	// Insights data
 	const insights = [
