@@ -47,7 +47,6 @@ export function ScoreBreakdownBar({ totalScore }: ScoreBreakdownBarProps) {
 	];
 
 	const maxScore = Math.max(...breakdown.map(b => b.score));
-	const avgScore = Math.round(breakdown.reduce((sum, b) => sum + b.score, 0) / breakdown.length);
 
 	return (
 		<>
@@ -91,17 +90,26 @@ export function ScoreBreakdownBar({ totalScore }: ScoreBreakdownBarProps) {
 
 				{/* Bar Chart */}
 				<div className="pt-6 pb-2">
-					<div className="flex items-end justify-between gap-3">
+					<div className="flex items-end justify-between gap-3 h-[180px]">
 						{breakdown.map((item, index) => {
-							const maxBarHeight = 140; // pixels
-							const barHeight = Math.round((item.score / maxScore) * maxBarHeight);
+							const maxBarHeight = 140;
+							const barHeight = Math.max(20, Math.round((item.score / maxScore) * maxBarHeight));
 							const isHovered = hoveredIndex === index;
-							const isAboveAvg = item.score >= avgScore;
+							
+							// Assign distinct colors to each bar
+							const colors = [
+								{ base: "bg-blue-500", hover: "bg-blue-400" },
+								{ base: "bg-emerald-500", hover: "bg-emerald-400" },
+								{ base: "bg-amber-500", hover: "bg-amber-400" },
+								{ base: "bg-rose-500", hover: "bg-rose-400" },
+								{ base: "bg-violet-500", hover: "bg-violet-400" },
+							];
+							const color = colors[index % colors.length];
 							
 							return (
 								<div 
 									key={index} 
-									className="flex flex-col items-center flex-1 relative cursor-pointer"
+									className="flex flex-col items-center flex-1 justify-end h-full relative cursor-pointer"
 									onMouseEnter={() => setHoveredIndex(index)}
 									onMouseLeave={() => setHoveredIndex(null)}
 								>
@@ -124,15 +132,11 @@ export function ScoreBreakdownBar({ totalScore }: ScoreBreakdownBarProps) {
 									{/* Score above bar */}
 									<div className="text-xs font-medium text-white/70 mb-1">{item.score}</div>
 
-									{/* Bar */}
-									<motion.div
-										initial={{ height: 0 }}
-										animate={{ height: barHeight }}
-										transition={{ duration: 0.6, delay: 0.08 * index, ease: "easeOut" }}
-										className={`w-8 rounded-t transition-colors duration-200 ${
-											isHovered 
-												? isAboveAvg ? "bg-green-400" : "bg-pink-400"
-												: isAboveAvg ? "bg-green-500/60" : "bg-pink-500/60"
+									{/* Bar - using inline style for reliable height */}
+									<div
+										style={{ height: `${barHeight}px` }}
+										className={`w-8 rounded-t transition-all duration-500 ${
+											isHovered ? color.hover : color.base
 										}`}
 									/>
 									
