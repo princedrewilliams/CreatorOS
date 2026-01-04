@@ -68,15 +68,6 @@ export function ChannelProfile({ baseStats, score }: ChannelProfileProps) {
 			<div className="flex flex-col md:flex-row items-center justify-between gap-8">
 				<div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left flex-1">
 					<div className="relative group cursor-pointer">
-						<motion.div
-							animate={{ rotate: 360 }}
-							transition={{
-								duration: 20,
-								repeat: Infinity,
-								ease: "linear",
-							}}
-							className="absolute -inset-1 rounded-full bg-gradient-to-r from-pink-600 via-pink-500 to-pink-400 opacity-30 blur-sm group-hover:opacity-50 transition-opacity"
-						/>
 						<div className="relative">
 							{baseStats?.thumbnail ? (
 								<Image
@@ -91,17 +82,9 @@ export function ChannelProfile({ baseStats, score }: ChannelProfileProps) {
 									No avatar
 								</div>
 							)}
-							<motion.div
-								initial={{ scale: 0 }}
-								animate={{ scale: 1 }}
-								transition={{
-									delay: 1,
-									type: "spring",
-								}}
-								className="absolute bottom-0 right-0 z-20 bg-pink-500 rounded-full p-1 border-2 border-pink-950"
-							>
-								<CheckCircle2 className="w-4 h-4 text-white" />
-							</motion.div>
+							<div className="absolute bottom-0 right-0 z-20 bg-white/10 rounded-full p-1">
+								<CheckCircle2 className="w-4 h-4 text-white/60" />
+							</div>
 						</div>
 					</div>
 
@@ -113,23 +96,23 @@ export function ChannelProfile({ baseStats, score }: ChannelProfileProps) {
 							className="text-3xl font-bold text-white mb-2 tracking-tight flex items-center gap-2 justify-center md:justify-start"
 						>
 							{baseStats?.title || "Channel"}
-							<span className="px-2 py-0.5 rounded-full bg-pink-500/10 text-xs font-normal text-white/60">
+							<span className="px-2 py-0.5 rounded-full bg-white/5 text-xs font-normal text-white/40">
 								Verified
 							</span>
 						</motion.h2>
 
 						<div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm text-white/60 mb-3">
-							<div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/5 hover:bg-pink-500/10 transition-colors">
-								<Users className="w-3.5 h-3.5 text-pink-400" />
+							<div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
+								<Users className="w-3.5 h-3.5 text-white/40" />
 								<span className="font-medium text-white">{formatNumber(baseStats?.subscribers)}</span>{" "}
 								subscribers
 							</div>
-							<div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/5 hover:bg-pink-500/10 transition-colors">
-								<Eye className="w-3.5 h-3.5 text-pink-400" />
+							<div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
+								<Eye className="w-3.5 h-3.5 text-white/40" />
 								<span className="font-medium text-white">{formatNumber(baseStats?.views)}</span> views
 							</div>
-							<div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/5 hover:bg-pink-500/10 transition-colors">
-								<Calendar className="w-3.5 h-3.5 text-pink-400" />
+							<div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
+								<Calendar className="w-3.5 h-3.5 text-white/40" />
 								<span className="font-medium text-white">{baseStats?.postingFrequency || "Daily"}</span>{" "}
 								uploads
 							</div>
@@ -156,8 +139,8 @@ export function ChannelProfile({ baseStats, score }: ChannelProfileProps) {
 							viewBox="0 0 100 100"
 						>
 							<circle
-								className="text-pink-500/10"
-								strokeWidth="6"
+								className="text-white/5"
+								strokeWidth="5"
 								stroke="currentColor"
 								fill="transparent"
 								r="44"
@@ -165,8 +148,8 @@ export function ChannelProfile({ baseStats, score }: ChannelProfileProps) {
 								cy="50"
 							/>
 							<motion.circle
-								className="text-pink-500"
-								strokeWidth="6"
+								className="text-white/40"
+								strokeWidth="5"
 								strokeLinecap="round"
 								stroke="currentColor"
 								fill="transparent"
@@ -195,9 +178,9 @@ export function ChannelProfile({ baseStats, score }: ChannelProfileProps) {
 							<div className="text-5xl font-bold text-white leading-none tracking-tighter flex">
 								<Counter value={totalScore} />
 							</div>
-							<div className="flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-pink-500/20">
-								<TrendingUp className="w-3 h-3 text-pink-400" />
-								<span className="text-[10px] font-bold text-pink-400 uppercase tracking-wide">
+							<div className="flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-white/5">
+								<TrendingUp className="w-3 h-3 text-white/50" />
+								<span className="text-[10px] font-medium text-white/50 uppercase tracking-wide">
 									{contextLabel}
 								</span>
 							</div>
