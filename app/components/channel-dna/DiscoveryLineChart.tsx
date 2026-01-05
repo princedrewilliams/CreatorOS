@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { Search, TrendingUp, Target, FileText, Loader2, HelpCircle, X, ExternalLink } from "lucide-react";
+import { Search, Target, FileText, Loader2, HelpCircle, X, ExternalLink } from "lucide-react";
 
 interface SEOData {
 	seoScore: number;
