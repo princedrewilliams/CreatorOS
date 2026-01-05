@@ -267,10 +267,23 @@ export function DiscoveryLineChart() {
 						})}
 					</div>
 
-					{/* Top Keywords */}
-					{data.insights.keywordConcentration.topKeywords.length > 0 && (
+					{/* Recurring Topics */}
+					{data.insights.keywordConcentration.topKeywords.length > 0 ? (
 						<div className="mt-4 pt-4 border-t border-white/10">
-							<div className="text-xs text-white/40 mb-2">Top Keywords</div>
+							<div className="flex items-center gap-1 mb-2">
+								<div className="text-xs text-white/40">Recurring Topics</div>
+								<button
+									onClick={() => setActiveTooltip(activeTooltip === "topics" ? null : "topics")}
+									className="p-0.5 rounded hover:bg-white/10"
+								>
+									<HelpCircle className="w-3 h-3 text-white/20" />
+								</button>
+							</div>
+							{activeTooltip === "topics" && (
+								<div className="mb-2 p-2 rounded bg-blue-500/10 text-[10px] text-blue-300 leading-relaxed">
+									These are the most frequently repeated topic terms across recent videos. Links, filler words, and promotions are excluded.
+								</div>
+							)}
 							<div className="flex flex-wrap gap-2">
 								{data.insights.keywordConcentration.topKeywords.slice(0, 5).map((kw, i) => (
 									<span key={i} className="px-2 py-1 rounded bg-white/5 text-xs text-white/60">
@@ -278,6 +291,12 @@ export function DiscoveryLineChart() {
 									</span>
 								))}
 							</div>
+						</div>
+					) : (
+						<div className="mt-4 pt-4 border-t border-white/10">
+							<p className="text-xs text-white/30 italic">
+								No dominant topic keywords detected. This channel covers a wide range of topics.
+							</p>
 						</div>
 					)}
 
@@ -368,50 +387,59 @@ export function DiscoveryLineChart() {
 									))}
 								</div>
 
-								{/* SVG Line Chart */}
-								<svg className="absolute inset-0 w-full h-full overflow-visible">
-									{/* Line path */}
+								{/* SVG Line Chart with proper viewBox */}
+								<svg 
+									className="absolute inset-0 w-full h-full overflow-visible"
+									viewBox={`0 0 400 ${chartHeight}`}
+									preserveAspectRatio="none"
+								>
+									{/* Line path connecting all points */}
 									<path
 										d={data.chart.data.map((score, i) => {
 											const x = data.chart.data.length > 1 
-												? (i / (data.chart.data.length - 1)) * 100 
-												: 50;
-											const y = chartHeight - (score / maxScore) * chartHeight;
-											return `${i === 0 ? 'M' : 'L'} ${x}% ${y}`;
+												? (i / (data.chart.data.length - 1)) * 400 
+												: 200;
+											const y = chartHeight - (score / maxScore) * (chartHeight - 10) - 5;
+											return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
 										}).join(' ')}
 										fill="none"
 										stroke="#60a5fa"
 										strokeWidth="2"
 										strokeLinecap="round"
 										strokeLinejoin="round"
-										className="drop-shadow-sm"
+										vectorEffect="non-scaling-stroke"
 									/>
-
-									{/* Data points */}
+								</svg>
+								
+								{/* Data points overlay (separate for hover) */}
+								<div className="absolute inset-0">
 									{data.chart.data.map((score, i) => {
-										const x = data.chart.data.length > 1 
+										const xPercent = data.chart.data.length > 1 
 											? (i / (data.chart.data.length - 1)) * 100 
 											: 50;
-										const y = chartHeight - (score / maxScore) * chartHeight;
+										const yPixel = chartHeight - (score / maxScore) * (chartHeight - 10) - 5;
 										const isHovered = hoveredPoint === i;
 
 										return (
-											<g key={i}>
-												<circle
-													cx={`${x}%`}
-													cy={y}
-													r={isHovered ? 6 : 4}
-													fill={isHovered ? "#93c5fd" : "#60a5fa"}
-													stroke="#1e3a5f"
-													strokeWidth="2"
-													className="cursor-pointer transition-all duration-150"
-													onMouseEnter={() => setHoveredPoint(i)}
-													onMouseLeave={() => setHoveredPoint(null)}
+											<div
+												key={i}
+												className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer"
+												style={{ 
+													left: `${xPercent}%`, 
+													top: `${yPixel}px`,
+												}}
+												onMouseEnter={() => setHoveredPoint(i)}
+												onMouseLeave={() => setHoveredPoint(null)}
+											>
+												<div 
+													className={`rounded-full border-2 border-blue-900 transition-all duration-150 ${
+														isHovered ? "bg-blue-300 w-3 h-3" : "bg-blue-400 w-2 h-2"
+													}`}
 												/>
-											</g>
+											</div>
 										);
 									})}
-								</svg>
+								</div>
 
 								{/* Tooltip */}
 								{hoveredPoint !== null && (
@@ -421,7 +449,7 @@ export function DiscoveryLineChart() {
 											left: `${data.chart.data.length > 1 
 												? (hoveredPoint / (data.chart.data.length - 1)) * 100 
 												: 50}%`,
-											top: chartHeight - (data.chart.data[hoveredPoint] / maxScore) * chartHeight - 70,
+											top: Math.max(0, chartHeight - (data.chart.data[hoveredPoint] / maxScore) * (chartHeight - 10) - 80),
 											transform: 'translateX(-50%)',
 											minWidth: '140px',
 										}}

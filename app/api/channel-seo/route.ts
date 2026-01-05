@@ -38,10 +38,11 @@ interface VideoData {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// STOP WORDS FOR KEYWORD EXTRACTION
+// STOP WORDS & BANNED TOKENS FOR KEYWORD EXTRACTION
 // ═══════════════════════════════════════════════════════════════════
 
 const STOP_WORDS = new Set([
+	// Common English stopwords
 	"the", "and", "for", "with", "that", "this", "from", "your", "you", "are",
 	"was", "have", "has", "what", "when", "how", "why", "into", "about", "just",
 	"more", "some", "like", "than", "then", "them", "they", "their", "there",
@@ -57,8 +58,32 @@ const STOP_WORDS = new Set([
 	"part", "turn", "start", "might", "must", "need", "never", "ever", "always",
 	"often", "already", "really", "almost", "always", "around", "another", "before",
 	"after", "again", "against", "between", "during", "without", "through", "under",
-	"video", "videos", "watch", "subscribe", "channel", "episode", "full", "official"
 ]);
+
+// YouTube/web boilerplate tokens to filter out
+const BANNED_TOKENS = new Set([
+	// URL fragments
+	"https", "http", "www", "com", "net", "org", "co", "io",
+	// CTA/promotional terms
+	"visit", "link", "click", "subscribe", "follow", "official", "shop", "store",
+	"bio", "merch", "promo", "discount", "code", "coupon", "giveaway", "sponsor",
+	// Generic video terms
+	"video", "videos", "watch", "channel", "episode", "full", "part", "clip",
+	"stream", "streaming", "live", "premiere", "upload", "uploaded", "content",
+	// Social media
+	"instagram", "twitter", "tiktok", "facebook", "snapchat", "discord", "twitch",
+	// Generic descriptors
+	"best", "top", "amazing", "incredible", "awesome", "epic", "crazy", "insane",
+	"ultimate", "exclusive", "special", "bonus", "extra", "free", "new", "latest",
+]);
+
+// CTA phrases to strip before tokenization
+const CTA_PHRASES = [
+	"visit our", "link in bio", "check out", "available at", "watch now",
+	"click here", "subscribe to", "follow us", "join us", "sign up",
+	"download now", "get yours", "order now", "buy now", "shop now",
+	"learn more", "find out", "discover more", "see more", "read more",
+];
 
 // Vague/clickbait phrases that hurt search intent clarity
 const VAGUE_PHRASES = [
@@ -182,48 +207,137 @@ async function fetchRecentVideos(channelId: string, maxResults: number = 30): Pr
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// KEYWORD EXTRACTION & ANALYSIS
+// KEYWORD EXTRACTION & ANALYSIS (IMPROVED)
 // ═══════════════════════════════════════════════════════════════════
 
-function extractKeywords(text: string): string[] {
-	return text
-		.toLowerCase()
-		.replace(/[^a-z0-9\s]/g, " ")
-		.split(/\s+/)
-		.filter(word => word.length > 2 && !STOP_WORDS.has(word));
+/**
+ * Clean text by removing URLs, CTA phrases, and boilerplate
+ */
+function cleanText(text: string): string {
+	let cleaned = text.toLowerCase();
+	
+	// Remove URLs
+	cleaned = cleaned.replace(/https?:\/\/\S+/g, " ");
+	cleaned = cleaned.replace(/www\.\S+/g, " ");
+	
+	// Remove CTA phrases
+	for (const phrase of CTA_PHRASES) {
+		cleaned = cleaned.replace(new RegExp(phrase, "gi"), " ");
+	}
+	
+	// Remove email addresses
+	cleaned = cleaned.replace(/\S+@\S+\.\S+/g, " ");
+	
+	// Remove special characters but keep spaces
+	cleaned = cleaned.replace(/[^a-z\s]/g, " ");
+	
+	// Normalize whitespace
+	cleaned = cleaned.replace(/\s+/g, " ").trim();
+	
+	return cleaned;
 }
 
+/**
+ * Check if a token is valid for keyword extraction
+ */
+function isValidToken(word: string): boolean {
+	// Must be at least 3 characters
+	if (word.length < 3) return false;
+	
+	// Must not be a stopword
+	if (STOP_WORDS.has(word)) return false;
+	
+	// Must not be a banned token
+	if (BANNED_TOKENS.has(word)) return false;
+	
+	// Must not contain numbers only
+	if (/^\d+$/.test(word)) return false;
+	
+	// Must not contain URL fragments
+	if (word.includes("/") || word.includes(".") || word.includes(":")) return false;
+	
+	return true;
+}
+
+/**
+ * Extract topic-bearing keywords from text
+ */
+function extractKeywords(text: string): string[] {
+	const cleaned = cleanText(text);
+	return cleaned
+		.split(/\s+/)
+		.filter(isValidToken);
+}
+
+/**
+ * Analyze keyword concentration with improved filtering
+ */
 function analyzeKeywordConcentration(
 	videos: VideoData[],
 	channelDescription: string
 ): { score: number; summary: string; topKeywords: string[] } {
-	// Collect all keywords from titles, descriptions, and channel description
-	const allKeywords: string[] = [];
+	const totalVideos = videos.length;
 	
-	// Channel description keywords (weighted more heavily by including multiple times)
+	// Track keyword occurrences per video (for uniqueness penalty)
+	const keywordVideoCount: Record<string, Set<number>> = {};
+	const keywordTitleBonus: Record<string, number> = {};
+	const keywordTotalCount: Record<string, number> = {};
+	
+	// Process channel description
 	const channelKeywords = extractKeywords(channelDescription);
-	allKeywords.push(...channelKeywords, ...channelKeywords); // Double weight
-	
-	// Video titles and descriptions
-	for (const video of videos) {
-		allKeywords.push(...extractKeywords(video.title));
-		allKeywords.push(...extractKeywords(video.description.slice(0, 500))); // First 500 chars
+	for (const kw of channelKeywords) {
+		keywordTotalCount[kw] = (keywordTotalCount[kw] || 0) + 2; // Double weight for channel desc
 	}
 	
-	// Count keyword frequency
-	const keywordCounts: Record<string, number> = {};
-	for (const keyword of allKeywords) {
-		keywordCounts[keyword] = (keywordCounts[keyword] || 0) + 1;
+	// Process each video
+	videos.forEach((video, videoIndex) => {
+		// Title keywords (higher weight)
+		const titleKeywords = extractKeywords(video.title);
+		for (const kw of titleKeywords) {
+			keywordTotalCount[kw] = (keywordTotalCount[kw] || 0) + 3; // Title gets 3x weight
+			keywordTitleBonus[kw] = (keywordTitleBonus[kw] || 0) + 1;
+			if (!keywordVideoCount[kw]) keywordVideoCount[kw] = new Set();
+			keywordVideoCount[kw].add(videoIndex);
+		}
+		
+		// Description keywords (first 300 chars only)
+		const descKeywords = extractKeywords(video.description.slice(0, 300));
+		for (const kw of descKeywords) {
+			keywordTotalCount[kw] = (keywordTotalCount[kw] || 0) + 1;
+			if (!keywordVideoCount[kw]) keywordVideoCount[kw] = new Set();
+			keywordVideoCount[kw].add(videoIndex);
+		}
+	});
+	
+	// Calculate final scores with uniqueness penalty
+	const keywordScores: Array<[string, number]> = [];
+	
+	for (const [keyword, count] of Object.entries(keywordTotalCount)) {
+		const videoAppearances = keywordVideoCount[keyword]?.size || 0;
+		const videoRatio = totalVideos > 0 ? videoAppearances / totalVideos : 0;
+		
+		// Skip keywords that appear in >70% of videos (too generic)
+		if (videoRatio > 0.7) continue;
+		
+		// Calculate score: frequency × position bonus × uniqueness
+		const frequencyWeight = count;
+		const positionWeight = 1 + (keywordTitleBonus[keyword] || 0) * 0.5;
+		const uniquenessWeight = Math.max(0.3, 1 - videoRatio * 0.5);
+		
+		const finalScore = frequencyWeight * positionWeight * uniquenessWeight;
+		keywordScores.push([keyword, finalScore]);
 	}
 	
-	// Sort by frequency and get top 5
-	const sortedKeywords = Object.entries(keywordCounts)
-		.sort((a, b) => b[1] - a[1])
-		.slice(0, 5);
+	// Sort by score and get top 5
+	keywordScores.sort((a, b) => b[1] - a[1]);
+	const topKeywords = keywordScores.slice(0, 5).map(([word]) => word);
 	
-	const topKeywords = sortedKeywords.map(([word]) => word);
-	const top5Occurrences = sortedKeywords.reduce((sum, [, count]) => sum + count, 0);
-	const totalOccurrences = allKeywords.length;
+	// Calculate concentration score
+	const top5Score = keywordScores.slice(0, 5).reduce((sum, [, score]) => sum + score, 0);
+	const totalScore = keywordScores.reduce((sum, [, score]) => sum + score, 0);
+	const score = totalScore > 0 
+		? Math.min(100, Math.round((top5Score / totalScore) * 100))
+		: 0;
 	
 	// Calculate score
 	const score = totalOccurrences > 0 
