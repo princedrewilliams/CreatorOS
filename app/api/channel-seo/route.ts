@@ -4,23 +4,33 @@ import { NextResponse } from "next/server";
 // TYPES
 // ═══════════════════════════════════════════════════════════════════
 
+interface TopicCluster {
+	name: string;
+	keywords: string[];
+	videoCount: number;
+	exampleVideos: ExampleVideo[];
+}
+
+interface ExampleVideo {
+	title: string;
+	views: number;
+	publishedAt: string;
+	matchType: "title" | "description";
+	thumbnail?: string;
+}
+
+interface SEOSubscores {
+	topicFocus: number;
+	titleClarity: number;
+	topicRepetition: number;
+	metadataCompleteness: number;
+}
+
 interface SEOAnalysisResult {
 	seoScore: number;
-	insights: {
-		keywordConcentration: {
-			score: number;
-			summary: string;
-			topKeywords: string[];
-		};
-		searchIntentClarity: {
-			score: number;
-			summary: string;
-		};
-		metadataCompleteness: {
-			score: number;
-			summary: string;
-		};
-	};
+	subscores: SEOSubscores;
+	explanation: string;
+	topicClusters: TopicCluster[];
 	chart: {
 		labels: string[];
 		data: number[];
@@ -34,15 +44,15 @@ interface VideoData {
 	publishedAt: string;
 	views: number;
 	tags?: string[];
+	thumbnail?: string;
 	metadataScore?: number;
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// STOP WORDS & BANNED TOKENS FOR KEYWORD EXTRACTION
+// STOP WORDS & BANNED TOKENS
 // ═══════════════════════════════════════════════════════════════════
 
 const STOP_WORDS = new Set([
-	// Common English stopwords
 	"the", "and", "for", "with", "that", "this", "from", "your", "you", "are",
 	"was", "have", "has", "what", "when", "how", "why", "into", "about", "just",
 	"more", "some", "like", "than", "then", "them", "they", "their", "there",
@@ -53,58 +63,27 @@ const STOP_WORDS = new Set([
 	"its", "our", "out", "over", "off", "down", "now", "new", "get", "got",
 	"one", "two", "first", "last", "next", "make", "made", "way", "may", "say",
 	"see", "come", "take", "know", "think", "look", "want", "give", "use", "find",
-	"tell", "ask", "work", "seem", "feel", "try", "leave", "call", "keep", "let",
-	"begin", "seem", "help", "show", "hear", "play", "run", "move", "live", "believe",
-	"part", "turn", "start", "might", "must", "need", "never", "ever", "always",
-	"often", "already", "really", "almost", "always", "around", "another", "before",
-	"after", "again", "against", "between", "during", "without", "through", "under",
 ]);
 
-// YouTube/web boilerplate tokens to filter out
 const BANNED_TOKENS = new Set([
-	// URL fragments
 	"https", "http", "www", "com", "net", "org", "co", "io",
-	// CTA/promotional terms
 	"visit", "link", "click", "subscribe", "follow", "official", "shop", "store",
 	"bio", "merch", "promo", "discount", "code", "coupon", "giveaway", "sponsor",
-	// Generic video terms
 	"video", "videos", "watch", "channel", "episode", "full", "part", "clip",
 	"stream", "streaming", "live", "premiere", "upload", "uploaded", "content",
-	// Social media
 	"instagram", "twitter", "tiktok", "facebook", "snapchat", "discord", "twitch",
-	// Generic descriptors
 	"best", "top", "amazing", "incredible", "awesome", "epic", "crazy", "insane",
-	"ultimate", "exclusive", "special", "bonus", "extra", "free", "new", "latest",
+	"ultimate", "exclusive", "special", "bonus", "extra", "free", "latest",
 ]);
 
-// CTA phrases to strip before tokenization
 const CTA_PHRASES = [
 	"visit our", "link in bio", "check out", "available at", "watch now",
 	"click here", "subscribe to", "follow us", "join us", "sign up",
-	"download now", "get yours", "order now", "buy now", "shop now",
-	"learn more", "find out", "discover more", "see more", "read more",
 ];
 
-// Vague/clickbait phrases that hurt search intent clarity
 const VAGUE_PHRASES = [
-	"you won't believe",
-	"what happened",
-	"this is why",
-	"the truth about",
-	"i can't believe",
-	"shocking",
-	"unbelievable",
-	"must see",
-	"wait for it",
-	"this changed everything",
-	"gone wrong",
-	"went viral",
-	"not clickbait",
-	"real reason",
-	"finally revealed",
-	"nobody knows",
-	"secret",
-	"exposed"
+	"you won't believe", "what happened", "this is why", "the truth about",
+	"shocking", "unbelievable", "must see", "wait for it", "gone wrong",
 ];
 
 // ═══════════════════════════════════════════════════════════════════
@@ -114,7 +93,6 @@ const VAGUE_PHRASES = [
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 
 async function extractChannelId(channelUrl: string): Promise<string | null> {
-	// Handle different YouTube URL formats
 	const patterns = [
 		/youtube\.com\/channel\/([a-zA-Z0-9_-]+)/,
 		/youtube\.com\/@([a-zA-Z0-9_-]+)/,
@@ -126,13 +104,7 @@ async function extractChannelId(channelUrl: string): Promise<string | null> {
 		const match = channelUrl.match(pattern);
 		if (match) {
 			const identifier = match[1];
-			
-			// If it's a channel ID (starts with UC), return directly
-			if (identifier.startsWith("UC")) {
-				return identifier;
-			}
-			
-			// Otherwise, resolve handle/username to channel ID
+			if (identifier.startsWith("UC")) return identifier;
 			return await resolveChannelId(identifier, channelUrl.includes("/@"));
 		}
 	}
@@ -141,7 +113,6 @@ async function extractChannelId(channelUrl: string): Promise<string | null> {
 
 async function resolveChannelId(identifier: string, isHandle: boolean): Promise<string | null> {
 	if (!YOUTUBE_API_KEY) return null;
-	
 	try {
 		const searchParam = isHandle ? `@${identifier}` : identifier;
 		const res = await fetch(
@@ -154,19 +125,18 @@ async function resolveChannelId(identifier: string, isHandle: boolean): Promise<
 	}
 }
 
-async function fetchChannelData(channelId: string): Promise<{ description: string } | null> {
+async function fetchChannelData(channelId: string): Promise<{ description: string; subscriberCount: number } | null> {
 	if (!YOUTUBE_API_KEY) return null;
-	
 	try {
 		const res = await fetch(
-			`https://www.googleapis.com/youtube/v3/channels?part=snippet,contentDetails&id=${channelId}&key=${YOUTUBE_API_KEY}`
+			`https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${channelId}&key=${YOUTUBE_API_KEY}`
 		);
 		const data = await res.json();
 		const channel = data.items?.[0];
 		if (!channel) return null;
-		
 		return {
 			description: channel.snippet?.description || "",
+			subscriberCount: parseInt(channel.statistics?.subscriberCount || "0", 10),
 		};
 	} catch {
 		return null;
@@ -175,23 +145,19 @@ async function fetchChannelData(channelId: string): Promise<{ description: strin
 
 async function fetchRecentVideos(channelId: string, maxResults: number = 30): Promise<VideoData[]> {
 	if (!YOUTUBE_API_KEY) return [];
-	
 	try {
-		// First, get video IDs from search
 		const searchRes = await fetch(
 			`https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&order=date&type=video&maxResults=${maxResults}&key=${YOUTUBE_API_KEY}`
 		);
 		const searchData = await searchRes.json();
 		const videoIds = searchData.items?.map((item: any) => item.id.videoId).filter(Boolean) || [];
-		
 		if (videoIds.length === 0) return [];
-		
-		// Then, get detailed video data
+
 		const videosRes = await fetch(
 			`https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${videoIds.join(",")}&key=${YOUTUBE_API_KEY}`
 		);
 		const videosData = await videosRes.json();
-		
+
 		return videosData.items?.map((video: any) => ({
 			id: video.id,
 			title: video.snippet?.title || "",
@@ -199,6 +165,7 @@ async function fetchRecentVideos(channelId: string, maxResults: number = 30): Pr
 			publishedAt: video.snippet?.publishedAt || "",
 			views: parseInt(video.statistics?.viewCount || "0", 10),
 			tags: video.snippet?.tags || [],
+			thumbnail: video.snippet?.thumbnails?.medium?.url || video.snippet?.thumbnails?.default?.url,
 		})) || [];
 	} catch (error) {
 		console.error("Error fetching videos:", error);
@@ -207,275 +174,301 @@ async function fetchRecentVideos(channelId: string, maxResults: number = 30): Pr
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// KEYWORD EXTRACTION & ANALYSIS (IMPROVED)
+// TEXT PROCESSING
 // ═══════════════════════════════════════════════════════════════════
 
-/**
- * Clean text by removing URLs, CTA phrases, and boilerplate
- */
 function cleanText(text: string): string {
 	let cleaned = text.toLowerCase();
-	
-	// Remove URLs
 	cleaned = cleaned.replace(/https?:\/\/\S+/g, " ");
 	cleaned = cleaned.replace(/www\.\S+/g, " ");
-	
-	// Remove CTA phrases
 	for (const phrase of CTA_PHRASES) {
 		cleaned = cleaned.replace(new RegExp(phrase, "gi"), " ");
 	}
-	
-	// Remove email addresses
 	cleaned = cleaned.replace(/\S+@\S+\.\S+/g, " ");
-	
-	// Remove special characters but keep spaces
 	cleaned = cleaned.replace(/[^a-z\s]/g, " ");
-	
-	// Normalize whitespace
 	cleaned = cleaned.replace(/\s+/g, " ").trim();
-	
 	return cleaned;
 }
 
-/**
- * Check if a token is valid for keyword extraction
- */
 function isValidToken(word: string): boolean {
-	// Must be at least 3 characters
 	if (word.length < 3) return false;
-	
-	// Must not be a stopword
 	if (STOP_WORDS.has(word)) return false;
-	
-	// Must not be a banned token
 	if (BANNED_TOKENS.has(word)) return false;
-	
-	// Must not contain numbers only
 	if (/^\d+$/.test(word)) return false;
-	
-	// Must not contain URL fragments
-	if (word.includes("/") || word.includes(".") || word.includes(":")) return false;
-	
 	return true;
 }
 
-/**
- * Extract topic-bearing keywords from text
- */
 function extractKeywords(text: string): string[] {
-	const cleaned = cleanText(text);
-	return cleaned
-		.split(/\s+/)
-		.filter(isValidToken);
+	return cleanText(text).split(/\s+/).filter(isValidToken);
 }
 
-/**
- * Analyze keyword concentration with improved filtering
- */
-function analyzeKeywordConcentration(
-	videos: VideoData[],
-	channelDescription: string
-): { score: number; summary: string; topKeywords: string[] } {
-	const totalVideos = videos.length;
-	
-	// Track keyword occurrences per video (for uniqueness penalty)
-	const keywordVideoCount: Record<string, Set<number>> = {};
-	const keywordTitleBonus: Record<string, number> = {};
-	const keywordTotalCount: Record<string, number> = {};
-	
-	// Process channel description
-	const channelKeywords = extractKeywords(channelDescription);
-	for (const kw of channelKeywords) {
-		keywordTotalCount[kw] = (keywordTotalCount[kw] || 0) + 2; // Double weight for channel desc
-	}
+// ═══════════════════════════════════════════════════════════════════
+// TOPIC CLUSTER ANALYSIS
+// ═══════════════════════════════════════════════════════════════════
+
+function buildTopicClusters(videos: VideoData[], subscriberCount: number): TopicCluster[] {
+	// Track keyword co-occurrence across videos
+	const keywordVideos: Record<string, Set<number>> = {};
+	const keywordInTitle: Record<string, Set<number>> = {};
 	
 	// Process each video
-	videos.forEach((video, videoIndex) => {
-		// Title keywords (higher weight)
+	videos.forEach((video, idx) => {
 		const titleKeywords = extractKeywords(video.title);
-		for (const kw of titleKeywords) {
-			keywordTotalCount[kw] = (keywordTotalCount[kw] || 0) + 3; // Title gets 3x weight
-			keywordTitleBonus[kw] = (keywordTitleBonus[kw] || 0) + 1;
-			if (!keywordVideoCount[kw]) keywordVideoCount[kw] = new Set();
-			keywordVideoCount[kw].add(videoIndex);
-		}
+		const descKeywords = extractKeywords(video.description.slice(0, 120));
+		const allKeywords = [...new Set([...titleKeywords, ...descKeywords])];
 		
-		// Description keywords (first 300 chars only)
-		const descKeywords = extractKeywords(video.description.slice(0, 300));
-		for (const kw of descKeywords) {
-			keywordTotalCount[kw] = (keywordTotalCount[kw] || 0) + 1;
-			if (!keywordVideoCount[kw]) keywordVideoCount[kw] = new Set();
-			keywordVideoCount[kw].add(videoIndex);
+		for (const kw of allKeywords) {
+			if (!keywordVideos[kw]) keywordVideos[kw] = new Set();
+			keywordVideos[kw].add(idx);
+			
+			if (titleKeywords.includes(kw)) {
+				if (!keywordInTitle[kw]) keywordInTitle[kw] = new Set();
+				keywordInTitle[kw].add(idx);
+			}
 		}
 	});
 	
-	// Calculate final scores with uniqueness penalty
-	const keywordScores: Array<[string, number]> = [];
+	// Filter keywords that appear in at least 2 videos but not more than 70%
+	const validKeywords = Object.entries(keywordVideos)
+		.filter(([, videoSet]) => {
+			const count = videoSet.size;
+			return count >= 2 && count <= videos.length * 0.7;
+		})
+		.map(([kw]) => kw);
 	
-	for (const [keyword, count] of Object.entries(keywordTotalCount)) {
-		const videoAppearances = keywordVideoCount[keyword]?.size || 0;
-		const videoRatio = totalVideos > 0 ? videoAppearances / totalVideos : 0;
+	// Group keywords by co-occurrence (simple clustering)
+	const clusters: TopicCluster[] = [];
+	const usedKeywords = new Set<string>();
+	
+	// Sort keywords by frequency (descending)
+	const sortedKeywords = validKeywords.sort((a, b) => 
+		keywordVideos[b].size - keywordVideos[a].size
+	);
+	
+	for (const primaryKw of sortedKeywords) {
+		if (usedKeywords.has(primaryKw)) continue;
 		
-		// Skip keywords that appear in >70% of videos (too generic)
-		if (videoRatio > 0.7) continue;
+		const primaryVideos = keywordVideos[primaryKw];
+		const relatedKeywords = [primaryKw];
 		
-		// Calculate score: frequency × position bonus × uniqueness
-		const frequencyWeight = count;
-		const positionWeight = 1 + (keywordTitleBonus[keyword] || 0) * 0.5;
-		const uniquenessWeight = Math.max(0.3, 1 - videoRatio * 0.5);
-		
-		const finalScore = frequencyWeight * positionWeight * uniquenessWeight;
-		keywordScores.push([keyword, finalScore]);
-	}
-	
-	// Sort by score and get top 5
-	keywordScores.sort((a, b) => b[1] - a[1]);
-	const topKeywords = keywordScores.slice(0, 5).map(([word]) => word);
-	
-	// Calculate concentration score
-	const top5Score = keywordScores.slice(0, 5).reduce((sum, [, score]) => sum + score, 0);
-	const totalScore = keywordScores.reduce((sum, [, score]) => sum + score, 0);
-	const score = totalScore > 0 
-		? Math.min(100, Math.round((top5Score / totalScore) * 100))
-		: 0;
-	
-	// Calculate score
-	const score = totalOccurrences > 0 
-		? Math.min(100, Math.round((top5Occurrences / totalOccurrences) * 100))
-		: 0;
-	
-	// Generate summary
-	let summary: string;
-	if (score >= 60) {
-		summary = `Strong topical authority. Content consistently focuses on ${topKeywords.slice(0, 3).join(", ")}.`;
-	} else if (score >= 40) {
-		summary = `Moderate keyword focus. Primary themes include ${topKeywords.slice(0, 3).join(", ")} but coverage varies.`;
-	} else {
-		summary = `Scattered topic coverage. No dominant keyword themes detected across recent content.`;
-	}
-	
-	return { score, summary, topKeywords };
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// SEARCH INTENT CLARITY ANALYSIS
-// ═══════════════════════════════════════════════════════════════════
-
-function analyzeSearchIntentClarity(videos: VideoData[]): { score: number; summary: string } {
-	if (videos.length === 0) return { score: 0, summary: "No videos to analyze." };
-	
-	let clearTitleCount = 0;
-	
-	for (const video of videos) {
-		const title = video.title.toLowerCase();
-		const words = title.split(/\s+/).filter(w => w.length > 2);
-		
-		// Check for vague/clickbait phrases
-		const hasVaguePhrasing = VAGUE_PHRASES.some(phrase => title.includes(phrase));
-		if (hasVaguePhrasing) continue;
-		
-		// Extract potential keywords (non-stopwords)
-		const keywords = words.filter(w => !STOP_WORDS.has(w));
-		if (keywords.length === 0) continue;
-		
-		// Check if primary keyword appears in first 40% of title
-		const first40Percent = Math.ceil(words.length * 0.4);
-		const firstWords = words.slice(0, first40Percent);
-		const hasEarlyKeyword = keywords.some(kw => firstWords.includes(kw));
-		
-		if (hasEarlyKeyword) {
-			clearTitleCount++;
-		}
-	}
-	
-	const score = Math.round((clearTitleCount / videos.length) * 100);
-	
-	let summary: string;
-	if (score >= 70) {
-		summary = `Search-optimized titles. ${score}% of videos front-load primary keywords for discoverability.`;
-	} else if (score >= 45) {
-		summary = `Mixed title strategy. Some videos prioritize search, others use curiosity-first hooks.`;
-	} else {
-		summary = `Curiosity-driven titles. Most titles prioritize engagement over search discoverability.`;
-	}
-	
-	return { score, summary };
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// METADATA COMPLETENESS ANALYSIS
-// ═══════════════════════════════════════════════════════════════════
-
-function analyzeMetadataCompleteness(
-	videos: VideoData[]
-): { score: number; summary: string; videoScores: { date: string; score: number }[] } {
-	if (videos.length === 0) {
-		return { score: 0, summary: "No videos to analyze.", videoScores: [] };
-	}
-	
-	const videoScores: { date: string; score: number }[] = [];
-	
-	for (const video of videos) {
-		let passedChecks = 0;
-		const totalChecks = 4;
-		
-		// Check 1: Title length between 40-60 chars (optimal for SEO)
-		const titleLength = video.title.length;
-		if (titleLength >= 40 && titleLength <= 70) {
-			passedChecks++;
-		} else if (titleLength >= 30 && titleLength <= 80) {
-			passedChecks += 0.5; // Partial credit
-		}
-		
-		// Check 2: Description >= 250 chars
-		if (video.description.length >= 250) {
-			passedChecks++;
-		} else if (video.description.length >= 100) {
-			passedChecks += 0.5; // Partial credit
-		}
-		
-		// Check 3: Primary keyword in first 2 lines of description
-		const firstTwoLines = video.description.split("\n").slice(0, 2).join(" ").toLowerCase();
-		const titleKeywords = extractKeywords(video.title);
-		const hasKeywordInDescription = titleKeywords.some(kw => firstTwoLines.includes(kw));
-		if (hasKeywordInDescription) {
-			passedChecks++;
-		}
-		
-		// Check 4: Tags present (if accessible)
-		if (video.tags && video.tags.length > 0) {
-			passedChecks++;
-		} else {
-			// Tags often not accessible via API, give partial credit if description is rich
-			if (video.description.length >= 500) {
-				passedChecks += 0.5;
+		// Find keywords that co-occur with this primary keyword
+		for (const otherKw of sortedKeywords) {
+			if (otherKw === primaryKw || usedKeywords.has(otherKw)) continue;
+			
+			const otherVideos = keywordVideos[otherKw];
+			const overlap = [...primaryVideos].filter(v => otherVideos.has(v)).length;
+			const overlapRatio = overlap / Math.min(primaryVideos.size, otherVideos.size);
+			
+			// If >50% overlap, group together
+			if (overlapRatio > 0.5 && relatedKeywords.length < 5) {
+				relatedKeywords.push(otherKw);
 			}
 		}
 		
-		const videoScore = Math.round((passedChecks / totalChecks) * 100);
-		video.metadataScore = videoScore;
+		// Mark all keywords in this cluster as used
+		relatedKeywords.forEach(kw => usedKeywords.add(kw));
 		
-		videoScores.push({
-			date: video.publishedAt,
-			score: videoScore,
+		// Get example videos for this cluster
+		const clusterVideoIndices = [...primaryVideos];
+		const exampleVideos = getExampleVideos(
+			videos, 
+			clusterVideoIndices, 
+			primaryKw, 
+			subscriberCount
+		);
+		
+		// Generate cluster name
+		const clusterName = generateClusterName(relatedKeywords);
+		
+		clusters.push({
+			name: clusterName,
+			keywords: relatedKeywords,
+			videoCount: primaryVideos.size,
+			exampleVideos,
 		});
+		
+		if (clusters.length >= 5) break;
 	}
 	
-	// Calculate average score
-	const avgScore = Math.round(
-		videoScores.reduce((sum, v) => sum + v.score, 0) / videoScores.length
+	return clusters;
+}
+
+function generateClusterName(keywords: string[]): string {
+	// Capitalize and join top 2-3 keywords
+	const topKeywords = keywords.slice(0, 3);
+	return topKeywords
+		.map(kw => kw.charAt(0).toUpperCase() + kw.slice(1))
+		.join(" & ");
+}
+
+function getExampleVideos(
+	videos: VideoData[],
+	videoIndices: number[],
+	keyword: string,
+	subscriberCount: number
+): ExampleVideo[] {
+	const candidates = videoIndices.map(idx => {
+		const video = videos[idx];
+		const viewsPerSub = subscriberCount > 0 ? video.views / subscriberCount : 0;
+		const recencyScore = new Date(video.publishedAt).getTime();
+		const matchType = video.title.toLowerCase().includes(keyword) ? "title" : "description";
+		
+		return {
+			video,
+			score: viewsPerSub * 0.7 + (recencyScore / Date.now()) * 0.3,
+			matchType,
+		};
+	});
+	
+	// Sort by combined score and take top 3
+	candidates.sort((a, b) => b.score - a.score);
+	
+	return candidates.slice(0, 3).map(c => ({
+		title: c.video.title,
+		views: c.video.views,
+		publishedAt: c.video.publishedAt,
+		matchType: c.matchType as "title" | "description",
+		thumbnail: c.video.thumbnail,
+	}));
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SEO SCORING (4 FACTORS)
+// ═══════════════════════════════════════════════════════════════════
+
+function calculateSEOScore(
+	videos: VideoData[],
+	topicClusters: TopicCluster[]
+): { score: number; subscores: SEOSubscores; explanation: string } {
+	const totalVideos = videos.length;
+	
+	// 1️⃣ TOPIC FOCUS (30%) - % of videos in top 2-3 clusters
+	const top3ClusterVideos = topicClusters.slice(0, 3).reduce((sum, c) => sum + c.videoCount, 0);
+	const topicFocusRatio = totalVideos > 0 ? Math.min(1, top3ClusterVideos / totalVideos) : 0;
+	const topicFocus = Math.round(topicFocusRatio * 100);
+	
+	// 2️⃣ TITLE KEYWORD CLARITY (25%) - keywords in first 40 chars
+	let clearTitleCount = 0;
+	for (const video of videos) {
+		const first40Chars = video.title.slice(0, 40).toLowerCase();
+		const titleKeywords = extractKeywords(video.title);
+		const hasVague = VAGUE_PHRASES.some(p => video.title.toLowerCase().includes(p));
+		
+		if (!hasVague && titleKeywords.some(kw => first40Chars.includes(kw))) {
+			clearTitleCount++;
+		}
+	}
+	const titleClarity = totalVideos > 0 ? Math.round((clearTitleCount / totalVideos) * 100) : 0;
+	
+	// 3️⃣ TOPIC REPETITION (25%) - recurring topics across videos
+	const avgClusterSize = topicClusters.length > 0 
+		? topicClusters.reduce((sum, c) => sum + c.videoCount, 0) / topicClusters.length 
+		: 0;
+	const repetitionRatio = totalVideos > 0 ? Math.min(1, avgClusterSize / (totalVideos * 0.3)) : 0;
+	const topicRepetition = Math.round(repetitionRatio * 100);
+	
+	// 4️⃣ METADATA COMPLETENESS (20%) - description quality
+	let metadataScore = 0;
+	for (const video of videos) {
+		let videoScore = 0;
+		// Title length 40-70 chars
+		if (video.title.length >= 40 && video.title.length <= 70) videoScore += 25;
+		else if (video.title.length >= 30) videoScore += 15;
+		// Description >= 200 chars (excluding URLs)
+		const cleanDesc = video.description.replace(/https?:\/\/\S+/g, "");
+		if (cleanDesc.length >= 200) videoScore += 25;
+		else if (cleanDesc.length >= 100) videoScore += 15;
+		// Keyword in first 2 lines
+		const first2Lines = video.description.split("\n").slice(0, 2).join(" ");
+		const titleKeywords = extractKeywords(video.title);
+		if (titleKeywords.some(kw => first2Lines.toLowerCase().includes(kw))) videoScore += 25;
+		// Not too many links
+		const linkCount = (video.description.match(/https?:\/\//g) || []).length;
+		if (linkCount <= 3) videoScore += 25;
+		else if (linkCount <= 5) videoScore += 15;
+		
+		metadataScore += videoScore;
+	}
+	const metadataCompleteness = totalVideos > 0 ? Math.round(metadataScore / totalVideos) : 0;
+	
+	// FINAL SCORE
+	const score = Math.round(
+		topicFocus * 0.30 +
+		titleClarity * 0.25 +
+		topicRepetition * 0.25 +
+		metadataCompleteness * 0.20
 	);
 	
-	let summary: string;
-	if (avgScore >= 75) {
-		summary = `Strong SEO metadata. Titles, descriptions, and keywords are well-optimized across videos.`;
-	} else if (avgScore >= 50) {
-		summary = `Moderate metadata quality. Some videos lack complete descriptions or keyword alignment.`;
-	} else {
-		summary = `Weak metadata optimization. Many videos missing descriptions or keyword placement.`;
+	// EXPLANATION
+	const strengths: string[] = [];
+	const weaknesses: string[] = [];
+	
+	if (topicFocus >= 60) strengths.push("Strong topic focus around 2-3 themes");
+	else weaknesses.push("Content spans many different topics");
+	
+	if (titleClarity >= 60) strengths.push("Titles clearly describe the content");
+	else weaknesses.push("Many titles use vague or curiosity-driven phrasing");
+	
+	if (topicRepetition >= 50) strengths.push("Topics repeat across multiple videos");
+	else weaknesses.push("Topics are rarely repeated across videos");
+	
+	if (metadataCompleteness >= 60) strengths.push("Consistent metadata across videos");
+	else weaknesses.push("Metadata quality varies across videos");
+	
+	const explanation = strengths.length >= 2
+		? `Strong SEO signals. ${strengths.slice(0, 2).join(". ")}.`
+		: weaknesses.length >= 2
+			? `Room for improvement. ${weaknesses.slice(0, 2).join(". ")}.`
+			: "Mixed SEO signals across content.";
+	
+	return {
+		score,
+		subscores: { topicFocus, titleClarity, topicRepetition, metadataCompleteness },
+		explanation,
+	};
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// CHART DATA - TOPIC CONSISTENCY OVER TIME
+// ═══════════════════════════════════════════════════════════════════
+
+function buildChartData(videos: VideoData[], topicClusters: TopicCluster[]): { labels: string[]; data: number[] } {
+	if (videos.length === 0 || topicClusters.length === 0) {
+		return { labels: [], data: [] };
 	}
 	
-	return { score: avgScore, summary, videoScores };
+	// Get top cluster keywords
+	const topClusterKeywords = topicClusters.slice(0, 3).flatMap(c => c.keywords);
+	
+	// Sort videos by date (oldest first)
+	const sortedVideos = [...videos].sort(
+		(a, b) => new Date(a.publishedAt).getTime() - new Date(b.publishedAt).getTime()
+	);
+	
+	// Calculate topic consistency per video
+	const chartData = sortedVideos.map(video => {
+		const titleKeywords = extractKeywords(video.title);
+		const descKeywords = extractKeywords(video.description.slice(0, 120));
+		const allKeywords = [...titleKeywords, ...descKeywords];
+		
+		const matchCount = allKeywords.filter(kw => topClusterKeywords.includes(kw)).length;
+		const score = Math.min(100, Math.round((matchCount / Math.max(1, allKeywords.length)) * 100));
+		
+		return {
+			label: formatDate(video.publishedAt),
+			score,
+		};
+	});
+	
+	return {
+		labels: chartData.map(d => d.label),
+		data: chartData.map(d => d.score),
+	};
+}
+
+function formatDate(dateString: string): string {
+	const date = new Date(dateString);
+	return `${date.getMonth() + 1}/${date.getDate()}`;
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -486,120 +479,50 @@ export async function POST(request: Request) {
 	try {
 		const body = await request.json();
 		const { channelUrl } = body;
-		
+
 		if (!channelUrl) {
-			return NextResponse.json(
-				{ error: "Channel URL is required" },
-				{ status: 400 }
-			);
+			return NextResponse.json({ error: "Channel URL is required" }, { status: 400 });
 		}
-		
+
 		if (!YOUTUBE_API_KEY) {
-			return NextResponse.json(
-				{ error: "YouTube API key not configured" },
-				{ status: 500 }
-			);
+			return NextResponse.json({ error: "YouTube API key not configured" }, { status: 500 });
 		}
-		
-		// Extract channel ID from URL
+
 		const channelId = await extractChannelId(channelUrl);
 		if (!channelId) {
-			return NextResponse.json(
-				{ error: "Could not resolve channel ID from URL" },
-				{ status: 400 }
-			);
+			return NextResponse.json({ error: "Could not resolve channel ID" }, { status: 400 });
 		}
-		
-		// Fetch channel data
+
 		const channelData = await fetchChannelData(channelId);
 		if (!channelData) {
-			return NextResponse.json(
-				{ error: "Could not fetch channel data" },
-				{ status: 404 }
-			);
+			return NextResponse.json({ error: "Could not fetch channel data" }, { status: 404 });
 		}
-		
-		// Fetch recent videos
+
 		const videos = await fetchRecentVideos(channelId, 30);
 		if (videos.length === 0) {
-			return NextResponse.json(
-				{ error: "No videos found for this channel" },
-				{ status: 404 }
-			);
+			return NextResponse.json({ error: "No videos found" }, { status: 404 });
 		}
-		
-		// ══════════════════════════════════════════════════════════════
-		// ANALYZE SEO METRICS
-		// ══════════════════════════════════════════════════════════════
-		
-		// 1. Keyword Concentration Analysis
-		const keywordAnalysis = analyzeKeywordConcentration(videos, channelData.description);
-		
-		// 2. Search Intent Clarity Analysis
-		const searchIntentAnalysis = analyzeSearchIntentClarity(videos);
-		
-		// 3. Metadata Completeness Analysis
-		const metadataAnalysis = analyzeMetadataCompleteness(videos);
-		
-		// ══════════════════════════════════════════════════════════════
-		// CALCULATE FINAL SEO SCORE
-		// ══════════════════════════════════════════════════════════════
-		
-		const seoScore = Math.round(
-			keywordAnalysis.score * 0.4 +
-			searchIntentAnalysis.score * 0.35 +
-			metadataAnalysis.score * 0.25
-		);
-		
-		// ══════════════════════════════════════════════════════════════
-		// BUILD CHART DATA
-		// ══════════════════════════════════════════════════════════════
-		
-		// Sort by date (oldest first for chart)
-		const sortedScores = [...metadataAnalysis.videoScores].sort(
-			(a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-		);
-		
-		const chart = {
-			labels: sortedScores.map(v => {
-				const date = new Date(v.date);
-				return `${date.getMonth() + 1}/${date.getDate()}`;
-			}),
-			data: sortedScores.map(v => v.score),
-		};
-		
-		// ══════════════════════════════════════════════════════════════
-		// BUILD RESPONSE
-		// ══════════════════════════════════════════════════════════════
-		
+
+		// Build topic clusters with example videos
+		const topicClusters = buildTopicClusters(videos, channelData.subscriberCount);
+
+		// Calculate SEO score with subscores
+		const { score, subscores, explanation } = calculateSEOScore(videos, topicClusters);
+
+		// Build chart data
+		const chart = buildChartData(videos, topicClusters);
+
 		const result: SEOAnalysisResult = {
-			seoScore,
-			insights: {
-				keywordConcentration: {
-					score: keywordAnalysis.score,
-					summary: keywordAnalysis.summary,
-					topKeywords: keywordAnalysis.topKeywords,
-				},
-				searchIntentClarity: {
-					score: searchIntentAnalysis.score,
-					summary: searchIntentAnalysis.summary,
-				},
-				metadataCompleteness: {
-					score: metadataAnalysis.score,
-					summary: metadataAnalysis.summary,
-				},
-			},
+			seoScore: score,
+			subscores,
+			explanation,
+			topicClusters,
 			chart,
 		};
-		
+
 		return NextResponse.json(result);
-		
 	} catch (error) {
 		console.error("SEO analysis error:", error);
-		return NextResponse.json(
-			{ error: "Failed to analyze channel SEO" },
-			{ status: 500 }
-		);
+		return NextResponse.json({ error: "Failed to analyze channel SEO" }, { status: 500 });
 	}
 }
-
