@@ -60,7 +60,7 @@ export default function HomePage() {
 			<section className="relative z-10 max-w-6xl mx-auto px-5 md:px-10 py-16 md:py-24 lg:py-28 flex flex-col items-center gap-10">
 				{/* Hero text */}
 				<div className="text-center space-y-4 md:space-y-6 max-w-4xl">
-					<h1 className="text-[186px] md:text-[246px] lg:text-[286px] font-bold leading-tight md:leading-[1.02] tracking-tight">
+					<h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight md:leading-[1.02] tracking-tight">
 						Reverse-Engineer What Makes
 						<br className="hidden md:block" />
 						<span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#ff5abf] via-[#ff3ea7] to-[#ff8bf5]">
