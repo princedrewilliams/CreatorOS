@@ -222,6 +222,12 @@ select {
 	color: var(--text-secondary);
 }
 
+h1 {
+	font-size: 44px;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+}
+
 h2 {
 	font-size: 18px;
 	font-weight: 600;
