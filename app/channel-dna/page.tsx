@@ -7,6 +7,8 @@ import Link from "next/link";
 
 import { FrostedTabs, type Tab } from "../components/ui/FrostedTabs";
 import { ChannelHeader } from "../components/channel-dna/ChannelHeader";
+import { ChannelSummary } from "../components/channel-dna/ChannelSummary";
+import { NicheBenchmarks } from "../components/channel-dna/NicheBenchmarks";
 import { InsightsPanel } from "../components/channel-dna/InsightsPanel";
 import { ChartPanel } from "../components/channel-dna/ChartPanel";
 import { TabContent } from "../components/channel-dna/TabContent";
@@ -269,6 +271,56 @@ function ChannelDNAContent() {
 		},
 	};
 
+	// Compute takeaways for each chart
+	const getChartTakeaway = (tabId: string): { text: string; type: "positive" | "negative" | "neutral" } => {
+		const videos = data?.data.videos || [];
+		const views = videos.map(v => v.views || 0).filter(v => v > 0);
+		const sortedViews = [...views].sort((a, b) => a - b);
+		const median = sortedViews[Math.floor(sortedViews.length / 2)] || 0;
+		const aboveMedian = views.filter(v => v > median).length;
+
+		switch (tabId) {
+			case "viral": {
+				const pct = views.length ? Math.round((aboveMedian / views.length) * 100) : 0;
+				if (pct >= 60) return { text: `${aboveMedian} of ${views.length} videos beat median - strong repeatability`, type: "positive" };
+				if (pct >= 40) return { text: `${aboveMedian} of ${views.length} videos beat median - room for improvement`, type: "neutral" };
+				return { text: `Only ${aboveMedian} of ${views.length} videos beat median - inconsistent performance`, type: "negative" };
+			}
+			case "upload": {
+				const freq = data?.data.metrics?.postingFrequency || "";
+				if (freq.includes("Daily") || freq.includes("Every 2-3")) return { text: `${freq} schedule supports consistent growth`, type: "positive" };
+				if (freq.includes("Weekly")) return { text: `${freq} uploads - adequate for steady growth`, type: "neutral" };
+				return { text: `${freq} - increasing frequency could accelerate growth`, type: "negative" };
+			}
+			case "topics": {
+				const keywords = data?.data.metrics?.commonKeywords || [];
+				if (keywords.length >= 5) return { text: `${keywords.length} topic clusters identified - strong focus`, type: "positive" };
+				if (keywords.length >= 3) return { text: `${keywords.length} topics detected - moderate focus`, type: "neutral" };
+				return { text: `Only ${keywords.length} recurring topics - consider narrowing focus`, type: "negative" };
+			}
+			case "search": {
+				const titleLen = data?.data.metrics?.averageTitleLength || 0;
+				if (titleLen >= 40 && titleLen <= 60) return { text: `${titleLen} char avg title length - optimal for discovery`, type: "positive" };
+				if (titleLen >= 30 && titleLen <= 70) return { text: `${titleLen} char avg titles - acceptable range`, type: "neutral" };
+				return { text: `${titleLen} char titles - ${titleLen < 30 ? "too short" : "too long"} for optimal SEO`, type: "negative" };
+			}
+			case "thumb": {
+				const score = data?.score?.categories?.["Thumbnail Performance"] || 50;
+				if (score >= 70) return { text: "Consistent thumbnail style aids brand recognition", type: "positive" };
+				if (score >= 50) return { text: "Thumbnail style has room for more consistency", type: "neutral" };
+				return { text: "Inconsistent thumbnails may hurt click-through rate", type: "negative" };
+			}
+			case "identity": {
+				const score = data?.score?.categories?.["Channel Identity & Focus"] || 50;
+				if (score >= 70) return { text: "Clear channel identity supports subscriber retention", type: "positive" };
+				if (score >= 50) return { text: "Channel positioning could be sharper", type: "neutral" };
+				return { text: "Unclear identity makes it harder for algorithm to recommend", type: "negative" };
+			}
+			default:
+				return { text: "Analysis complete", type: "neutral" };
+		}
+	};
+
 	const renderChart = () => {
 		switch (activeTab) {
 			case "viral": {
@@ -353,13 +405,35 @@ function ChannelDNAContent() {
 
 				{/* Header */}
 				<div className="mb-8">
-					<ChannelHeader
-						channelId={channel?.id || ""}
-						thumbnail={channel?.thumbnail || ""}
-						name={channel?.title || "Channel"}
-						summary={getSummary()}
-						score={score?.total || 0}
-					/>
+					<div className="flex items-start justify-between gap-4">
+						<div className="flex-1">
+							<ChannelHeader
+								channelId={channel?.id || ""}
+								thumbnail={channel?.thumbnail || ""}
+								name={channel?.title || "Channel"}
+								summary={getSummary()}
+								score={score?.total || 0}
+							/>
+						</div>
+						{data && (
+							<div className="flex flex-col sm:flex-row gap-2">
+								<ChannelSummary
+									channelName={channel?.title || "Channel"}
+									channelId={channel?.id || ""}
+									score={score || { total: 0, categories: {}, strengths: [], weaknesses: [] }}
+									metrics={data.data.metrics}
+									videos={data.data.videos}
+								/>
+								<NicheBenchmarks
+									channelId={channel?.id || ""}
+									keywords={data.data.metrics.commonKeywords.map(k => k.word)}
+									subscriberCount={channel?.subscriberCount}
+									viewCount={channel?.viewCount}
+									videoCount={channel?.videoCount}
+								/>
+							</div>
+						)}
+					</div>
 				</div>
 
 				{/* Tabs */}
@@ -374,6 +448,7 @@ function ChannelDNAContent() {
 				{/* Tab Content */}
 				{(() => {
 					const { insights, severity } = getInsightsForTab(activeTab);
+					const takeaway = getChartTakeaway(activeTab);
 					return (
 						<TabContent
 							tabKey={activeTab}
@@ -388,6 +463,8 @@ function ChannelDNAContent() {
 								<ChartPanel
 									title={chartConfig[activeTab]?.title || "Chart"}
 									description={chartConfig[activeTab]?.description}
+									takeaway={takeaway.text}
+									takeawayType={takeaway.type}
 								>
 									{renderChart()}
 								</ChartPanel>

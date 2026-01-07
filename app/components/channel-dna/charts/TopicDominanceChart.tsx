@@ -7,6 +7,7 @@ import {
 	YAxis,
 	Tooltip,
 	ResponsiveContainer,
+	ReferenceLine,
 } from "recharts";
 
 interface DataPoint {
@@ -20,6 +21,11 @@ interface TopicDominanceChartProps {
 }
 
 export function TopicDominanceChart({ data, topicName = "Primary Topic" }: TopicDominanceChartProps) {
+	// Calculate average dominance
+	const avgDominance = data.length
+		? data.reduce((sum, d) => sum + d.dominance, 0) / data.length
+		: 0;
+
 	return (
 		<ResponsiveContainer width="100%" height="100%">
 			<AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
@@ -53,6 +59,32 @@ export function TopicDominanceChart({ data, topicName = "Primary Topic" }: Topic
 					labelStyle={{ color: "var(--text-secondary)" }}
 					formatter={(value: number) => [`${value}%`, topicName]}
 				/>
+				{/* Focus threshold - 50% means focused channel */}
+				<ReferenceLine
+					y={50}
+					stroke="var(--text-muted)"
+					strokeDasharray="4 4"
+					label={{
+						value: "Focus threshold",
+						fill: "var(--text-muted)",
+						fontSize: 10,
+						position: "right",
+					}}
+				/>
+				{/* Average dominance line */}
+				{avgDominance > 0 && (
+					<ReferenceLine
+						y={avgDominance}
+						stroke="rgba(236, 72, 153, 0.6)"
+						strokeDasharray="2 2"
+						label={{
+							value: `Avg: ${avgDominance.toFixed(0)}%`,
+							fill: "rgba(236, 72, 153, 0.8)",
+							fontSize: 10,
+							position: "left",
+						}}
+					/>
+				)}
 				<Area
 					type="monotone"
 					dataKey="dominance"
