@@ -1,29 +1,67 @@
 "use client";
 
 import { type ReactNode, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { MobileViewToggle } from "../ui/FrostedTabs";
 
 interface TabContentProps {
 	insights: ReactNode;
 	chart: ReactNode;
+	tabKey: string;
 }
 
-export function TabContent({ insights, chart }: TabContentProps) {
+const contentVariants = {
+	initial: { opacity: 0, y: 12 },
+	animate: { opacity: 1, y: 0 },
+	exit: { opacity: 0, y: -8 },
+};
+
+export function TabContent({ insights, chart, tabKey }: TabContentProps) {
 	const [mobileView, setMobileView] = useState<"insights" | "chart">("insights");
 
 	return (
-		<>
-			{/* Mobile view toggle */}
-			<div className="lg:hidden">
-				<MobileViewToggle activeView={mobileView} onViewChange={setMobileView} />
-				{mobileView === "insights" ? insights : chart}
-			</div>
+		<AnimatePresence mode="wait">
+			<motion.div
+				key={tabKey}
+				variants={contentVariants}
+				initial="initial"
+				animate="animate"
+				exit="exit"
+				transition={{ duration: 0.25, ease: "easeOut" }}
+			>
+				{/* Mobile view toggle */}
+				<div className="lg:hidden">
+					<MobileViewToggle activeView={mobileView} onViewChange={setMobileView} />
+					<motion.div
+						key={mobileView}
+						initial={{ opacity: 0, x: mobileView === "insights" ? -10 : 10 }}
+						animate={{ opacity: 1, x: 0 }}
+						transition={{ duration: 0.2 }}
+					>
+						{mobileView === "insights" ? insights : chart}
+					</motion.div>
+				</div>
 
-			{/* Desktop layout - 40/60 split */}
-			<div className="hidden lg:grid lg:grid-cols-5 gap-6">
-				<div className="lg:col-span-2">{insights}</div>
-				<div className="lg:col-span-3">{chart}</div>
-			</div>
-		</>
+				{/* Desktop layout - 40/60 split */}
+				<div className="hidden lg:grid lg:grid-cols-5 gap-6">
+					<motion.div
+						className="lg:col-span-2"
+						initial={{ opacity: 0, x: -15 }}
+						animate={{ opacity: 1, x: 0 }}
+						transition={{ duration: 0.3, delay: 0.05 }}
+					>
+						{insights}
+					</motion.div>
+					<motion.div
+						className="lg:col-span-3"
+						initial={{ opacity: 0, x: 15 }}
+						animate={{ opacity: 1, x: 0 }}
+						transition={{ duration: 0.3, delay: 0.1 }}
+					>
+						{chart}
+					</motion.div>
+				</div>
+			</motion.div>
+		</AnimatePresence>
 	);
 }

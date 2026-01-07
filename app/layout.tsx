@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { AuthProvider } from "./components/auth/AuthProvider";
 
 const inter = Inter({
 	subsets: ["latin"],
@@ -44,17 +45,19 @@ export default function RootLayout({
 		<html lang="en" suppressHydrationWarning>
 			<body className={`${inter.variable} antialiased liquid-body`}>
 				<WhopApp accentColor="blue" appearance="inherit">
-					<div className="liquid-bg">
-						<div className="blob" />
-						<div className="blob pink" />
-					</div>
-					<div className="flex min-h-screen flex-col">
-						<Navbar />
-						<main className="flex-1 w-full">
-							{children}
-						</main>
-						<Footer />
-					</div>
+					<AuthProvider>
+						<div className="liquid-bg">
+							<div className="blob" />
+							<div className="blob pink" />
+						</div>
+						<div className="flex min-h-screen flex-col">
+							<Navbar />
+							<main className="flex-1 w-full">
+								{children}
+							</main>
+							<Footer />
+						</div>
+					</AuthProvider>
 				</WhopApp>
 			</body>
 		</html>

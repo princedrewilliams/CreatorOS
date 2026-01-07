@@ -6,7 +6,10 @@
       "Bash(git add:*)",
       "Bash(git rebase:*)",
       "Bash(npm run build:*)",
-      "Bash(git commit -m \"$\\(cat <<''EOF''\nComplete dashboard rebuild with Frosted UI design system\n\n- Delete all old channel-dna components and start fresh\n- Add Frosted UI design tokens \\(glass, blur, magenta accent\\)\n- Create new UI primitives: FrostedCard, FrostedTabs, CircularScoreBadge\n- Rebuild channel-dna page with 6-tab layout \\(40/60 split\\)\n- Create 6 chart components using Recharts \\(single accent color\\)\n- Add observational tone to insights \\(\"This channel tends to...\"\\)\n- Implement mobile-responsive layout with inner tab toggle\n- Add auth system for saving channels with notes\n- Create saved-channels API routes\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nComplete dashboard rebuild with Frosted UI design system\n\n- Delete all old channel-dna components and start fresh\n- Add Frosted UI design tokens \\(glass, blur, magenta accent\\)\n- Create new UI primitives: FrostedCard, FrostedTabs, CircularScoreBadge\n- Rebuild channel-dna page with 6-tab layout \\(40/60 split\\)\n- Create 6 chart components using Recharts \\(single accent color\\)\n- Add observational tone to insights \\(\"This channel tends to...\"\\)\n- Implement mobile-responsive layout with inner tab toggle\n- Add auth system for saving channels with notes\n- Create saved-channels API routes\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(pnpm add:*)",
+      "Bash(npx vercel --prod)",
+      "Bash(git commit:*)"
     ]
   }
 }

@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowRight, Sparkles } from "lucide-react";
+import { UserMenu } from "./components/auth/UserMenu";
 
 export default function HomePage() {
 	const [channelUrl, setChannelUrl] = useState("");
@@ -37,100 +39,141 @@ export default function HomePage() {
 	};
 
 	return (
-		<main className="relative min-h-screen overflow-hidden bg-[#0b000c] text-white selection:bg-pink-500/30 selection:text-pink-200">
-			{/* Deep gradient wash */}
-			<div className="absolute inset-0 -z-20 bg-gradient-to-br from-[#0b0018] via-[#090013] to-[#020008]" />
-			{/* Radial glows */}
-			<div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_20%_25%,rgba(255,66,166,0.35),transparent_40%),radial-gradient(circle_at_80%_25%,rgba(255,130,230,0.32),transparent_45%),radial-gradient(circle_at_50%_78%,rgba(120,0,90,0.22),transparent_55%),radial-gradient(circle_at_70%_70%,rgba(255,30,140,0.2),transparent_55%)]" />
-			{/* Subtle curved strokes */}
-			<div className="absolute inset-0 pointer-events-none opacity-80 mix-blend-screen">
-				<svg className="w-full h-full" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg">
-					<path d="M0 640 C 260 520, 480 760, 820 240 C 1160 -280, 1520 220, 1700 820" stroke="rgba(255,92,177,0.38)" strokeWidth="2" fill="none" strokeDasharray="6 10" />
-					<path d="M-40 820 C 320 660, 540 920, 960 320 C 1320 -180, 1640 320, 1840 860" stroke="rgba(255,92,177,0.26)" strokeWidth="2" fill="none" strokeDasharray="8 14" />
-				</svg>
+		<main className="relative min-h-screen overflow-hidden bg-[var(--page-bg)] text-white flex flex-col">
+			{/* Gradient overlays */}
+			<div className="absolute inset-0 -z-10">
+				<div className="absolute inset-0 bg-gradient-to-b from-[#0a0012] via-[var(--page-bg)] to-[var(--page-bg)]" />
+				<div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[var(--accent-primary)]/20 rounded-full blur-[120px]" />
+				<div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-600/15 rounded-full blur-[100px]" />
 			</div>
-			{/* Noise */}
-			<div
-				className="absolute inset-0 opacity-[0.04] pointer-events-none mix-blend-overlay"
-				style={{
-					backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-				}}
-			/>
 
-			<section className="relative z-10 max-w-6xl mx-auto px-5 md:px-10 py-16 md:py-24 lg:py-28 flex flex-col items-center gap-10">
-				{/* Hero text */}
-				<div className="text-center space-y-4 md:space-y-6 max-w-4xl">
-					<h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight md:leading-[1.02] tracking-tight">
-						Reverse-Engineer What Makes
-						<br className="hidden md:block" />
-						<span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#ff5abf] via-[#ff3ea7] to-[#ff8bf5]">
-							YouTube Channels Win
+			{/* Header with auth */}
+			<motion.header
+				initial={{ opacity: 0, y: -20 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ duration: 0.5 }}
+				className="relative z-20 flex items-center justify-between px-6 py-4 max-w-7xl mx-auto w-full"
+			>
+				<div className="flex items-center gap-2">
+					<Sparkles className="w-6 h-6 text-[var(--accent-primary)]" />
+					<span className="text-xl font-bold">CreatorOS</span>
+				</div>
+				<UserMenu />
+			</motion.header>
+
+			{/* Hero section - centered vertically */}
+			<section className="relative z-10 flex-1 flex flex-col items-center justify-center max-w-6xl mx-auto px-5 md:px-10 pb-20">
+				{/* Hero text with animations */}
+				<motion.div
+					initial={{ opacity: 0, y: 30 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.7, delay: 0.1 }}
+					className="text-center space-y-6 max-w-5xl"
+				>
+					<h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-[1.05] tracking-tight">
+						Reverse-Engineer
+						<br />
+						<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff5abf] via-[#ff3ea7] to-[#ff8bf5]">
+							YouTube Success
 						</span>
 					</h1>
-					<p className="text-base md:text-lg lg:text-xl text-white/80 max-w-2xl mx-auto leading-relaxed">
-						Analyze posting patterns, titles, thumbnails, and content strategy — instantly.
-					</p>
-				</div>
+					<motion.p
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						transition={{ duration: 0.7, delay: 0.3 }}
+						className="text-lg md:text-xl lg:text-2xl text-white/60 max-w-2xl mx-auto leading-relaxed"
+					>
+						Analyze any channel's patterns, titles, thumbnails, and strategy in seconds.
+					</motion.p>
+				</motion.div>
 
 				{/* Input bar */}
-				<div className="w-full max-w-4xl">
-					<div className="relative p-[2px] rounded-2xl bg-gradient-to-r from-pink-500/35 via-pink-400/15 to-pink-500/35 shadow-[0_0_45px_rgba(255,60,160,0.35)] backdrop-blur-xl">
-						<div className="relative rounded-[18px] bg-[#060008]/80 border border-white/8 shadow-[0_20px_60px_rgba(0,0,0,0.55)] px-4 py-3 flex flex-col gap-2">
+				<motion.div
+					initial={{ opacity: 0, y: 30 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.7, delay: 0.4 }}
+					className="w-full max-w-2xl mt-12"
+				>
+					<div className="relative">
+						{/* Glow effect */}
+						<div className="absolute -inset-1 bg-gradient-to-r from-[var(--accent-primary)]/30 via-purple-500/20 to-[var(--accent-primary)]/30 rounded-2xl blur-xl opacity-60" />
+
+						<div className="relative bg-[#0a0a0a]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-2">
 							<form
 								onSubmit={(e) => {
 									e.preventDefault();
 									void handleAnalyze();
 								}}
-								className="flex flex-col md:flex-row items-stretch gap-3"
+								className="flex flex-col sm:flex-row gap-2"
 							>
 								<div className="flex-1">
-									<div className="flex items-center gap-3 rounded-xl px-4 h-14 bg-transparent border border-pink-500/20 backdrop-blur-xl">
-										<svg className="w-5 h-5 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-											<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-										</svg>
-										<input
-											type="url"
-											value={channelUrl}
-											onChange={(e) => setChannelUrl(e.target.value)}
-											placeholder="Paste your YouTube URL here... (e.g., youtube.com/@channelname)"
-											className="w-full bg-transparent text-white placeholder:text-white/65 text-base md:text-lg border-0 outline-none ring-0 focus:outline-none focus:ring-0"
-											style={{
-												backgroundColor: "transparent !important",
-												background: "transparent !important",
-												WebkitAppearance: "none",
-												WebkitTextFillColor: "#ffffff",
-												WebkitBoxShadow: "0 0 0px 1000px transparent inset !important",
-												boxShadow: "none !important",
-											}}
-											autoComplete="off"
-										/>
-									</div>
+									<input
+										type="text"
+										value={channelUrl}
+										onChange={(e) => setChannelUrl(e.target.value)}
+										placeholder="youtube.com/@channelname"
+										className="w-full h-14 px-5 bg-white/[0.03] border border-white/10 rounded-xl text-white placeholder:text-white/40 text-base focus:outline-none focus:border-[var(--accent-primary)]/50 transition-colors"
+									/>
 								</div>
 								<button
 									type="submit"
 									disabled={loading}
-									className="md:w-[190px] h-14 rounded-xl bg-gradient-to-r from-[#ff4fb6] to-[#ff79c9] text-white font-semibold text-base shadow-[0_15px_45px_rgba(255,90,191,0.45)] hover:shadow-[0_18px_55px_rgba(255,90,191,0.6)] hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+									className="h-14 px-8 rounded-xl bg-gradient-to-r from-[var(--accent-primary)] to-[#ff79c9] text-white font-semibold text-base shadow-[0_10px_40px_rgba(236,72,153,0.4)] hover:shadow-[0_15px_50px_rgba(236,72,153,0.5)] hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
 								>
-									{loading ? "Analyzing..." : "Start Analyzing"}
-									<ArrowRight className="w-4 h-4" />
+									{loading ? (
+										<div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+									) : (
+										<>
+											Analyze
+											<ArrowRight className="w-4 h-4" />
+										</>
+									)}
 								</button>
 							</form>
-							<div className="text-[11px] tracking-[0.18em] uppercase text-white/35 px-1">
-								Example: youtube.com/@channelname
-							</div>
 							{error && (
-								<div className="text-sm text-red-300 font-medium px-1">
+								<motion.p
+									initial={{ opacity: 0, y: -10 }}
+									animate={{ opacity: 1, y: 0 }}
+									className="text-sm text-red-400 mt-3 px-2"
+								>
 									{error}
-								</div>
+								</motion.p>
 							)}
 						</div>
 					</div>
-				</div>
 
-				{/* Brand mark */}
-				<div className="pt-6 text-center text-lg font-semibold tracking-tight text-white/90">
-					CreatorOS
-				</div>
+					{/* Example hint */}
+					<p className="text-center text-white/30 text-sm mt-4">
+						Try: youtube.com/@MrBeast or @mkbhd
+					</p>
+				</motion.div>
+
+				{/* Features grid */}
+				<motion.div
+					initial={{ opacity: 0, y: 30 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.7, delay: 0.6 }}
+					className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-20 w-full max-w-3xl"
+				>
+					{[
+						{ label: "Viral Score", desc: "View patterns that drive views" },
+						{ label: "SEO Analysis", desc: "Discover keyword strategies" },
+						{ label: "Content DNA", desc: "Understand what works" },
+					].map((feature, i) => (
+						<motion.div
+							key={feature.label}
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 0.5, delay: 0.7 + i * 0.1 }}
+							className="p-5 rounded-xl bg-white/[0.03] border border-white/5 hover:border-white/10 transition-colors"
+						>
+							<h3 className="text-sm font-semibold text-white mb-1">
+								{feature.label}
+							</h3>
+							<p className="text-xs text-white/40">{feature.desc}</p>
+						</motion.div>
+					))}
+				</motion.div>
 			</section>
 		</main>
 	);

@@ -46,8 +46,27 @@ interface VideoData {
 	comments?: number;
 }
 
+type Severity = "strong" | "neutral" | "weak" | "concerning";
+
+interface ScoredInsight {
+	id: string;
+	label: string;
+	severity: Severity;
+	evidence: string;
+	impact: string;
+	action?: string;
+	examples?: string[];
+}
+
+interface CategoryAnalysis {
+	score: number;
+	severity: Severity;
+	summary: string;
+	insights: ScoredInsight[];
+}
+
 interface AnalysisResponse {
-	analysis: Record<string, { score: number; summary: string; insights: string[] }>;
+	analysis: Record<string, CategoryAnalysis>;
 	data: {
 		channel: ChannelData;
 		videos: VideoData[];
@@ -188,103 +207,39 @@ function ChannelDNAContent() {
 		}));
 	};
 
-	// Generate insights with observational tone
-	const getInsightsForTab = (tabId: string) => {
-		const metrics = data?.data.metrics;
-		const score = data?.score;
-		const channel = data?.data.channel;
+	// Map tab IDs to analysis category names
+	const tabToCategoryMap: Record<string, string> = {
+		viral: "Viral Potential",
+		search: "SEO Strategy",
+		upload: "Posting Consistency",
+		thumb: "Thumbnail Strategy",
+		topics: "Content Clusters",
+		identity: "Channel Positioning",
+	};
 
-		const insightMap: Record<string, { id: string; pattern: string; examples?: string[] }[]> = {
-			viral: [
-				{
-					id: "v1",
-					pattern: `This channel tends to generate ${score?.categories?.["Viral Potential"] || 65}% viral signals based on recent view patterns.`,
-					examples: data?.data.videos.slice(0, 2).map((v) => v.title),
-				},
-				{
-					id: "v2",
-					pattern: `Videos in this range often cluster around ${metrics?.postingFrequency?.toLowerCase() || "weekly"} release windows.`,
-				},
-				{
-					id: "v3",
-					pattern: "Uploads commonly show consistent hook placement in the opening seconds.",
-				},
-			],
-			search: [
-				{
-					id: "s1",
-					pattern: `This channel consistently places keywords like "${metrics?.commonKeywords?.[0]?.word || "topic"}" at the start of titles.`,
-					examples: metrics?.commonKeywords?.slice(0, 3).map((k) => k.word),
-				},
-				{
-					id: "s2",
-					pattern: `Title lengths average ${metrics?.averageTitleLength || 45} characters, within optimal discovery range.`,
-				},
-				{
-					id: "s3",
-					pattern: "Descriptions tend to front-load primary keywords in the first line.",
-				},
-			],
-			upload: [
-				{
-					id: "u1",
-					pattern: `This channel maintains a ${metrics?.postingFrequency?.toLowerCase() || "consistent"} upload cadence.`,
-				},
-				{
-					id: "u2",
-					pattern: "Upload timing tends to cluster around specific days of the week.",
-				},
-				{
-					id: "u3",
-					pattern: `Video count of ${channel?.videoCount || 0} suggests an established content rhythm.`,
-				},
-			],
-			thumb: [
-				{
-					id: "t1",
-					pattern: "Thumbnails commonly feature high-contrast text with minimal word count.",
-				},
-				{
-					id: "t2",
-					pattern: "Visual style tends to maintain a consistent color palette across uploads.",
-				},
-				{
-					id: "t3",
-					pattern: "Face expressions and emotion appear frequently in top-performing thumbnails.",
-				},
-			],
-			topics: [
-				{
-					id: "to1",
-					pattern: `Primary topic clusters around "${metrics?.commonKeywords?.[0]?.word || "content"}" themed videos.`,
-					examples: metrics?.commonKeywords?.slice(0, 4).map((k) => k.word),
-				},
-				{
-					id: "to2",
-					pattern: "This channel tends to release topic runs of 2-3 related videos in sequence.",
-				},
-				{
-					id: "to3",
-					pattern: "Secondary topics appear periodically to maintain audience variety.",
-				},
-			],
-			identity: [
-				{
-					id: "i1",
-					pattern: `Channel positioning centers on ${channel?.title || "content"} as the core identity.`,
-				},
-				{
-					id: "i2",
-					pattern: "Format consistency remains high across recent uploads.",
-				},
-				{
-					id: "i3",
-					pattern: "Brand signals appear consistently in thumbnails and titles.",
-				},
-			],
+	// Get insights from API response with severity data
+	const getInsightsForTab = (tabId: string): { insights: ScoredInsight[]; severity: Severity } => {
+		const categoryName = tabToCategoryMap[tabId];
+		const categoryData = data?.analysis?.[categoryName];
+
+		if (categoryData?.insights && categoryData.insights.length > 0) {
+			return {
+				insights: categoryData.insights,
+				severity: categoryData.severity || "neutral",
+			};
+		}
+
+		// Fallback for legacy or missing data
+		return {
+			insights: [{
+				id: `${tabId}-fallback`,
+				label: "Analysis Pending",
+				severity: "neutral" as Severity,
+				evidence: "Insufficient data for detailed analysis.",
+				impact: "More video data needed for accurate insights.",
+			}],
+			severity: "neutral" as Severity,
 		};
-
-		return insightMap[tabId] || [];
 	};
 
 	const chartConfig: Record<string, { title: string; description: string }> = {
@@ -417,17 +372,29 @@ function ChannelDNAContent() {
 				</div>
 
 				{/* Tab Content */}
-				<TabContent
-					insights={<InsightsPanel insights={getInsightsForTab(activeTab)} />}
-					chart={
-						<ChartPanel
-							title={chartConfig[activeTab]?.title || "Chart"}
-							description={chartConfig[activeTab]?.description}
-						>
-							{renderChart()}
-						</ChartPanel>
-					}
-				/>
+				{(() => {
+					const { insights, severity } = getInsightsForTab(activeTab);
+					return (
+						<TabContent
+							tabKey={activeTab}
+							insights={
+								<InsightsPanel
+									insights={insights}
+									categorySeverity={severity}
+									title={tabToCategoryMap[activeTab] || "Analysis"}
+								/>
+							}
+							chart={
+								<ChartPanel
+									title={chartConfig[activeTab]?.title || "Chart"}
+									description={chartConfig[activeTab]?.description}
+								>
+									{renderChart()}
+								</ChartPanel>
+							}
+						/>
+					);
+				})()}
 			</div>
 		</div>
 	);

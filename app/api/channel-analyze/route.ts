@@ -1,6 +1,37 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
+// Severity classification system
+type Severity = "strong" | "neutral" | "weak" | "concerning";
+
+interface ScoredInsight {
+	id: string;
+	label: string;
+	severity: Severity;
+	evidence: string;
+	impact: string;
+	action?: string;
+	examples?: string[];
+}
+
+interface CategoryAnalysis {
+	score: number;
+	severity: Severity;
+	summary: string;
+	insights: ScoredInsight[];
+}
+
+function getSeverity(score: number, trend?: "declining" | "stable" | "improving"): Severity {
+	// Concerning: score < 25 OR significant decline
+	if (score < 25 || trend === "declining") return "concerning";
+	// Weak: score 25-49
+	if (score < 50) return "weak";
+	// Strong: score >= 75
+	if (score >= 75) return "strong";
+	// Neutral: score 50-74
+	return "neutral";
+}
+
 type YoutubeChannel = {
 	id: string;
 	title: string;
@@ -299,66 +330,395 @@ function buildHeuristicAnalysis(payload: {
 	channel: YoutubeChannel;
 	videos: YoutubeVideo[];
 	metrics: ReturnType<typeof deriveMetrics>;
-}) {
-	const { metrics } = payload;
+	scores: ReturnType<typeof computeScores>;
+}): Record<string, CategoryAnalysis> {
+	const { channel, videos, metrics, scores } = payload;
 
-	const baseScore = (boost: number) => {
-		let score = 50 + boost;
-		if (metrics.postingFrequency.includes("Daily")) score += 10;
-		if (metrics.postingFrequency.includes("Weekly")) score += 5;
-		score = Math.min(98, Math.max(35, score));
-		return score;
+	// Calculate key statistics for evidence-based insights
+	const views = videos.map((v) => v.views || 0).filter(v => v > 0);
+	const sortedViews = [...views].sort((a, b) => a - b);
+	const medianViews = sortedViews[Math.floor(sortedViews.length / 2)] || 0;
+	const avgViews = views.length ? views.reduce((a, b) => a + b, 0) / views.length : 0;
+	const aboveMedian = views.filter(v => v > medianViews).length;
+
+	// Engagement metrics
+	const likes = videos.map((v) => v.likes || 0);
+	const comments = videos.map((v) => v.comments || 0);
+	const avgLikes = likes.length ? likes.reduce((a, b) => a + b, 0) / likes.length : 0;
+	const avgComments = comments.length ? comments.reduce((a, b) => a + b, 0) / comments.length : 0;
+	const engagementRate = avgViews > 0 ? ((avgLikes + avgComments) / avgViews * 100) : 0;
+
+	// Variance calculation for consistency
+	const viewsVariance = views.length > 1
+		? views.reduce((acc, v) => acc + Math.pow(v - avgViews, 2), 0) / views.length
+		: 0;
+	const viewsCV = avgViews > 0 ? (Math.sqrt(viewsVariance) / avgViews) : 0; // Coefficient of variation
+
+	// Trend detection (compare first half vs second half)
+	const halfPoint = Math.floor(views.length / 2);
+	const firstHalfAvg = views.slice(0, halfPoint).reduce((a, b) => a + b, 0) / halfPoint || 0;
+	const secondHalfAvg = views.slice(halfPoint).reduce((a, b) => a + b, 0) / (views.length - halfPoint) || 0;
+	const trendDirection: "declining" | "stable" | "improving" =
+		secondHalfAvg > firstHalfAvg * 1.2 ? "improving" :
+		secondHalfAvg < firstHalfAvg * 0.8 ? "declining" : "stable";
+
+	const keywordList = metrics.commonKeywords.slice(0, 5).map((k) => k.word).join(", ") || "none detected";
+	const totalVideos = videos.length;
+
+	// Helper to create negative-first insights
+	const createInsights = (
+		category: string,
+		score: number,
+		checks: { condition: boolean; insight: ScoredInsight }[]
+	): ScoredInsight[] => {
+		const severity = getSeverity(score, trendDirection);
+		const results: ScoredInsight[] = [];
+
+		// Add negative insights first
+		for (const check of checks) {
+			if (check.condition && (check.insight.severity === "weak" || check.insight.severity === "concerning")) {
+				results.push(check.insight);
+			}
+		}
+
+		// Then add positive insights if score is strong
+		if (severity === "strong" || severity === "neutral") {
+			for (const check of checks) {
+				if (check.condition && (check.insight.severity === "strong" || check.insight.severity === "neutral")) {
+					results.push(check.insight);
+				}
+			}
+		}
+
+		// If no issues, add explicit "no issues" insight
+		if (results.length === 0) {
+			results.push({
+				id: `${category}-ok`,
+				label: "No Major Issues",
+				severity: "neutral",
+				evidence: "Performance is within expected range for this category.",
+				impact: "Current approach is sustainable.",
+			});
+		}
+
+		return results.slice(0, 3);
 	};
 
-	const simple = (summary: string, insights: string[], scoreBoost = 0) => ({
-		score: baseScore(scoreBoost),
-		summary,
-		insights,
-	});
+	// VIRAL POTENTIAL - Check for problems first
+	const viralScore = scores.categories["Viral Potential"];
+	const viralSeverity = getSeverity(viralScore, trendDirection);
+	const viralInsights = createInsights("viral", viralScore, [
+		{
+			condition: aboveMedian < totalVideos * 0.3,
+			insight: {
+				id: "viral-low-repeatability",
+				label: "Weak Viral Repeatability",
+				severity: "weak",
+				evidence: `Only ${aboveMedian} of ${totalVideos} videos exceeded channel median views.`,
+				impact: "Inconsistent performance makes growth unpredictable.",
+				action: "Study your top performers for replicable patterns.",
+			},
+		},
+		{
+			condition: viewsCV > 1.5,
+			insight: {
+				id: "viral-high-volatility",
+				label: "High View Volatility",
+				severity: "concerning",
+				evidence: `Views vary by ${Math.round(viewsCV * 100)}% from average.`,
+				impact: "Extreme swings suggest no reliable content formula.",
+				action: "Identify what your top 3 videos have in common.",
+			},
+		},
+		{
+			condition: trendDirection === "declining",
+			insight: {
+				id: "viral-declining-trend",
+				label: "Declining Performance",
+				severity: "concerning",
+				evidence: `Recent videos average ${Math.round((1 - secondHalfAvg / firstHalfAvg) * 100)}% fewer views than older ones.`,
+				impact: "Audience interest may be fading.",
+				action: "Revisit formats and topics from your peak period.",
+			},
+		},
+		{
+			condition: aboveMedian >= totalVideos * 0.5 && viewsCV < 0.8,
+			insight: {
+				id: "viral-consistent",
+				label: "Consistent Performance",
+				severity: "strong",
+				evidence: `${aboveMedian} of ${totalVideos} videos beat median with low variance.`,
+				impact: "Reliable formula drives predictable growth.",
+			},
+		},
+	]);
 
-	const keywordList = metrics.commonKeywords.slice(0, 5).map((k) => k.word).join(", ") || "—";
+	// ENGAGEMENT - Check for problems first
+	const engagementScore = scores.categories["Audience Engagement"];
+	const engagementSeverity = getSeverity(engagementScore);
+	const engagementInsights = createInsights("engagement", engagementScore, [
+		{
+			condition: engagementRate < 2,
+			insight: {
+				id: "engagement-low-rate",
+				label: "Low Engagement Rate",
+				severity: "weak",
+				evidence: `${engagementRate.toFixed(2)}% engagement rate (likes + comments / views).`,
+				impact: "Low engagement signals weak audience connection.",
+				action: "Add specific CTAs and questions in your first 30 seconds.",
+			},
+		},
+		{
+			condition: avgComments < avgViews * 0.001,
+			insight: {
+				id: "engagement-low-comments",
+				label: "Comment Deficit",
+				severity: "weak",
+				evidence: `Only ${Math.round(avgComments)} avg comments per video.`,
+				impact: "Low comments hurt algorithm signals.",
+				action: "Ask 1 specific question viewers can answer.",
+			},
+		},
+		{
+			condition: engagementRate >= 5,
+			insight: {
+				id: "engagement-strong",
+				label: "Strong Engagement",
+				severity: "strong",
+				evidence: `${engagementRate.toFixed(2)}% engagement rate is above average.`,
+				impact: "High engagement boosts algorithmic distribution.",
+			},
+		},
+	]);
+
+	// DISCOVERABILITY / SEO
+	const seoScore = scores.categories["Discoverability / SEO"];
+	const seoSeverity = getSeverity(seoScore);
+	const avgTitleLength = metrics.averageTitleLength;
+	const seoInsights = createInsights("seo", seoScore, [
+		{
+			condition: metrics.commonKeywords.length < 3,
+			insight: {
+				id: "seo-no-keywords",
+				label: "No Clear Keyword Strategy",
+				severity: "weak",
+				evidence: `Only ${metrics.commonKeywords.length} recurring keywords detected.`,
+				impact: "Search discoverability is limited without keyword focus.",
+				action: "Pick 2-3 target keywords and use them consistently.",
+			},
+		},
+		{
+			condition: avgTitleLength > 70 || avgTitleLength < 30,
+			insight: {
+				id: "seo-title-length",
+				label: "Suboptimal Title Length",
+				severity: "weak",
+				evidence: `Avg title length: ${avgTitleLength} chars (optimal: 40-60).`,
+				impact: "Titles may be truncated or lack detail.",
+				action: avgTitleLength > 70 ? "Shorten titles to 50-60 characters." : "Add more context to titles.",
+			},
+		},
+		{
+			condition: metrics.commonKeywords.length >= 5 && avgTitleLength >= 40 && avgTitleLength <= 65,
+			insight: {
+				id: "seo-strong",
+				label: "Solid SEO Foundation",
+				severity: "strong",
+				evidence: `${metrics.commonKeywords.length} recurring keywords with optimal title length.`,
+				impact: "Good discoverability through search.",
+			},
+		},
+	]);
+
+	// UPLOAD CONSISTENCY
+	const uploadScore = scores.categories["Upload Consistency"];
+	const uploadSeverity = getSeverity(uploadScore);
+	const uploadInsights = createInsights("upload", uploadScore, [
+		{
+			condition: metrics.postingFrequency.includes("Sporadic"),
+			insight: {
+				id: "upload-sporadic",
+				label: "Inconsistent Upload Schedule",
+				severity: "concerning",
+				evidence: `Posting frequency: ${metrics.postingFrequency}.`,
+				impact: "Irregular uploads hurt subscriber retention and algorithm favor.",
+				action: "Commit to a fixed weekly schedule.",
+			},
+		},
+		{
+			condition: metrics.postingFrequency.includes("Bi-weekly"),
+			insight: {
+				id: "upload-biweekly",
+				label: "Upload Frequency Below Optimal",
+				severity: "weak",
+				evidence: `Posting every 2 weeks limits growth velocity.`,
+				impact: "Weekly uploaders typically grow 2-3x faster.",
+				action: "Increase to weekly uploads or add Shorts.",
+			},
+		},
+		{
+			condition: metrics.postingFrequency.includes("Daily") || metrics.postingFrequency.includes("Every 2-3"),
+			insight: {
+				id: "upload-strong",
+				label: "Strong Upload Cadence",
+				severity: "strong",
+				evidence: `Posting frequency: ${metrics.postingFrequency}.`,
+				impact: "Consistent uploads maximize algorithmic opportunity.",
+			},
+		},
+	]);
+
+	// THUMBNAIL PERFORMANCE
+	const thumbScore = scores.categories["Thumbnail Performance"];
+	const thumbSeverity = getSeverity(thumbScore);
+	const thumbInsights = createInsights("thumbnail", thumbScore, [
+		{
+			condition: thumbScore < 50,
+			insight: {
+				id: "thumb-inconsistent",
+				label: "Thumbnail Inconsistency",
+				severity: "weak",
+				evidence: `Thumbnail style varies significantly across uploads.`,
+				impact: "Inconsistent branding reduces click-through on browse.",
+				action: "Create a template with consistent colors and text style.",
+			},
+		},
+		{
+			condition: thumbScore >= 70,
+			insight: {
+				id: "thumb-consistent",
+				label: "Consistent Thumbnail Style",
+				severity: "strong",
+				evidence: `Visual branding is maintained across uploads.`,
+				impact: "Recognizable thumbnails improve browse CTR.",
+			},
+		},
+	]);
+
+	// CHANNEL IDENTITY & FOCUS
+	const identityScore = scores.categories["Channel Identity & Focus"];
+	const identitySeverity = getSeverity(identityScore);
+	const identityInsights = createInsights("identity", identityScore, [
+		{
+			condition: (channel.description || "").length < 100,
+			insight: {
+				id: "identity-weak-bio",
+				label: "Underdeveloped Channel Bio",
+				severity: "weak",
+				evidence: `Channel description is ${(channel.description || "").length} characters.`,
+				impact: "New visitors lack context to subscribe.",
+				action: "Add a clear value proposition in first 150 characters.",
+			},
+		},
+		{
+			condition: metrics.commonKeywords.length < 3,
+			insight: {
+				id: "identity-unfocused",
+				label: "Unclear Topic Focus",
+				severity: "weak",
+				evidence: `Only ${metrics.commonKeywords.length} recurring themes detected.`,
+				impact: "Algorithm struggles to categorize your content.",
+				action: "Focus on 2-3 core topics for the next 10 uploads.",
+			},
+		},
+		{
+			condition: (channel.description || "").length >= 200 && metrics.commonKeywords.length >= 5,
+			insight: {
+				id: "identity-strong",
+				label: "Clear Channel Identity",
+				severity: "strong",
+				evidence: `Strong bio with ${metrics.commonKeywords.length} consistent themes.`,
+				impact: "Clear positioning aids discovery and retention.",
+			},
+		},
+	]);
+
+	// WINNING TOPICS
+	const topicsScore = scores.categories["Winning Topics"];
+	const topicsSeverity = getSeverity(topicsScore);
+	const topicsInsights = createInsights("topics", topicsScore, [
+		{
+			condition: metrics.commonKeywords.length < 3,
+			insight: {
+				id: "topics-scattered",
+				label: "No Clear Winning Topics",
+				severity: "weak",
+				evidence: `Content spans too many unrelated topics.`,
+				impact: "No topic cluster to double down on.",
+				action: "Analyze your top 5 videos and identify shared themes.",
+			},
+		},
+		{
+			condition: metrics.commonKeywords.length >= 5,
+			insight: {
+				id: "topics-clear",
+				label: "Topic Clusters Identified",
+				severity: "strong",
+				evidence: `Top topics: ${keywordList}.`,
+				impact: "Clear clusters enable focused content strategy.",
+			},
+		},
+	]);
 
 	return {
-		"Viral Potential": simple("Recent uploads show repeatable hooks and pacing.", [
-			"Double down on topics that repeat across top titles.",
-			"Open faster: tighten first 5 seconds to keep watch time.",
-			"Test shorter intros on next 3 uploads.",
-		]),
-		"Engagement Signals": simple("Audience responds best when the promise is clear early.", [
-			"Use 1 clear promise per title/thumbnail.",
-			"Ask 1 specific question in the first 20 seconds to drive comments.",
-			"Pin a comment with a CTA on next uploads.",
-		]),
-		"SEO Strategy": simple(`Leverage recurring keywords: ${keywordList}.`, [
-			"Front-load primary keyword in first 40 chars of title.",
-			"Mirror the keyword in the first 150 chars of description.",
-			"Group uploads into 2-3 topic clusters for session depth.",
-		]),
-		"Posting Consistency": simple(`Cadence: ${metrics.postingFrequency}.`, [
-			"Lock a repeatable schedule (same days/time).",
-			"Batch record 2 videos ahead to maintain cadence.",
-			"Rotate 2 reliable formats to avoid misses.",
-		]),
-		"Thumbnail Strategy": simple("Keep contrast high and text minimal.", [
-			"Use 1-3 words max with bold contrast.",
-			"Keep subject left/right to leave negative space for text.",
-			"Maintain consistent color palette for brand recall.",
-		]),
-		"Content Clusters": simple(`Top words hint clusters: ${keywordList}.`, [
-			"Pick 2 primary clusters and publish 3-in-a-row for each.",
-			"Create 1 playlist per cluster and link it in descriptions.",
-			"Refresh older winners with updated thumbnails/titles.",
-		]),
-		"Channel Positioning": simple("Position around a clear promise and niche proof.", [
-			"Add a 1-line promise to the channel description.",
-			"Use the same promise in channel banner CTA.",
-			"Open videos with proof that matches the promise.",
-		]),
-		"Replication Score": simple("Good fundamentals; tighten packaging and cadence.", [
-			"Document a title formula and reuse it for 5 uploads.",
-			"Standardize thumbnail template for faster iteration.",
-			"Review retention dips at 30s/90s and script against them.",
-		]),
+		"Viral Potential": {
+			score: viralScore,
+			severity: viralSeverity,
+			summary: viralSeverity === "strong"
+				? `${aboveMedian} of ${totalVideos} videos beat median with consistent performance.`
+				: viralSeverity === "concerning"
+				? `Only ${aboveMedian} of ${totalVideos} videos exceeded median. High volatility detected.`
+				: `${aboveMedian} of ${totalVideos} videos beat median. Room for improvement.`,
+			insights: viralInsights,
+		},
+		"Engagement Signals": {
+			score: engagementScore,
+			severity: engagementSeverity,
+			summary: `${engagementRate.toFixed(2)}% engagement rate. ${avgComments.toFixed(0)} avg comments per video.`,
+			insights: engagementInsights,
+		},
+		"SEO Strategy": {
+			score: seoScore,
+			severity: seoSeverity,
+			summary: `${metrics.commonKeywords.length} recurring keywords. Avg title: ${avgTitleLength} chars.`,
+			insights: seoInsights,
+		},
+		"Posting Consistency": {
+			score: uploadScore,
+			severity: uploadSeverity,
+			summary: `Upload cadence: ${metrics.postingFrequency}.`,
+			insights: uploadInsights,
+		},
+		"Thumbnail Strategy": {
+			score: thumbScore,
+			severity: thumbSeverity,
+			summary: thumbSeverity === "strong" ? "Consistent visual branding." : "Visual branding varies.",
+			insights: thumbInsights,
+		},
+		"Content Clusters": {
+			score: topicsScore,
+			severity: topicsSeverity,
+			summary: metrics.commonKeywords.length >= 3
+				? `Top topics: ${keywordList}.`
+				: "No clear topic clusters detected.",
+			insights: topicsInsights,
+		},
+		"Channel Positioning": {
+			score: identityScore,
+			severity: identitySeverity,
+			summary: identitySeverity === "strong"
+				? "Clear channel identity and positioning."
+				: "Channel positioning needs refinement.",
+			insights: identityInsights,
+		},
+		"Replication Score": {
+			score: Math.round((viralScore + engagementScore + uploadScore) / 3),
+			severity: getSeverity(Math.round((viralScore + engagementScore + uploadScore) / 3)),
+			summary: viewsCV < 0.8
+				? "Replicable formula detected."
+				: "No consistent formula identified.",
+			insights: viralInsights.slice(0, 2), // Reuse viral insights
+		},
 	};
 }
 
@@ -585,10 +945,7 @@ export async function POST(req: Request) {
 		const payload = { channel, videos, metrics };
 
 		const openaiKey = process.env.OPENAI_API_KEY;
-		let analysis: Record<
-			string,
-			{ score: number; summary: string; insights: string[] }
-		> = buildHeuristicAnalysis(payload);
+		let analysis: Record<string, CategoryAnalysis> = buildHeuristicAnalysis({ ...payload, scores: score });
 
 		let aiSummary: {
 			summary: string;

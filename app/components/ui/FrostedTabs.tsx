@@ -1,5 +1,7 @@
 "use client";
 
+import { motion } from "framer-motion";
+
 export interface Tab {
 	id: string;
 	label: string;
@@ -20,20 +22,24 @@ export function FrostedTabs({ tabs, activeTab, onTabChange }: FrostedTabsProps) 
 					<button
 						key={tab.id}
 						onClick={() => onTabChange(tab.id)}
-						className={`
-							px-4 py-2
-							rounded-full
-							text-sm font-medium
-							whitespace-nowrap
-							transition-all duration-200
-							${
-								isActive
-									? "bg-[var(--accent-muted)] text-white shadow-[0_0_20px_var(--accent-glow)]"
-									: "bg-white/[0.03] text-[var(--text-secondary)] hover:bg-white/[0.06] hover:text-[var(--text-primary)]"
-							}
-						`}
+						className="relative px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors"
 					>
-						{tab.label}
+						{isActive && (
+							<motion.div
+								layoutId="activeTabBg"
+								className="absolute inset-0 bg-[var(--accent-muted)] rounded-full shadow-[0_0_20px_var(--accent-glow)]"
+								transition={{ type: "spring", stiffness: 400, damping: 30 }}
+							/>
+						)}
+						<span
+							className={`relative z-10 transition-colors duration-200 ${
+								isActive
+									? "text-white"
+									: "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+							}`}
+						>
+							{tab.label}
+						</span>
 					</button>
 				);
 			})}
