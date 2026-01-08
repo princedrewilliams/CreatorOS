@@ -9,6 +9,8 @@ interface AuthContextType {
 	session: Session | null;
 	loading: boolean;
 	isConfigured: boolean;
+	signInWithPassword: (email: string, password: string) => Promise<{ error: string | null }>;
+	signUp: (email: string, password: string, username?: string) => Promise<{ error: string | null; emailConfirmationRequired?: boolean }>;
 	signInWithGoogle: () => Promise<void>;
 	signOut: () => Promise<void>;
 }
@@ -18,6 +20,8 @@ const AuthContext = createContext<AuthContextType>({
 	session: null,
 	loading: false,
 	isConfigured: false,
+	signInWithPassword: async () => ({ error: null }),
+	signUp: async () => ({ error: null }),
 	signInWithGoogle: async () => {},
 	signOut: async () => {},
 });
@@ -54,6 +58,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		return () => subscription.unsubscribe();
 	}, [supabase]);
 
+	const signInWithPassword = async (email: string, password: string) => {
+		if (!supabase) return { error: "Auth not configured" };
+
+		const { error } = await supabase.auth.signInWithPassword({
+			email,
+			password,
+		});
+
+		if (error) {
+			return { error: error.message };
+		}
+
+		return { error: null };
+	};
+
+	const signUp = async (email: string, password: string, username?: string) => {
+		if (!supabase) return { error: "Auth not configured" };
+
+		const { data, error } = await supabase.auth.signUp({
+			email,
+			password,
+			options: {
+				data: {
+					username: username || email.split("@")[0],
+				},
+			},
+		});
+
+		if (error) {
+			return { error: error.message };
+		}
+
+		// If no session, email confirmation is required
+		return {
+			error: null,
+			emailConfirmationRequired: !data.session
+		};
+	};
+
 	const signInWithGoogle = async () => {
 		if (!supabase) return;
 		await supabase.auth.signInWithOAuth({
@@ -73,7 +116,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 	return (
 		<AuthContext.Provider
-			value={{ user, session, loading, isConfigured, signInWithGoogle, signOut }}
+			value={{
+				user,
+				session,
+				loading,
+				isConfigured,
+				signInWithPassword,
+				signUp,
+				signInWithGoogle,
+				signOut
+			}}
 		>
 			{children}
 		</AuthContext.Provider>

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
-import { userAccounts } from "@/lib/user-accounts";
+import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
 	try {
@@ -14,53 +13,57 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		// Find user account
-		const userAccount = userAccounts.get(email.toLowerCase());
+		const supabase = await createClient();
 
-		if (!userAccount) {
+		if (!supabase) {
 			return NextResponse.json(
-				{ error: "Invalid email or password" },
+				{ error: "Auth service not configured" },
+				{ status: 500 }
+			);
+		}
+
+		const { data, error } = await supabase.auth.signInWithPassword({
+			email,
+			password,
+		});
+
+		if (error) {
+			return NextResponse.json(
+				{ error: error.message },
 				{ status: 401 }
 			);
 		}
 
-		// Verify password
-		const passwordValid = await bcrypt.compare(password, userAccount.passwordHash);
+		const user = data.user;
+		const username = user.user_metadata?.username || user.email?.split("@")[0] || "User";
 
-		if (!passwordValid) {
-			return NextResponse.json(
-				{ error: "Invalid email or password" },
-				{ status: 401 }
-			);
-		}
-
-		// Create response
+		// Create response with user data
 		const response = NextResponse.json({
 			success: true,
 			user: {
-				whop_user_id: userAccount.whop_user_id,
-				whop_username: userAccount.whop_username,
-				email: userAccount.email,
+				whop_user_id: user.id,
+				whop_username: username,
+				email: user.email,
 			},
 		});
 
-		// Set session cookies on the response
-		response.cookies.set("whop_user_id", userAccount.whop_user_id, {
+		// Set legacy cookies for compatibility with existing code
+		response.cookies.set("whop_user_id", user.id, {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === "production",
 			sameSite: "lax",
-			maxAge: 60 * 60 * 24 * 30, // 30 days
+			maxAge: 60 * 60 * 24 * 30,
 			path: "/",
 		});
-		response.cookies.set("whop_username", userAccount.whop_username, {
+		response.cookies.set("whop_username", username, {
 			httpOnly: false,
 			secure: process.env.NODE_ENV === "production",
 			sameSite: "lax",
 			maxAge: 60 * 60 * 24 * 30,
 			path: "/",
 		});
-		if (userAccount.email) {
-			response.cookies.set("user_email", userAccount.email, {
+		if (user.email) {
+			response.cookies.set("user_email", user.email, {
 				httpOnly: false,
 				secure: process.env.NODE_ENV === "production",
 				sameSite: "lax",

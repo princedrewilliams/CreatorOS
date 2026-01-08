@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
-import { userAccounts, type UserAccount } from "@/lib/user-accounts";
+import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
 	try {
@@ -14,63 +13,87 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		// Check if user already exists
-		if (userAccounts.has(email.toLowerCase())) {
+		const supabase = await createClient();
+
+		if (!supabase) {
 			return NextResponse.json(
-				{ error: "User with this email already exists" },
-				{ status: 409 }
+				{ error: "Auth service not configured" },
+				{ status: 500 }
 			);
 		}
 
-		// Hash password
-		const passwordHash = await bcrypt.hash(password, 10);
-
-		// Create user account
-		const whop_user_id = `user_${email.replace(/[^a-zA-Z0-9]/g, "_")}_${Date.now()}`;
-		const whop_username = username || email.split("@")[0];
-
-		const userAccount: UserAccount = {
-			whop_user_id,
-			whop_username,
-			email: email.toLowerCase(),
-			passwordHash,
-			createdAt: new Date().toISOString(),
-		};
-
-		userAccounts.set(email.toLowerCase(), userAccount);
-
-		// Create response
-		const response = NextResponse.json({
-			success: true,
-			user: {
-				whop_user_id,
-				whop_username,
-				email: email.toLowerCase(),
+		const { data, error } = await supabase.auth.signUp({
+			email,
+			password,
+			options: {
+				data: {
+					username: username || email.split("@")[0],
+				},
 			},
 		});
 
-		// Set session cookies on the response
-		response.cookies.set("whop_user_id", whop_user_id, {
-			httpOnly: true,
-			secure: process.env.NODE_ENV === "production",
-			sameSite: "lax",
-			maxAge: 60 * 60 * 24 * 30, // 30 days
-			path: "/",
+		if (error) {
+			// Handle specific error cases
+			if (error.message.includes("already registered")) {
+				return NextResponse.json(
+					{ error: "User with this email already exists" },
+					{ status: 409 }
+				);
+			}
+			return NextResponse.json(
+				{ error: error.message },
+				{ status: 400 }
+			);
+		}
+
+		const user = data.user;
+		if (!user) {
+			return NextResponse.json(
+				{ error: "Registration failed" },
+				{ status: 500 }
+			);
+		}
+
+		const displayUsername = username || email.split("@")[0];
+
+		// Create response with user data
+		const response = NextResponse.json({
+			success: true,
+			user: {
+				whop_user_id: user.id,
+				whop_username: displayUsername,
+				email: user.email,
+			},
+			// Note: If email confirmation is enabled in Supabase, user should check email
+			emailConfirmationRequired: !data.session,
 		});
-		response.cookies.set("whop_username", whop_username, {
-			httpOnly: false,
-			secure: process.env.NODE_ENV === "production",
-			sameSite: "lax",
-			maxAge: 60 * 60 * 24 * 30,
-			path: "/",
-		});
-		response.cookies.set("user_email", email.toLowerCase(), {
-			httpOnly: false,
-			secure: process.env.NODE_ENV === "production",
-			sameSite: "lax",
-			maxAge: 60 * 60 * 24 * 30,
-			path: "/",
-		});
+
+		// Set legacy cookies for compatibility (only if session exists - no email confirmation)
+		if (data.session) {
+			response.cookies.set("whop_user_id", user.id, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "lax",
+				maxAge: 60 * 60 * 24 * 30,
+				path: "/",
+			});
+			response.cookies.set("whop_username", displayUsername, {
+				httpOnly: false,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "lax",
+				maxAge: 60 * 60 * 24 * 30,
+				path: "/",
+			});
+			if (user.email) {
+				response.cookies.set("user_email", user.email, {
+					httpOnly: false,
+					secure: process.env.NODE_ENV === "production",
+					sameSite: "lax",
+					maxAge: 60 * 60 * 24 * 30,
+					path: "/",
+				});
+			}
+		}
 
 		return response;
 	} catch (error) {
@@ -81,4 +104,3 @@ export async function POST(request: NextRequest) {
 		);
 	}
 }
-

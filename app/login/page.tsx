@@ -60,6 +60,14 @@ export default function LoginPage() {
 				throw new Error(data.error || `Failed to ${isRegister ? "register" : "login"}`);
 			}
 
+			// Handle email confirmation requirement
+			if (isRegister && data.emailConfirmationRequired) {
+				setError("Please check your email to confirm your account before logging in.");
+				setIsRegister(false); // Switch to login mode
+				setLoading(false);
+				return;
+			}
+
 			// Wait a moment for cookies to be set
 			await new Promise(resolve => setTimeout(resolve, 100));
 			
