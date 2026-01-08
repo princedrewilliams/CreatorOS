@@ -28,8 +28,9 @@ export async function POST(request: NextRequest) {
 		});
 
 		if (error) {
+			console.error("[Login] Supabase error:", error);
 			return NextResponse.json(
-				{ error: error.message },
+				{ error: error.message, code: error.status, details: error.code },
 				{ status: 401 }
 			);
 		}

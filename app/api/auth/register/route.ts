@@ -33,6 +33,7 @@ export async function POST(request: NextRequest) {
 		});
 
 		if (error) {
+			console.error("[Register] Supabase error:", error);
 			// Handle specific error cases
 			if (error.message.includes("already registered")) {
 				return NextResponse.json(
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
 				);
 			}
 			return NextResponse.json(
-				{ error: error.message },
+				{ error: error.message, code: error.status, details: error.code },
 				{ status: 400 }
 			);
 		}

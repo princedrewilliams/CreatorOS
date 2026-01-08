@@ -11,7 +11,6 @@ interface AuthContextType {
 	isConfigured: boolean;
 	signInWithPassword: (email: string, password: string) => Promise<{ error: string | null }>;
 	signUp: (email: string, password: string, username?: string) => Promise<{ error: string | null; emailConfirmationRequired?: boolean }>;
-	signInWithGoogle: () => Promise<void>;
 	signOut: () => Promise<void>;
 }
 
@@ -22,7 +21,6 @@ const AuthContext = createContext<AuthContextType>({
 	isConfigured: false,
 	signInWithPassword: async () => ({ error: null }),
 	signUp: async () => ({ error: null }),
-	signInWithGoogle: async () => {},
 	signOut: async () => {},
 });
 
@@ -97,16 +95,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		};
 	};
 
-	const signInWithGoogle = async () => {
-		if (!supabase) return;
-		await supabase.auth.signInWithOAuth({
-			provider: "google",
-			options: {
-				redirectTo: `${window.location.origin}/auth/callback`,
-			},
-		});
-	};
-
 	const signOut = async () => {
 		if (!supabase) return;
 		await supabase.auth.signOut();
@@ -123,7 +111,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				isConfigured,
 				signInWithPassword,
 				signUp,
-				signInWithGoogle,
 				signOut
 			}}
 		>

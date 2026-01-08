@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useAuth } from "./AuthProvider";
 import { LogIn, LogOut, User, ChevronDown } from "lucide-react";
 
 export function UserMenu() {
-	const { user, loading, isConfigured, signInWithGoogle, signOut } = useAuth();
+	const { user, loading, isConfigured, signOut } = useAuth();
 	const [isOpen, setIsOpen] = useState(false);
 
 	// Don't show login if Supabase isn't configured
@@ -22,13 +23,13 @@ export function UserMenu() {
 
 	if (!user) {
 		return (
-			<button
-				onClick={signInWithGoogle}
+			<Link
+				href="/login"
 				className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.08] hover:bg-white/[0.12] text-white text-sm font-medium transition-all"
 			>
 				<LogIn className="w-4 h-4" />
 				<span>Sign In</span>
-			</button>
+			</Link>
 		);
 	}
 
