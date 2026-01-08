@@ -186,7 +186,7 @@ export function ChannelSummary({
 													key={i}
 													className="p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-lg"
 												>
-													<p className="text-sm text-[var(--text-primary)]">{item}</p>
+													<p className="text-sm text-white">{item}</p>
 												</div>
 											))}
 										</div>
@@ -204,7 +204,7 @@ export function ChannelSummary({
 													key={i}
 													className="p-3 bg-amber-500/5 border border-amber-500/20 rounded-lg"
 												>
-													<p className="text-sm text-[var(--text-primary)]">{item}</p>
+													<p className="text-sm text-white">{item}</p>
 												</div>
 											))}
 										</div>
@@ -216,7 +216,7 @@ export function ChannelSummary({
 											Pattern Diagnosis
 										</h3>
 										<div className="p-4 bg-white/5 border border-white/10 rounded-lg">
-											<p className="text-sm text-[var(--text-primary)] leading-relaxed">
+											<p className="text-sm text-white leading-relaxed">
 												{summary.patternDiagnosis}
 											</p>
 										</div>

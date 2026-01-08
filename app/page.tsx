@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { UserMenu } from "./components/auth/UserMenu";
+import { SavedChannelsList } from "./components/auth/SavedChannelsList";
 
 export default function HomePage() {
 	const [channelUrl, setChannelUrl] = useState("");
@@ -58,7 +59,10 @@ export default function HomePage() {
 					<Sparkles className="w-6 h-6 text-[var(--accent-primary)]" />
 					<span className="text-xl font-bold">CreatorOS</span>
 				</div>
-				<UserMenu />
+				<div className="flex items-center gap-3">
+					<SavedChannelsList />
+					<UserMenu />
+				</div>
 			</motion.header>
 
 			{/* Hero section - centered vertically */}
