@@ -18,7 +18,6 @@ import { ViralMedianChart } from "../components/channel-dna/charts/ViralMedianCh
 import { SearchVisibilityChart } from "../components/channel-dna/charts/SearchVisibilityChart";
 import { UploadFrequencyChart } from "../components/channel-dna/charts/UploadFrequencyChart";
 import { ThumbnailCTRChart } from "../components/channel-dna/charts/ThumbnailCTRChart";
-import { TopicDominanceChart } from "../components/channel-dna/charts/TopicDominanceChart";
 import { FormatConsistencyChart } from "../components/channel-dna/charts/FormatConsistencyChart";
 
 const TABS: Tab[] = [
@@ -26,7 +25,6 @@ const TABS: Tab[] = [
 	{ id: "search", label: "Search & Discoverability" },
 	{ id: "upload", label: "Upload Consistency" },
 	{ id: "thumb", label: "Thumbnail Performance" },
-	{ id: "topics", label: "Winning Topics" },
 	{ id: "identity", label: "Channel Identity" },
 ];
 
@@ -197,13 +195,6 @@ function ChannelDNAContent() {
 		}));
 	};
 
-	const getTopicDominanceData = () => {
-		return ["Jan", "Feb", "Mar", "Apr", "May", "Jun"].map((period) => ({
-			period,
-			dominance: 30 + Math.floor(Math.random() * 50),
-		}));
-	};
-
 	const getFormatConsistencyData = () => {
 		return ["W1", "W2", "W3", "W4", "W5", "W6"].map((period) => ({
 			period,
@@ -217,7 +208,6 @@ function ChannelDNAContent() {
 		search: "SEO Strategy",
 		upload: "Posting Consistency",
 		thumb: "Thumbnail Strategy",
-		topics: "Content Clusters",
 		identity: "Channel Positioning",
 	};
 
@@ -263,10 +253,6 @@ function ChannelDNAContent() {
 			title: "Engagement Rate vs Views",
 			description: "Thumbnail effectiveness proxy",
 		},
-		topics: {
-			title: "Primary Topic Dominance",
-			description: "Percentage of videos in main topic cluster",
-		},
 		identity: {
 			title: "Format Consistency Score",
 			description: "How consistent the content format remains",
@@ -294,13 +280,7 @@ function ChannelDNAContent() {
 				if (freq.includes("Weekly")) return { text: `${freq} uploads - adequate for steady growth`, type: "neutral" };
 				return { text: `${freq} - increasing frequency could accelerate growth`, type: "negative" };
 			}
-			case "topics": {
-				const keywords = data?.data.metrics?.commonKeywords || [];
-				if (keywords.length >= 5) return { text: `${keywords.length} topic clusters identified - strong focus`, type: "positive" };
-				if (keywords.length >= 3) return { text: `${keywords.length} topics detected - moderate focus`, type: "neutral" };
-				return { text: `Only ${keywords.length} recurring topics - consider narrowing focus`, type: "negative" };
-			}
-			case "search": {
+				case "search": {
 				const titleLen = data?.data.metrics?.averageTitleLength || 0;
 				if (titleLen >= 40 && titleLen <= 60) return { text: `${titleLen} char avg title length - optimal for discovery`, type: "positive" };
 				if (titleLen >= 30 && titleLen <= 70) return { text: `${titleLen} char avg titles - acceptable range`, type: "neutral" };
@@ -340,8 +320,6 @@ function ChannelDNAContent() {
 				return <UploadFrequencyChart data={getUploadFrequencyData()} />;
 			case "thumb":
 				return <ThumbnailCTRChart data={getThumbnailCTRData()} />;
-			case "topics":
-				return <TopicDominanceChart data={getTopicDominanceData()} />;
 			case "identity":
 				return <FormatConsistencyChart data={getFormatConsistencyData()} />;
 			default:

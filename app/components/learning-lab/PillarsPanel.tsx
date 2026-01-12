@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChartPanel } from "@/app/components/channel-dna/ChartPanel";
 import { PillarBarChart } from "./charts/PillarBarChart";
 import { FormatPieChart } from "./charts/FormatPieChart";
-import { CheckCircle, AlertTriangle, XCircle, Info, ChevronDown, ChevronUp } from "lucide-react";
+import { CheckCircle, AlertTriangle, XCircle, Info } from "lucide-react";
 import type { PillarsResponse, ContentPillar } from "@/lib/learning-lab/types";
 import { PILLAR_DEFINITIONS } from "@/lib/learning-lab/types";
 
@@ -76,8 +76,7 @@ function HealthBadge({ health }: { health: "strong" | "mixed" | "weak" }) {
 }
 
 export function PillarsPanel({ data }: PillarsPanelProps) {
-	const { formatBreakdown, barChartData, pieData, verdict, soWhat, insights, channelHealth } = data;
-	const [showAllInsights, setShowAllInsights] = useState(false);
+	const { formatBreakdown, barChartData, pieData, verdict, soWhat, channelHealth } = data;
 
 	// Check if format mix is imbalanced (show pie chart only if imbalanced)
 	const isImbalanced = formatBreakdown.shorts.percentage > 70 || formatBreakdown.shorts.percentage < 20;
@@ -189,75 +188,6 @@ export function PillarsPanel({ data }: PillarsPanelProps) {
 									</p>
 								</div>
 							</div>
-						</div>
-					)}
-				</div>
-			)}
-
-			{/* DETAILED INSIGHTS (Expandable) */}
-			{insights.length > 0 && (
-				<div className="bg-[var(--frosted-bg)] backdrop-blur-[var(--frosted-blur)] border border-[var(--frosted-border)] rounded-2xl p-5">
-					<button
-						onClick={() => setShowAllInsights(!showAllInsights)}
-						className="w-full flex items-center justify-between text-left"
-					>
-						<h3 className="text-base font-semibold text-white">
-							Detailed Insights ({insights.length})
-						</h3>
-						{showAllInsights ? (
-							<ChevronUp className="w-5 h-5 text-white/70" />
-						) : (
-							<ChevronDown className="w-5 h-5 text-white/70" />
-						)}
-					</button>
-
-					{showAllInsights && (
-						<div className="mt-4 space-y-3">
-							{insights.map((insight) => (
-								<div
-									key={insight.id}
-									className={`p-4 rounded-lg border ${
-										insight.severity === "strong"
-											? "bg-emerald-500/10 border-emerald-500/30"
-											: insight.severity === "weak"
-											? "bg-amber-500/10 border-amber-500/30"
-											: insight.severity === "concerning"
-											? "bg-red-500/10 border-red-500/30"
-											: "bg-white/5 border-white/10"
-									}`}
-								>
-									<div className="flex items-start gap-3">
-										<div className={`w-2 h-2 rounded-full mt-2 ${
-											insight.severity === "strong"
-												? "bg-emerald-400"
-												: insight.severity === "weak"
-												? "bg-amber-400"
-												: insight.severity === "concerning"
-												? "bg-red-400"
-												: "bg-gray-400"
-										}`} />
-										<div className="flex-1">
-											<p className="text-sm font-medium text-white mb-1">
-												{insight.label.includes("Creator-Led") ? (
-													<>
-														<PillarTooltip pillar="Creator-Led" /> Content{" "}
-														{insight.label.replace("Creator-Led Content", "").replace("Creator-Led", "")}
-													</>
-												) : (
-													insight.label
-												)}
-											</p>
-											<p className="text-xs text-white/70 mb-1">{insight.evidence}</p>
-											<p className="text-xs text-white/80">{insight.impact}</p>
-											{insight.action && (
-												<p className="text-xs text-[var(--accent-primary)] mt-2 font-medium">
-													Action: {insight.action}
-												</p>
-											)}
-										</div>
-									</div>
-								</div>
-							))}
 						</div>
 					)}
 				</div>
