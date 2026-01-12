@@ -326,6 +326,73 @@ function deriveMetrics(videos: YoutubeVideo[]) {
 	};
 }
 
+function computeSearchVisibility(
+	videos: YoutubeVideo[],
+	channelKeywords: { word: string; count: number }[]
+): { scores: { label: string; score: number }[]; median: number } {
+	if (!videos.length) {
+		return { scores: [], median: 50 };
+	}
+
+	const keywordSet = new Set(channelKeywords.slice(0, 10).map(k => k.word.toLowerCase()));
+	const recentVideos = videos.slice(0, 10);
+
+	const scores = recentVideos.map((video, index) => {
+		const title = video.title || "";
+		const titleLower = title.toLowerCase();
+		const titleWords = titleLower.split(/\s+/).map(w => cleanWord(w)).filter(w => w.length >= 4);
+
+		// 1. Title keyword relevance (0-35 points)
+		// How many channel keywords appear in the title
+		const keywordMatches = titleWords.filter(w => keywordSet.has(w)).length;
+		const keywordScore = Math.min(35, keywordMatches * 12);
+
+		// 2. Title length score (0-25 points)
+		// Optimal range: 42-55 characters
+		const titleLen = title.length;
+		let titleLengthScore = 0;
+		if (titleLen >= 42 && titleLen <= 55) {
+			titleLengthScore = 25;
+		} else if (titleLen >= 35 && titleLen <= 65) {
+			titleLengthScore = 18;
+		} else if (titleLen >= 25 && titleLen <= 75) {
+			titleLengthScore = 10;
+		} else {
+			titleLengthScore = 5;
+		}
+
+		// 3. Topic consistency (0-25 points)
+		// How much does this title share keywords with other videos
+		const otherVideos = recentVideos.filter((_, i) => i !== index);
+		const otherKeywords = new Set<string>();
+		otherVideos.forEach(v => {
+			const words = (v.title || "").toLowerCase().split(/\s+/).map(w => cleanWord(w));
+			words.filter(w => w.length >= 4 && !STOP_WORDS.has(w)).forEach(w => otherKeywords.add(w));
+		});
+		const sharedKeywords = titleWords.filter(w => otherKeywords.has(w)).length;
+		const consistencyScore = Math.min(25, sharedKeywords * 8);
+
+		// 4. First 50 chars keyword density (0-15 points)
+		const first50 = titleLower.slice(0, 50);
+		const first50Words = first50.split(/\s+/).map(w => cleanWord(w)).filter(w => w.length >= 4);
+		const first50Matches = first50Words.filter(w => keywordSet.has(w)).length;
+		const densityScore = Math.min(15, first50Matches * 8);
+
+		const totalScore = Math.min(100, keywordScore + titleLengthScore + consistencyScore + densityScore);
+
+		return {
+			label: `V${index + 1}`,
+			score: Math.round(totalScore),
+		};
+	});
+
+	// Calculate median
+	const sortedScores = [...scores.map(s => s.score)].sort((a, b) => a - b);
+	const median = sortedScores[Math.floor(sortedScores.length / 2)] || 50;
+
+	return { scores, median };
+}
+
 function buildHeuristicAnalysis(payload: {
 	channel: YoutubeChannel;
 	videos: YoutubeVideo[];
@@ -491,44 +558,74 @@ function buildHeuristicAnalysis(payload: {
 		},
 	]);
 
-	// DISCOVERABILITY / SEO
+	// DISCOVERABILITY / SEO - 3 observational insights
 	const seoScore = scores.categories["Discoverability / SEO"];
 	const seoSeverity = getSeverity(seoScore);
 	const avgTitleLength = metrics.averageTitleLength;
-	const seoInsights = createInsights("seo", seoScore, [
+	const keywordCount = metrics.commonKeywords.length;
+
+	// Get top keywords for display
+	const topKeywords = metrics.commonKeywords.slice(0, 5).map(k => k.word);
+	const keywordsDisplay = topKeywords.join(", ") || "none detected";
+
+	// Get top topics (same as keywords for now)
+	const topTopics = metrics.commonKeywords.slice(0, 3).map(k => k.word);
+	const topicsDisplay = topTopics.join(", ") || "none detected";
+
+	// Determine keyword focus severity
+	const keywordSeverity: Severity = keywordCount >= 6 ? "strong" : keywordCount >= 3 ? "neutral" : "weak";
+
+	// Determine title length severity (optimal: 42-55)
+	const titleLengthSeverity: Severity =
+		(avgTitleLength >= 42 && avgTitleLength <= 55) ? "strong" :
+		(avgTitleLength >= 35 && avgTitleLength <= 65) ? "neutral" : "weak";
+
+	// Determine topic alignment based on keyword distribution
+	const topKeywordUsage = metrics.commonKeywords[0]?.count || 0;
+	const topicAlignmentStrong = topKeywordUsage >= totalVideos * 0.4;
+	const topicSeverity: Severity = topicAlignmentStrong ? "strong" : keywordCount >= 3 ? "neutral" : "weak";
+
+	const seoInsights: ScoredInsight[] = [
 		{
-			condition: metrics.commonKeywords.length < 3,
-			insight: {
-				id: "seo-no-keywords",
-				label: "No Clear Keyword Strategy",
-				severity: "weak",
-				evidence: `Only ${metrics.commonKeywords.length} recurring keywords detected.`,
-				impact: "Search discoverability is limited without keyword focus.",
-				action: "Pick 2-3 target keywords and use them consistently.",
-			},
+			id: "seo-keyword-focus",
+			label: "Keyword Focus",
+			severity: keywordSeverity,
+			evidence: keywordCount >= 6
+				? `This channel repeats keywords like: ${keywordsDisplay} consistently across titles.`
+				: keywordCount >= 3
+				? `This channel uses keywords like: ${keywordsDisplay} across titles.`
+				: `This channel lacks consistent keyword usage (only ${keywordCount} recurring terms detected).`,
+			impact: keywordSeverity === "strong"
+				? "Strong keyword repetition builds topical authority."
+				: "Limited keyword consistency reduces search discoverability.",
 		},
 		{
-			condition: avgTitleLength > 70 || avgTitleLength < 30,
-			insight: {
-				id: "seo-title-length",
-				label: "Suboptimal Title Length",
-				severity: "weak",
-				evidence: `Avg title length: ${avgTitleLength} chars (optimal: 40-60).`,
-				impact: "Titles may be truncated or lack detail.",
-				action: avgTitleLength > 70 ? "Shorten titles to 50-60 characters." : "Add more context to titles.",
-			},
+			id: "seo-title-length",
+			label: "Title Length Discipline",
+			severity: titleLengthSeverity,
+			evidence: titleLengthSeverity === "strong"
+				? `Average title length is ${avgTitleLength} characters (within discovery-friendly range of 42-55).`
+				: `Average title length is ${avgTitleLength} characters (discovery-friendly range: 42-55).`,
+			impact: titleLengthSeverity === "strong"
+				? "Optimal title length maximizes search visibility."
+				: avgTitleLength < 42
+				? "Short titles may lack searchable context."
+				: "Long titles risk truncation in search results.",
 		},
 		{
-			condition: metrics.commonKeywords.length >= 5 && avgTitleLength >= 40 && avgTitleLength <= 65,
-			insight: {
-				id: "seo-strong",
-				label: "Solid SEO Foundation",
-				severity: "strong",
-				evidence: `${metrics.commonKeywords.length} recurring keywords with optimal title length.`,
-				impact: "Good discoverability through search.",
-			},
+			id: "seo-topic-alignment",
+			label: "Topic Alignment",
+			severity: topicSeverity,
+			evidence: topicAlignmentStrong
+				? `New uploads strongly reinforce topics like: ${topicsDisplay}.`
+				: keywordCount >= 3
+				? `New uploads moderately reinforce topics like: ${topicsDisplay}.`
+				: "New uploads weakly reinforce existing topic clusters.",
+			impact: topicSeverity === "strong"
+				? "Consistent topics help the algorithm categorize this channel."
+				: "Scattered topics make algorithmic recommendations less likely.",
 		},
-	]);
+	];
 
 	// UPLOAD CONSISTENCY
 	const uploadScore = scores.categories["Upload Consistency"];
@@ -923,10 +1020,71 @@ function computeScores(input: { channel: YoutubeChannel; videos: YoutubeVideo[];
 	};
 }
 
+interface SoWhatSection {
+	context: string;
+	strengths: string[];
+	limits: string[];
+	actions: string[];
+}
+
+async function generateSoWhat(
+	client: OpenAI,
+	channelName: string,
+	userNiche: string,
+	analysisData: any,
+	scores: any
+): Promise<Record<string, SoWhatSection>> {
+	const prompt = `You are a YouTube strategy analyst. Analyze ${channelName}'s channel data and generate contextual "So What?" sections for a creator in the "${userNiche}" niche.
+
+CHANNEL DATA:
+${JSON.stringify({ scores, metrics: analysisData.metrics, videoCount: analysisData.videos?.length }, null, 2)}
+
+For each tab, generate a "So What?" section following this EXACT structure:
+- context: 1 sentence explaining why this creator's approach matters for ${userNiche} creators
+- strengths: 2 bullets of what this creator does well (that ${userNiche} creators could learn from)
+- limits: 2 bullets of what limits their approach (or would break if copied incorrectly)
+- actions: 3 bullets for "${userNiche}" creators - one pattern to adopt, one mistake to avoid, one constraint to respect
+
+RULES:
+- Speak directly to the user ("If you post ${userNiche} content...")
+- Reference ${channelName} by name
+- Stay observational, not prescriptive
+- No marketing language, no emojis, no guarantees
+- Be analytical and educational
+
+Return JSON with this structure:
+{
+  "viral": { "context": "...", "strengths": ["...", "..."], "limits": ["...", "..."], "actions": ["...", "...", "..."] },
+  "search": { "context": "...", "strengths": ["...", "..."], "limits": ["...", "..."], "actions": ["...", "...", "..."] },
+  "upload": { "context": "...", "strengths": ["...", "..."], "limits": ["...", "..."], "actions": ["...", "...", "..."] },
+  "thumb": { "context": "...", "strengths": ["...", "..."], "limits": ["...", "..."], "actions": ["...", "...", "..."] },
+  "topics": { "context": "...", "strengths": ["...", "..."], "limits": ["...", "..."], "actions": ["...", "...", "..."] },
+  "identity": { "context": "...", "strengths": ["...", "..."], "limits": ["...", "..."], "actions": ["...", "...", "..."] }
+}`;
+
+	try {
+		const completion = await client.chat.completions.create({
+			model: "gpt-4.1-mini",
+			messages: [
+				{ role: "system", content: "You are a precise YouTube growth analyst. Return only valid JSON." },
+				{ role: "user", content: prompt },
+			],
+			response_format: { type: "json_object" },
+		});
+
+		const content = completion.choices?.[0]?.message?.content || "{}";
+		return JSON.parse(content);
+	} catch (err) {
+		console.error("Failed to generate So What sections:", err);
+		return {};
+	}
+}
+
 export async function POST(req: Request) {
 	try {
 		const body = await req.json();
 		const channelUrl = body?.channelUrl?.trim();
+		const userNiche = body?.userNiche?.trim() || "";
 		if (!channelUrl) {
 			return NextResponse.json({ error: "channelUrl is required" }, { status: 400 });
 		}
@@ -941,8 +1099,9 @@ export async function POST(req: Request) {
 		const videos = await fetchRecentVideos(channel.uploadsPlaylistId);
 		const metrics = deriveMetrics(videos);
 		const score = computeScores({ channel, videos, metrics });
+		const searchVisibility = computeSearchVisibility(videos, metrics.commonKeywords);
 
-		const payload = { channel, videos, metrics };
+		const payload = { channel, videos, metrics, searchVisibility };
 
 		const openaiKey = process.env.OPENAI_API_KEY;
 		let analysis: Record<string, CategoryAnalysis> = buildHeuristicAnalysis({ ...payload, scores: score });
@@ -956,6 +1115,8 @@ export async function POST(req: Request) {
 			recommendations: score.improvements.slice(0, 3),
 			doubleDown: score.strengths[0] ? `Double down on ${score.strengths[0].category}` : "",
 		};
+
+		let soWhat: Record<string, SoWhatSection> = {};
 
 		if (openaiKey) {
 			const client = new OpenAI({ apiKey: openaiKey });
@@ -990,13 +1151,25 @@ ${JSON.stringify({ score, payload }, null, 2)}
 			} catch {
 				// fallback to deterministic recs
 			}
+
+			// Auto-detect niche from keywords if user didn't provide one
+			const detectedNiche = metrics.commonKeywords.slice(0, 3).map(k => k.word).join(", ") || "content creation";
+			const effectiveNiche = userNiche || detectedNiche;
+
+			// Always generate So What sections
+			soWhat = await generateSoWhat(client, channel.title, effectiveNiche, payload, score);
 		}
+
+		// Include detected niche in response for frontend
+		const detectedNiche = metrics.commonKeywords.slice(0, 3).map(k => k.word).join(", ") || "content creation";
 
 		return NextResponse.json({
 			analysis,
 			data: payload,
 			score,
 			aiSummary,
+			soWhat,
+			detectedNiche,
 		});
 	} catch (err) {
 		console.error(err);

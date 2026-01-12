@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, FlaskConical } from "lucide-react";
 import Link from "next/link";
 
 import { FrostedTabs, type Tab } from "../components/ui/FrostedTabs";
@@ -12,9 +12,10 @@ import { NicheBenchmarks } from "../components/channel-dna/NicheBenchmarks";
 import { InsightsPanel } from "../components/channel-dna/InsightsPanel";
 import { ChartPanel } from "../components/channel-dna/ChartPanel";
 import { TabContent } from "../components/channel-dna/TabContent";
+import { SoWhatPanel } from "../components/channel-dna/SoWhatPanel";
 
 import { ViralMedianChart } from "../components/channel-dna/charts/ViralMedianChart";
-import { TopicUsageChart } from "../components/channel-dna/charts/TopicUsageChart";
+import { SearchVisibilityChart } from "../components/channel-dna/charts/SearchVisibilityChart";
 import { UploadFrequencyChart } from "../components/channel-dna/charts/UploadFrequencyChart";
 import { ThumbnailCTRChart } from "../components/channel-dna/charts/ThumbnailCTRChart";
 import { TopicDominanceChart } from "../components/channel-dna/charts/TopicDominanceChart";
@@ -67,6 +68,13 @@ interface CategoryAnalysis {
 	insights: ScoredInsight[];
 }
 
+interface SoWhatSection {
+	context: string;
+	strengths: string[];
+	limits: string[];
+	actions: string[];
+}
+
 interface AnalysisResponse {
 	analysis: Record<string, CategoryAnalysis>;
 	data: {
@@ -76,6 +84,10 @@ interface AnalysisResponse {
 			postingFrequency: string;
 			averageTitleLength: number;
 			commonKeywords: { word: string; count: number }[];
+		};
+		searchVisibility?: {
+			scores: { label: string; score: number }[];
+			median: number;
 		};
 	};
 	score: {
@@ -90,6 +102,8 @@ interface AnalysisResponse {
 		recommendations: string[];
 		doubleDown: string;
 	};
+	soWhat?: Record<string, SoWhatSection>;
+	detectedNiche?: string;
 }
 
 function ChannelDNAContent() {
@@ -153,18 +167,6 @@ function ChannelDNAContent() {
 			})),
 			median,
 		};
-	};
-
-	const getTopicUsageData = () => {
-		if (!data?.data.videos) return [];
-		const videos = data.data.videos.slice(0, 8);
-		return videos.map((v) => {
-			const date = new Date(v.publishedAt);
-			return {
-				date: `${date.getMonth() + 1}/${date.getDate()}`,
-				score: 40 + Math.floor(Math.random() * 40),
-			};
-		});
 	};
 
 	const getUploadFrequencyData = () => {
@@ -250,8 +252,8 @@ function ChannelDNAContent() {
 			description: "How each video performs against the channel baseline",
 		},
 		search: {
-			title: "Topic Consistency Over Time",
-			description: "Alignment with primary topic clusters",
+			title: "Search Visibility Over Time",
+			description: "How consistently this channel aligns titles and topics for discovery",
 		},
 		upload: {
 			title: "Upload Frequency by Week",
@@ -327,8 +329,13 @@ function ChannelDNAContent() {
 				const { data: chartData, median } = getViralChartData();
 				return <ViralMedianChart data={chartData} median={median} />;
 			}
-			case "search":
-				return <TopicUsageChart data={getTopicUsageData()} />;
+			case "search": {
+				const searchData = data?.data.searchVisibility;
+				if (searchData) {
+					return <SearchVisibilityChart data={searchData.scores} median={searchData.median} />;
+				}
+				return <SearchVisibilityChart data={[]} median={50} />;
+			}
 			case "upload":
 				return <UploadFrequencyChart data={getUploadFrequencyData()} />;
 			case "thumb":
@@ -383,7 +390,7 @@ function ChannelDNAContent() {
 	const score = data?.score;
 
 	return (
-		<div className="min-h-screen bg-[var(--page-bg)]">
+		<div className="min-h-screen bg-[var(--page-bg)] page-transition">
 			{/* Subtle gradient overlay */}
 			<div
 				className="fixed inset-0 pointer-events-none"
@@ -397,14 +404,14 @@ function ChannelDNAContent() {
 				{/* Back link */}
 				<Link
 					href="/"
-					className="inline-flex items-center gap-2 text-[var(--text-muted)] hover:text-white transition-colors mb-6"
+					className="inline-flex items-center gap-2 text-[var(--text-muted)] hover:text-white transition-colors mb-6 animate-fade-in"
 				>
 					<ArrowLeft className="w-4 h-4" />
 					<span className="text-sm">Back</span>
 				</Link>
 
 				{/* Header */}
-				<div className="mb-8">
+				<div className="mb-8 animate-slide-up">
 					<div className="flex items-start justify-between gap-4">
 						<div className="flex-1">
 							<ChannelHeader
@@ -416,7 +423,7 @@ function ChannelDNAContent() {
 							/>
 						</div>
 						{data && (
-							<div className="flex flex-col sm:flex-row gap-2">
+							<div className="flex flex-col sm:flex-row gap-2 animate-slide-in-right">
 								<ChannelSummary
 									channelName={channel?.title || "Channel"}
 									channelId={channel?.id || ""}
@@ -431,13 +438,20 @@ function ChannelDNAContent() {
 									viewCount={channel?.viewCount}
 									videoCount={channel?.videoCount}
 								/>
+								<Link
+									href={`/learning-lab?channelUrl=${encodeURIComponent(channelUrl)}`}
+									className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-violet-500 to-pink-500 text-white text-sm font-medium hover:opacity-90 transition-all btn-glow"
+								>
+									<FlaskConical className="w-4 h-4" />
+									<span>Learning Lab</span>
+								</Link>
 							</div>
 						)}
 					</div>
 				</div>
 
 				{/* Tabs */}
-				<div className="mb-6">
+				<div className="mb-6 animate-slide-up stagger-2">
 					<FrostedTabs
 						tabs={TABS}
 						activeTab={activeTab}
@@ -449,15 +463,23 @@ function ChannelDNAContent() {
 				{(() => {
 					const { insights, severity } = getInsightsForTab(activeTab);
 					const takeaway = getChartTakeaway(activeTab);
+					const soWhatSection = data?.soWhat?.[activeTab];
 					return (
 						<TabContent
 							tabKey={activeTab}
 							insights={
-								<InsightsPanel
-									insights={insights}
-									categorySeverity={severity}
-									title={tabToCategoryMap[activeTab] || "Analysis"}
-								/>
+								<>
+									<InsightsPanel
+										insights={insights}
+										categorySeverity={severity}
+										title={tabToCategoryMap[activeTab] || "Analysis"}
+									/>
+									<SoWhatPanel
+										section={soWhatSection}
+										userNiche={data?.detectedNiche || ""}
+										channelName={channel?.title || "This channel"}
+									/>
+								</>
 							}
 							chart={
 								<ChartPanel

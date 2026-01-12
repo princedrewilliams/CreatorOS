@@ -21,7 +21,7 @@ export default function DashboardPage() {
 					<Heading size="9" as="h1" className="mb-4 text-white sm:text-9">
 						Reverse-Engineer What Makes YouTube Channels Win
 					</Heading>
-					<Text size="4" className="text-gray-300 sm:text-5 max-w-2xl mx-auto">
+					<Text size="4" className="text-white/80 sm:text-5 max-w-2xl mx-auto">
 						Analyze posting patterns, titles, thumbnails, and content strategy — instantly.
 					</Text>
 				</div>
@@ -71,7 +71,7 @@ export default function DashboardPage() {
 				{/* Privacy Footer Items */}
 				<div className="mt-8 pt-6 border-t border-white/20">
 					<div className="text-center">
-						<Text size="1" className="text-gray-300">
+						<Text size="1" className="text-white/80">
 							✓ Disconnect accounts anytime • ✓ Request data deletion • <Link href="/privacy" className="text-blue-400 underline hover:text-blue-300">Privacy Policy</Link>
 						</Text>
 					</div>

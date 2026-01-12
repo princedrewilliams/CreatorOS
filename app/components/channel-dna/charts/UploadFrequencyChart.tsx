@@ -1,13 +1,14 @@
 "use client";
 
 import {
-	LineChart,
-	Line,
+	BarChart,
+	Bar,
 	XAxis,
 	YAxis,
 	Tooltip,
 	ResponsiveContainer,
 	ReferenceLine,
+	Cell,
 } from "recharts";
 
 interface DataPoint {
@@ -21,45 +22,79 @@ interface UploadFrequencyChartProps {
 }
 
 export function UploadFrequencyChart({ data, targetUploads = 1 }: UploadFrequencyChartProps) {
-	// Calculate average uploads per week
 	const avgUploads = data.length
 		? data.reduce((sum, d) => sum + d.uploads, 0) / data.length
 		: 0;
 
+	const maxUploads = Math.max(...data.map(d => d.uploads), 1);
+
+	// Color bars based on performance relative to target
+	const getBarColor = (uploads: number) => {
+		if (uploads >= targetUploads * 1.5) return "#22c55e"; // Exceeds target significantly
+		if (uploads >= targetUploads) return "#ec4899"; // Meets target
+		if (uploads >= targetUploads * 0.5) return "#d946ef"; // Close to target
+		return "#a855f7"; // Below target
+	};
+
 	return (
 		<ResponsiveContainer width="100%" height="100%">
-			<LineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
+			<BarChart data={data} margin={{ top: 20, right: 20, left: 0, bottom: 10 }}>
+				<defs>
+					{/* Gradient for bars */}
+					<linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+						<stop offset="0%" stopColor="#ec4899" stopOpacity={1} />
+						<stop offset="100%" stopColor="#a855f7" stopOpacity={0.8} />
+					</linearGradient>
+					{/* Glow effect */}
+					<filter id="barGlow" x="-20%" y="-20%" width="140%" height="140%">
+						<feGaussianBlur stdDeviation="2" result="coloredBlur" />
+						<feMerge>
+							<feMergeNode in="coloredBlur" />
+							<feMergeNode in="SourceGraphic" />
+						</feMerge>
+					</filter>
+				</defs>
 				<XAxis
 					dataKey="week"
 					axisLine={false}
 					tickLine={false}
-					tick={{ fill: "var(--text-muted)", fontSize: 11 }}
+					tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }}
 				/>
 				<YAxis
 					axisLine={false}
 					tickLine={false}
-					tick={{ fill: "var(--text-muted)", fontSize: 11 }}
+					tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }}
 					width={25}
 					allowDecimals={false}
+					domain={[0, Math.max(maxUploads + 1, targetUploads + 1)]}
 				/>
 				<Tooltip
 					contentStyle={{
-						background: "rgba(0,0,0,0.85)",
-						border: "1px solid rgba(255,255,255,0.1)",
-						borderRadius: "8px",
+						background: "rgba(0,0,0,0.9)",
+						border: "1px solid rgba(236,72,153,0.3)",
+						borderRadius: "12px",
 						fontSize: "12px",
+						boxShadow: "0 8px 32px rgba(236,72,153,0.2)",
+						backdropFilter: "blur(8px)",
 					}}
-					labelStyle={{ color: "var(--text-secondary)" }}
-					formatter={(value: number) => [value, "Uploads"]}
+					labelStyle={{ color: "rgba(255,255,255,0.7)", marginBottom: "4px" }}
+					formatter={(value: number) => [
+						<span key="value" className="text-white font-medium">
+							Uploads: <span className="text-[#ec4899]">{value}</span>
+						</span>,
+						""
+					]}
+					separator=""
+					cursor={{ fill: "rgba(236,72,153,0.1)" }}
 				/>
-				{/* Target line - weekly target */}
+				{/* Target line */}
 				<ReferenceLine
 					y={targetUploads}
-					stroke="var(--text-muted)"
-					strokeDasharray="4 4"
+					stroke="rgba(255,255,255,0.3)"
+					strokeDasharray="6 4"
 					label={{
 						value: `Target: ${targetUploads}/wk`,
-						fill: "var(--text-muted)",
+						fill: "rgba(255,255,255,0.5)",
 						fontSize: 10,
 						position: "right",
 					}}
@@ -68,25 +103,35 @@ export function UploadFrequencyChart({ data, targetUploads = 1 }: UploadFrequenc
 				{avgUploads > 0 && (
 					<ReferenceLine
 						y={avgUploads}
-						stroke="rgba(236, 72, 153, 0.5)"
-						strokeDasharray="2 2"
+						stroke="rgba(236,72,153,0.5)"
+						strokeDasharray="3 3"
 						label={{
 							value: `Avg: ${avgUploads.toFixed(1)}`,
-							fill: "rgba(236, 72, 153, 0.8)",
+							fill: "rgba(236,72,153,0.7)",
 							fontSize: 10,
 							position: "left",
 						}}
 					/>
 				)}
-				<Line
-					type="monotone"
+				<Bar
 					dataKey="uploads"
-					stroke="var(--accent-primary)"
-					strokeWidth={2}
-					dot={{ fill: "var(--accent-primary)", r: 4 }}
-					activeDot={{ r: 6, fill: "var(--accent-primary)" }}
-				/>
-			</LineChart>
+					radius={[6, 6, 0, 0]}
+					animationDuration={1200}
+					animationEasing="ease-out"
+					filter="url(#barGlow)"
+				>
+					{data.map((entry, index) => (
+						<Cell
+							key={`cell-${index}`}
+							fill={getBarColor(entry.uploads)}
+							fillOpacity={0.9}
+							style={{
+								transition: "all 0.3s ease",
+							}}
+						/>
+					))}
+				</Bar>
+			</BarChart>
 		</ResponsiveContainer>
 	);
 }

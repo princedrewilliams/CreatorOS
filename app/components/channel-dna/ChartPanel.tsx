@@ -44,18 +44,20 @@ export function ChartPanel({ title, description, takeaway, takeawayType = "neutr
 	const Icon = styles.icon;
 
 	return (
-		<div className="bg-[var(--frosted-bg)] backdrop-blur-[var(--frosted-blur)] border border-[var(--frosted-border)] rounded-2xl p-5">
+		<div className="bg-[var(--frosted-bg)] backdrop-blur-[var(--frosted-blur)] border border-[var(--frosted-border)] rounded-2xl p-5 card-hover-lift animate-scale-in">
 			<div className="mb-4">
 				<h3 className="text-base font-semibold text-white">{title}</h3>
 				{description && (
 					<p className="text-sm text-[var(--text-muted)] mt-1">{description}</p>
 				)}
 			</div>
-			<div className="h-56">{children}</div>
+			<div className="h-56 chart-enter">{children}</div>
 			{takeaway && (
-				<div className={`mt-4 px-3 py-2 rounded-lg ${styles.bg} border ${styles.border}`}>
+				<div
+					className={`mt-4 px-3 py-2 rounded-lg ${styles.bg} border ${styles.border} transition-all duration-300 hover:scale-[1.02]`}
+				>
 					<div className="flex items-center gap-2">
-						<Icon className={`w-4 h-4 ${styles.text}`} />
+						<Icon className={`w-4 h-4 ${styles.text} transition-transform duration-300`} />
 						<p className={`text-sm ${styles.text}`}>{takeaway}</p>
 					</div>
 				</div>

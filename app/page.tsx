@@ -108,31 +108,33 @@ export default function HomePage() {
 									e.preventDefault();
 									void handleAnalyze();
 								}}
-								className="flex flex-col sm:flex-row gap-2"
+								className="flex flex-col gap-3"
 							>
-								<div className="flex-1">
-									<input
-										type="text"
-										value={channelUrl}
-										onChange={(e) => setChannelUrl(e.target.value)}
-										placeholder="youtube.com/@channelname"
-										className="w-full h-14 px-5 bg-white/[0.03] border border-white/10 rounded-xl text-white placeholder:text-white/40 text-base focus:outline-none focus:border-[var(--accent-primary)]/50 transition-colors"
-									/>
+								<div className="flex flex-col sm:flex-row gap-2">
+									<div className="flex-1">
+										<input
+											type="text"
+											value={channelUrl}
+											onChange={(e) => setChannelUrl(e.target.value)}
+											placeholder="youtube.com/@channelname"
+											className="w-full h-14 px-5 bg-white/[0.03] border border-white/10 rounded-xl text-white placeholder:text-white/40 text-base focus:outline-none focus:border-[var(--accent-primary)]/50 transition-colors"
+										/>
+									</div>
+									<button
+										type="submit"
+										disabled={loading}
+										className="h-14 px-8 rounded-xl bg-gradient-to-r from-[var(--accent-primary)] to-[#ff79c9] text-white font-semibold text-base shadow-[0_10px_40px_rgba(236,72,153,0.4)] hover:shadow-[0_15px_50px_rgba(236,72,153,0.5)] hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+									>
+										{loading ? (
+											<div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+										) : (
+											<>
+												Analyze
+												<ArrowRight className="w-4 h-4" />
+											</>
+										)}
+									</button>
 								</div>
-								<button
-									type="submit"
-									disabled={loading}
-									className="h-14 px-8 rounded-xl bg-gradient-to-r from-[var(--accent-primary)] to-[#ff79c9] text-white font-semibold text-base shadow-[0_10px_40px_rgba(236,72,153,0.4)] hover:shadow-[0_15px_50px_rgba(236,72,153,0.5)] hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-								>
-									{loading ? (
-										<div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-									) : (
-										<>
-											Analyze
-											<ArrowRight className="w-4 h-4" />
-										</>
-									)}
-								</button>
 							</form>
 							{error && (
 								<motion.p

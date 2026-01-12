@@ -10,7 +10,12 @@
       "Bash(pnpm add:*)",
       "Bash(npx vercel --prod)",
       "Bash(git commit:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npx vercel:*)",
+      "Bash(pnpm run build)",
+      "Bash(vercel --prod:*)",
+      "Bash(find:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

@@ -74,7 +74,7 @@ function SeverityBadge({ severity }: { severity: Severity }) {
 	};
 
 	return (
-		<span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${config.badgeBg} ${config.badgeColor}`}>
+		<span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${config.badgeBg} ${config.badgeColor} transition-all duration-300`}>
 			{labels[severity]}
 		</span>
 	);
@@ -95,7 +95,7 @@ export function InsightsPanel({
 	const hasNewFormat = insights.some(i => i.severity !== undefined);
 
 	return (
-		<div className="space-y-3">
+		<div className="space-y-3 animate-slide-up">
 			<div className="flex items-center justify-between">
 				<h3 className="text-sm font-medium text-[var(--text-muted)] uppercase tracking-wider">
 					{title}
@@ -104,7 +104,7 @@ export function InsightsPanel({
 			</div>
 
 			<div className="space-y-2">
-				{insights.slice(0, 3).map((insight) => {
+				{insights.slice(0, 3).map((insight, index) => {
 					const isExpanded = expanded === insight.id;
 					const hasDetails = insight.action || (insight.examples && insight.examples.length > 0);
 					const severity = insight.severity || "neutral";
@@ -117,19 +117,22 @@ export function InsightsPanel({
 							className={`
 								backdrop-blur-[var(--frosted-blur)] border rounded-xl overflow-hidden
 								${config.borderColor} ${config.bgColor}
+								insight-card animate-stagger-item
+								transition-all duration-300
 							`}
+							style={{ animationDelay: `${index * 0.1}s` }}
 						>
 							<button
 								onClick={() => hasDetails && toggle(insight.id)}
 								disabled={!hasDetails}
 								className={`
 									w-full text-left p-4
-									${hasDetails ? "cursor-pointer hover:bg-white/[0.02]" : "cursor-default"}
-									transition-colors
+									${hasDetails ? "cursor-pointer hover:bg-white/[0.03]" : "cursor-default"}
+									transition-all duration-300
 								`}
 							>
 								<div className="flex items-start gap-3">
-									<Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${config.labelColor}`} />
+									<Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${config.labelColor} transition-transform duration-300 ${isExpanded ? 'scale-110' : ''}`} />
 									<div className="flex-1 min-w-0">
 										{hasNewFormat ? (
 											<>
@@ -155,7 +158,7 @@ export function InsightsPanel({
 										<ChevronDown
 											className={`
 												w-4 h-4 text-[var(--text-muted)] flex-shrink-0 mt-0.5
-												transition-transform duration-200
+												transition-transform duration-300 ease-out
 												${isExpanded ? "rotate-180" : ""}
 											`}
 										/>
@@ -163,11 +166,16 @@ export function InsightsPanel({
 								</div>
 							</button>
 
-							{isExpanded && hasDetails && (
+							<div
+								className={`
+									overflow-hidden transition-all duration-300 ease-out
+									${isExpanded && hasDetails ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}
+								`}
+							>
 								<div className="px-4 pb-4 pt-0 pl-11">
 									<div className="border-t border-[var(--frosted-border)] pt-3 space-y-2">
 										{insight.action && (
-											<div className="space-y-1">
+											<div className="space-y-1 animate-fade-in">
 												<span className="text-xs text-[var(--text-muted)] uppercase tracking-wide">
 													Recommended Action
 												</span>
@@ -177,7 +185,7 @@ export function InsightsPanel({
 											</div>
 										)}
 										{insight.examples && insight.examples.length > 0 && (
-											<div className="space-y-1 mt-2">
+											<div className="space-y-1 mt-2 animate-fade-in">
 												<span className="text-xs text-[var(--text-muted)] uppercase tracking-wide">
 													Examples
 												</span>
@@ -185,6 +193,7 @@ export function InsightsPanel({
 													<p
 														key={i}
 														className="text-xs text-[var(--text-secondary)] pl-3 border-l-2 border-[var(--frosted-border)]"
+														style={{ animationDelay: `${i * 0.05}s` }}
 													>
 														{example}
 													</p>
@@ -193,7 +202,7 @@ export function InsightsPanel({
 										)}
 									</div>
 								</div>
-							)}
+							</div>
 						</div>
 					);
 				})}

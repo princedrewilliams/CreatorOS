@@ -142,22 +142,22 @@ export function ChannelSummary({
 							{loading ? (
 								<div className="flex flex-col items-center justify-center py-12 space-y-4">
 									<Loader2 className="w-8 h-8 text-[var(--accent-primary)] animate-spin" />
-									<p className="text-[var(--text-secondary)]">Generating summary...</p>
+									<p className="text-white">Generating summary...</p>
 								</div>
 							) : summary ? (
 								<>
 									{/* Snapshot */}
 									<div className="space-y-3">
-										<h3 className="text-sm font-medium text-[var(--text-muted)] uppercase tracking-wider">
+										<h3 className="text-sm font-medium text-white uppercase tracking-wider">
 											Channel Snapshot
 										</h3>
 										<div className="grid grid-cols-2 gap-3">
 											<div className="p-3 bg-white/5 rounded-lg">
-												<p className="text-xs text-[var(--text-muted)]">Niche</p>
+												<p className="text-xs text-white/70">Niche</p>
 												<p className="text-sm text-white mt-1">{summary.snapshot.niche}</p>
 											</div>
 											<div className="p-3 bg-white/5 rounded-lg">
-												<p className="text-xs text-[var(--text-muted)]">Health Score</p>
+												<p className="text-xs text-white/70">Health Score</p>
 												<p className="text-sm text-white mt-1">
 													<span className={`font-semibold ${summary.snapshot.healthScore >= 70 ? "text-emerald-400" : summary.snapshot.healthScore >= 50 ? "text-amber-400" : "text-red-400"}`}>
 														{summary.snapshot.healthScore}
@@ -167,7 +167,7 @@ export function ChannelSummary({
 											</div>
 										</div>
 										<div className="flex items-center gap-2">
-											<span className="text-xs text-[var(--text-muted)]">Confidence:</span>
+											<span className="text-xs text-white/70">Confidence:</span>
 											<span className={`px-2 py-0.5 text-xs rounded-full border ${getConfidenceBadge(summary.confidenceLevel)}`}>
 												{summary.confidenceLevel}
 											</span>
@@ -212,7 +212,7 @@ export function ChannelSummary({
 
 									{/* Pattern Diagnosis */}
 									<div className="space-y-3">
-										<h3 className="text-sm font-medium text-[var(--text-muted)] uppercase tracking-wider">
+										<h3 className="text-sm font-medium text-white uppercase tracking-wider">
 											Pattern Diagnosis
 										</h3>
 										<div className="p-4 bg-white/5 border border-white/10 rounded-lg">
@@ -224,7 +224,7 @@ export function ChannelSummary({
 
 									{/* Export Buttons */}
 									<div className="pt-4 border-t border-white/10">
-										<p className="text-xs text-[var(--text-muted)] mb-3">Export Summary</p>
+										<p className="text-xs text-white/70 mb-3">Export Summary</p>
 										<div className="flex gap-3">
 											<button
 												onClick={() => handleExport("csv")}
@@ -254,7 +254,7 @@ export function ChannelSummary({
 									</div>
 								</>
 							) : (
-								<div className="py-12 text-center text-[var(--text-muted)]">
+								<div className="py-12 text-center text-white">
 									Failed to load summary. Please try again.
 								</div>
 							)}

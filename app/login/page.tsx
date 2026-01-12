@@ -82,7 +82,7 @@ export default function LoginPage() {
 				// Sync user data (social connections, subscription)
 				await syncUserData();
 				// Redirect to dashboard or previous page
-				const redirectUrl = new URLSearchParams(window.location.search).get("redirect") || "/dashboard";
+				const redirectUrl = new URLSearchParams(window.location.search).get("redirect") || "/";
 				router.push(redirectUrl);
 			} else {
 				throw new Error("Login verification failed. Please try again.");
@@ -166,10 +166,10 @@ export default function LoginPage() {
 								variant="solid"
 								color="blue"
 								size="3"
-								onClick={() => router.push("/dashboard")}
+								onClick={() => router.push("/")}
 								className="flex-1"
 							>
-								Go to Dashboard
+								Continue
 							</Button>
 							<Button
 								variant="ghost"
