@@ -4,7 +4,6 @@ import { TabContent } from "@/app/components/channel-dna/TabContent";
 import { ChartPanel } from "@/app/components/channel-dna/ChartPanel";
 import { InsightsPanel } from "@/app/components/channel-dna/InsightsPanel";
 import { EngagementVelocityChart } from "./charts/EngagementVelocityChart";
-import { ContentGapsChart } from "./charts/ContentGapsChart";
 import type { CommunityResponse } from "@/lib/learning-lab/types";
 
 interface CommunityPanelProps {
@@ -13,7 +12,6 @@ interface CommunityPanelProps {
 
 export function CommunityPanel({ data }: CommunityPanelProps) {
 	const {
-		contentGaps,
 		engagementVelocity,
 		sentimentBreakdown,
 		insights,
@@ -59,79 +57,63 @@ export function CommunityPanel({ data }: CommunityPanelProps) {
 				}
 			/>
 
-			{/* Content Gaps & Sentiment */}
-			<div className="grid lg:grid-cols-2 gap-6">
-				{/* Content Gaps */}
-				<div className="bg-[var(--frosted-bg)] backdrop-blur-[var(--frosted-blur)] border border-[var(--frosted-border)] rounded-2xl p-5">
-					<h3 className="text-base font-semibold text-white mb-2">
-						Content Gaps
-					</h3>
-					<p className="text-xs text-[var(--text-muted)] mb-4">
-						Topics your audience is asking for based on comment analysis
-					</p>
-					<div className="h-64">
-						<ContentGapsChart gaps={contentGaps} />
+			{/* Sentiment Breakdown */}
+			<div className="bg-[var(--frosted-bg)] backdrop-blur-[var(--frosted-blur)] border border-[var(--frosted-border)] rounded-2xl p-5">
+				<h3 className="text-base font-semibold text-white mb-4">
+					Comment Sentiment
+				</h3>
+				<div className="space-y-4">
+					{/* Positive */}
+					<div>
+						<div className="flex justify-between text-sm mb-1">
+							<span className="text-emerald-400">Positive</span>
+							<span className="text-white">{sentimentBreakdown.positive}%</span>
+						</div>
+						<div className="h-2 bg-white/10 rounded-full overflow-hidden">
+							<div
+								className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+								style={{ width: `${sentimentBreakdown.positive}%` }}
+							/>
+						</div>
+					</div>
+
+					{/* Neutral */}
+					<div>
+						<div className="flex justify-between text-sm mb-1">
+							<span className="text-white/70">Neutral</span>
+							<span className="text-white">{sentimentBreakdown.neutral}%</span>
+						</div>
+						<div className="h-2 bg-white/10 rounded-full overflow-hidden">
+							<div
+								className="h-full bg-gray-500 rounded-full transition-all duration-500"
+								style={{ width: `${sentimentBreakdown.neutral}%` }}
+							/>
+						</div>
+					</div>
+
+					{/* Negative */}
+					<div>
+						<div className="flex justify-between text-sm mb-1">
+							<span className="text-red-400">Negative</span>
+							<span className="text-white">{sentimentBreakdown.negative}%</span>
+						</div>
+						<div className="h-2 bg-white/10 rounded-full overflow-hidden">
+							<div
+								className="h-full bg-red-500 rounded-full transition-all duration-500"
+								style={{ width: `${sentimentBreakdown.negative}%` }}
+							/>
+						</div>
 					</div>
 				</div>
 
-				{/* Sentiment Breakdown */}
-				<div className="bg-[var(--frosted-bg)] backdrop-blur-[var(--frosted-blur)] border border-[var(--frosted-border)] rounded-2xl p-5">
-					<h3 className="text-base font-semibold text-white mb-4">
-						Comment Sentiment
-					</h3>
-					<div className="space-y-4">
-						{/* Positive */}
-						<div>
-							<div className="flex justify-between text-sm mb-1">
-								<span className="text-emerald-400">Positive</span>
-								<span className="text-white">{sentimentBreakdown.positive}%</span>
-							</div>
-							<div className="h-2 bg-white/10 rounded-full overflow-hidden">
-								<div
-									className="h-full bg-emerald-500 rounded-full transition-all duration-500"
-									style={{ width: `${sentimentBreakdown.positive}%` }}
-								/>
-							</div>
-						</div>
-
-						{/* Neutral */}
-						<div>
-							<div className="flex justify-between text-sm mb-1">
-								<span className="text-white/70">Neutral</span>
-								<span className="text-white">{sentimentBreakdown.neutral}%</span>
-							</div>
-							<div className="h-2 bg-white/10 rounded-full overflow-hidden">
-								<div
-									className="h-full bg-gray-500 rounded-full transition-all duration-500"
-									style={{ width: `${sentimentBreakdown.neutral}%` }}
-								/>
-							</div>
-						</div>
-
-						{/* Negative */}
-						<div>
-							<div className="flex justify-between text-sm mb-1">
-								<span className="text-red-400">Negative</span>
-								<span className="text-white">{sentimentBreakdown.negative}%</span>
-							</div>
-							<div className="h-2 bg-white/10 rounded-full overflow-hidden">
-								<div
-									className="h-full bg-red-500 rounded-full transition-all duration-500"
-									style={{ width: `${sentimentBreakdown.negative}%` }}
-								/>
-							</div>
-						</div>
-					</div>
-
-					<div className="mt-6 pt-4 border-t border-[var(--frosted-border)]">
-						<p className="text-xs text-[var(--text-muted)]">
-							{sentimentBreakdown.positive >= 50
-								? "Healthy community sentiment. Audience is engaged and supportive."
-								: sentimentBreakdown.negative >= 25
-								? "Review negative comments for actionable feedback."
-								: "Mixed sentiment. Consider addressing common concerns."}
-						</p>
-					</div>
+				<div className="mt-6 pt-4 border-t border-[var(--frosted-border)]">
+					<p className="text-xs text-[var(--text-muted)]">
+						{sentimentBreakdown.positive >= 50
+							? "Healthy community sentiment. Audience is engaged and supportive."
+							: sentimentBreakdown.negative >= 25
+							? "Review negative comments for actionable feedback."
+							: "Mixed sentiment. Consider addressing common concerns."}
+					</p>
 				</div>
 			</div>
 

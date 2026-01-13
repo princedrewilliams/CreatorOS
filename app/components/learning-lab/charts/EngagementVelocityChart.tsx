@@ -87,6 +87,7 @@ export function EngagementVelocityChart({ data }: EngagementVelocityChartProps) 
 							</div>
 						);
 					}}
+					cursor={{ fill: "rgba(255,255,255,0.05)" }}
 				/>
 				<ReferenceLine
 					y={avgVelocity}

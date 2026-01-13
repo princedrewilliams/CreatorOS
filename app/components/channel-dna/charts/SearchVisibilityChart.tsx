@@ -120,7 +120,7 @@ export function SearchVisibilityChart({ data, median }: SearchVisibilityChartPro
 							activeDot={{
 								r: 6,
 								fill: "#ec4899",
-								stroke: "#fff",
+								stroke: "rgba(236,72,153,0.4)",
 								strokeWidth: 2,
 							}}
 						/>

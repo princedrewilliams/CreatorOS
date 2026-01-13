@@ -25,7 +25,7 @@ function PillarTooltip({ pillar }: { pillar: ContentPillar }) {
 				onMouseEnter={() => setIsOpen(true)}
 				onMouseLeave={() => setIsOpen(false)}
 				onClick={() => setIsOpen(!isOpen)}
-				className="inline-flex items-center gap-1 underline decoration-dotted underline-offset-2 cursor-help"
+				className="inline-flex items-center gap-1 underline decoration-dotted underline-offset-2 cursor-help text-white"
 			>
 				{pillar}
 				<Info className="w-3 h-3 opacity-60" />
@@ -210,7 +210,7 @@ export function PillarsPanel({ data }: PillarsPanelProps) {
 					</p>
 					<ul className="space-y-2">
 						{soWhat.actionItems.map((item, i) => (
-							<li key={i} className="flex items-start gap-2 text-sm text-gray-200">
+							<li key={i} className="flex items-start gap-2 text-sm text-white">
 								<span className="w-5 h-5 rounded-full bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] text-xs font-bold flex items-center justify-center flex-shrink-0">
 									{i + 1}
 								</span>

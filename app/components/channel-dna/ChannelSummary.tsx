@@ -117,28 +117,28 @@ export function ChannelSummary({
 
 			{/* Modal Overlay */}
 			{isOpen && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+				<div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto">
 					{/* Backdrop */}
 					<div
-						className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+						className="fixed inset-0 bg-black/80 backdrop-blur-sm"
 						onClick={() => setIsOpen(false)}
 					/>
 
 					{/* Modal */}
-					<div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-2xl">
+					<div className="relative w-full max-w-2xl my-8 bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-2xl">
 						{/* Header */}
-						<div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-white/10 bg-[#0a0a0a]">
+						<div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-white/10 bg-[#0a0a0a] rounded-t-2xl">
 							<h2 className="text-lg font-semibold text-white">Channel Summary</h2>
 							<button
 								onClick={() => setIsOpen(false)}
-								className="p-2 rounded-lg hover:bg-white/5 transition-colors"
+								className="p-2 rounded-lg hover:bg-white/10 transition-colors"
 							>
-								<X className="w-5 h-5 text-[var(--text-muted)]" />
+								<X className="w-5 h-5 text-white" />
 							</button>
 						</div>
 
 						{/* Content */}
-						<div className="p-5 space-y-6">
+						<div className="p-5 space-y-6 max-h-[70vh] overflow-y-auto">
 							{loading ? (
 								<div className="flex flex-col items-center justify-center py-12 space-y-4">
 									<Loader2 className="w-8 h-8 text-[var(--accent-primary)] animate-spin" />

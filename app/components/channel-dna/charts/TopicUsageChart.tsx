@@ -112,7 +112,7 @@ export function TopicUsageChart({ data }: TopicUsageChartProps) {
 					activeDot={{
 						r: 6,
 						fill: "#a855f7",
-						stroke: "#fff",
+						stroke: "rgba(168,85,247,0.4)",
 						strokeWidth: 2,
 					}}
 				/>

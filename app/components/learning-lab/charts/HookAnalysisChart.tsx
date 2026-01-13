@@ -92,6 +92,7 @@ export function HookAnalysisChart({ data }: HookAnalysisChartProps) {
 							</div>
 						);
 					}}
+					cursor={{ fill: "rgba(255,255,255,0.05)" }}
 				/>
 				<Bar dataKey="count" radius={[0, 4, 4, 0]}>
 					{sortedData.map((entry, index) => (

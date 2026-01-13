@@ -266,66 +266,33 @@ export function PackagingPanel({ data }: PackagingPanelProps) {
 				)}
 			</div>
 
-			{/* Power Words & SEO Keywords */}
-			<div className="grid lg:grid-cols-2 gap-6">
-				{/* Power Words */}
-				<div className="bg-[var(--frosted-bg)] backdrop-blur-[var(--frosted-blur)] border border-[var(--frosted-border)] rounded-2xl p-5">
-					<h3 className="text-base font-semibold text-white mb-4">
-						Power Words
-					</h3>
-					<p className="text-xs text-[var(--text-muted)] mb-3">
-						Emotionally charged words found in top titles
-					</p>
-					<div className="flex flex-wrap gap-2">
-						{titlePsychology.topPowerWords.slice(0, 10).map((pw, index) => (
-							<span
-								key={pw.word}
-								className={`
-									px-3 py-1.5 rounded-full text-sm
-									${index < 3
-										? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-										: "bg-white/5 text-[var(--text-secondary)] border border-[var(--frosted-border)]"
-									}
-								`}
-							>
-								{pw.word}
-								<span className="ml-1 text-xs opacity-60">({pw.count})</span>
-							</span>
-						))}
-						{titlePsychology.topPowerWords.length === 0 && (
-							<p className="text-sm text-white/60">No power words detected</p>
-						)}
-					</div>
-				</div>
-
-				{/* SEO Keywords */}
-				<div className="bg-[var(--frosted-bg)] backdrop-blur-[var(--frosted-blur)] border border-[var(--frosted-border)] rounded-2xl p-5">
-					<h3 className="text-base font-semibold text-white mb-4">
-						Top SEO Keywords
-					</h3>
-					<p className="text-xs text-[var(--text-muted)] mb-3">
-						Most frequent keywords from tags and descriptions
-					</p>
-					<div className="flex flex-wrap gap-2">
-						{seoExtraction.topKeywords.slice(0, 10).map((kw, index) => (
-							<span
-								key={kw.keyword}
-								className={`
-									px-3 py-1.5 rounded-full text-sm
-									${index < 3
-										? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-										: "bg-white/5 text-[var(--text-secondary)] border border-[var(--frosted-border)]"
-									}
-								`}
-							>
-								{kw.keyword}
-								<span className="ml-1 text-xs opacity-60">({kw.frequency})</span>
-							</span>
-						))}
-						{seoExtraction.topKeywords.length === 0 && (
-							<p className="text-sm text-white/60">No keywords detected</p>
-						)}
-					</div>
+			{/* SEO Keywords */}
+			<div className="bg-[var(--frosted-bg)] backdrop-blur-[var(--frosted-blur)] border border-[var(--frosted-border)] rounded-2xl p-5">
+				<h3 className="text-base font-semibold text-white mb-4">
+					Top SEO Keywords
+				</h3>
+				<p className="text-xs text-[var(--text-muted)] mb-3">
+					Most frequent keywords from tags and descriptions
+				</p>
+				<div className="flex flex-wrap gap-2">
+					{seoExtraction.topKeywords.slice(0, 10).map((kw, index) => (
+						<span
+							key={kw.keyword}
+							className={`
+								px-3 py-1.5 rounded-full text-sm
+								${index < 3
+									? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+									: "bg-white/5 text-[var(--text-secondary)] border border-[var(--frosted-border)]"
+								}
+							`}
+						>
+							{kw.keyword}
+							<span className="ml-1 text-xs opacity-60">({kw.frequency})</span>
+						</span>
+					))}
+					{seoExtraction.topKeywords.length === 0 && (
+						<p className="text-sm text-white/60">No keywords detected</p>
+					)}
 				</div>
 			</div>
 

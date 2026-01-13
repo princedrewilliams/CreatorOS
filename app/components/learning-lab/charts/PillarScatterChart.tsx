@@ -84,6 +84,7 @@ export function PillarScatterChart({ data, growthDriver }: PillarScatterChartPro
 							</div>
 						);
 					}}
+					cursor={{ stroke: "rgba(255,255,255,0.1)", strokeWidth: 1 }}
 				/>
 				<Legend
 					wrapperStyle={{ paddingTop: "10px" }}
@@ -112,7 +113,7 @@ export function PillarScatterChart({ data, growthDriver }: PillarScatterChartPro
 						<Cell
 							key={`cell-${index}`}
 							fill={entry.color}
-							stroke={entry.pillar === growthDriver ? "#fff" : "transparent"}
+							stroke={entry.pillar === growthDriver ? "rgba(255,255,255,0.5)" : "transparent"}
 							strokeWidth={entry.pillar === growthDriver ? 2 : 0}
 						/>
 					))}
