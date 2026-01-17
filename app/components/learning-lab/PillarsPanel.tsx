@@ -119,24 +119,7 @@ export function PillarsPanel({ data }: PillarsPanelProps) {
 					</div>
 				)}
 
-				{/* Common Mistakes (for weak/mixed channels) */}
-				{verdict.commonMistakes && verdict.commonMistakes.length > 0 && (
-					<div className="mt-4 p-4 rounded-lg bg-red-500/10 border border-red-500/20">
-						<h3 className="text-sm font-semibold text-red-400 uppercase tracking-wide mb-2 flex items-center gap-2">
-							<AlertTriangle className="w-4 h-4" />
-							Common Mistakes
-						</h3>
-						<ul className="space-y-2">
-							{verdict.commonMistakes.map((mistake, i) => (
-								<li key={i} className="flex items-start gap-2 text-sm text-red-300">
-									<XCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
-									{mistake}
-								</li>
-							))}
-						</ul>
-					</div>
-				)}
-			</div>
+				</div>
 
 			{/* PRIMARY CHART - Average Views by Content Type */}
 			<ChartPanel

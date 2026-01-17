@@ -66,7 +66,7 @@ export function CommunityPanel({ data }: CommunityPanelProps) {
 					{/* Positive */}
 					<div>
 						<div className="flex justify-between text-sm mb-1">
-							<span className="text-emerald-400">Positive</span>
+							<span className="text-white">Positive</span>
 							<span className="text-white">{sentimentBreakdown.positive}%</span>
 						</div>
 						<div className="h-2 bg-white/10 rounded-full overflow-hidden">
@@ -80,7 +80,7 @@ export function CommunityPanel({ data }: CommunityPanelProps) {
 					{/* Neutral */}
 					<div>
 						<div className="flex justify-between text-sm mb-1">
-							<span className="text-white/70">Neutral</span>
+							<span className="text-white">Neutral</span>
 							<span className="text-white">{sentimentBreakdown.neutral}%</span>
 						</div>
 						<div className="h-2 bg-white/10 rounded-full overflow-hidden">
@@ -94,7 +94,7 @@ export function CommunityPanel({ data }: CommunityPanelProps) {
 					{/* Negative */}
 					<div>
 						<div className="flex justify-between text-sm mb-1">
-							<span className="text-red-400">Negative</span>
+							<span className="text-white">Negative</span>
 							<span className="text-white">{sentimentBreakdown.negative}%</span>
 						</div>
 						<div className="h-2 bg-white/10 rounded-full overflow-hidden">

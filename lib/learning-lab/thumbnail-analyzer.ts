@@ -86,9 +86,9 @@ export function analyzeThumbnailFast(
 	else if (views > 10000) compositionScore = 55 + Math.floor(Math.random() * 15);
 	else compositionScore = 45 + Math.floor(Math.random() * 20);
 
-	// Emotion based on title sentiment
+	// Emotion based on title sentiment - only set if face is actually detected (not just text)
 	let faceEmotion: string | undefined;
-	if (hasFace) {
+	if (hasFace && faceType !== "none") {
 		if (title.includes("shock") || title.includes("!")) faceEmotion = "surprised";
 		else if (title.includes("fail") || title.includes("worst")) faceEmotion = "concerned";
 		else if (title.includes("best") || title.includes("amazing")) faceEmotion = "excited";

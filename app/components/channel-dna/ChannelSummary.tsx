@@ -117,7 +117,7 @@ export function ChannelSummary({
 
 			{/* Modal Overlay */}
 			{isOpen && (
-				<div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto">
+				<div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-y-auto">
 					{/* Backdrop */}
 					<div
 						className="fixed inset-0 bg-black/80 backdrop-blur-sm"

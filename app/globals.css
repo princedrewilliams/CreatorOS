@@ -581,3 +581,18 @@ p {
 	-webkit-text-fill-color: transparent;
 	animation: gradient-shift 3s ease infinite;
 }
+
+/* Remove focus outlines on Recharts elements */
+.recharts-wrapper,
+.recharts-wrapper svg,
+.recharts-wrapper path,
+.recharts-wrapper rect,
+.recharts-surface {
+	outline: none !important;
+}
+
+.recharts-wrapper:focus,
+.recharts-wrapper *:focus,
+.recharts-surface:focus {
+	outline: none !important;
+}

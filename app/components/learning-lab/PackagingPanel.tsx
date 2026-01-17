@@ -118,8 +118,10 @@ export function PackagingPanel({ data }: PackagingPanelProps) {
 			? "neutral"
 			: "negative";
 
-	// Filter analyzed thumbnails
-	const analyzedThumbnails = thumbnails.filter(t => t.status === "analyzed");
+	// Filter analyzed thumbnails and remove duplicates by videoId
+	const analyzedThumbnails = thumbnails
+		.filter(t => t.status === "analyzed")
+		.filter((t, index, self) => self.findIndex(x => x.videoId === t.videoId) === index);
 	const hasThumbnailData = analyzedThumbnails.length > 0 || thumbnailPatterns.avgCompositionScore > 0;
 
 	return (
@@ -336,7 +338,7 @@ export function PackagingPanel({ data }: PackagingPanelProps) {
 										? `${(video.views / 1_000).toFixed(0)}K`
 										: video.views}
 								</p>
-								<p className="text-xs text-white/70">views</p>
+								<p className="text-xs text-white">views</p>
 							</div>
 						</div>
 					))}

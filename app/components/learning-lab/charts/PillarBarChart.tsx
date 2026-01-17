@@ -69,7 +69,7 @@ export function PillarBarChart({ data }: PillarBarChartProps) {
 						"Views",
 					]}
 					labelFormatter={(label: string) => label}
-					cursor={{ fill: "rgba(255,255,255,0.05)" }}
+					cursor={false}
 				/>
 				<Bar
 					dataKey="avgViews"
