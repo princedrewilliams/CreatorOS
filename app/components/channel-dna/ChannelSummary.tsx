@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { FileText, Download, X, CheckCircle, AlertTriangle, Loader2 } from "lucide-react";
+import { Portal } from "@/app/components/ui/Portal";
 
 interface ChannelSummaryProps {
 	channelName: string;
@@ -117,15 +118,16 @@ export function ChannelSummary({
 
 			{/* Modal Overlay */}
 			{isOpen && (
-				<div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-y-auto">
-					{/* Backdrop */}
-					<div
-						className="fixed inset-0 bg-black/80 backdrop-blur-sm"
-						onClick={() => setIsOpen(false)}
-					/>
+				<Portal>
+					<div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-y-auto">
+						{/* Backdrop */}
+						<div
+							className="fixed inset-0 bg-black/80 backdrop-blur-sm"
+							onClick={() => setIsOpen(false)}
+						/>
 
-					{/* Modal */}
-					<div className="relative w-full max-w-2xl my-8 bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-2xl">
+						{/* Modal */}
+						<div className="relative w-full max-w-2xl my-8 bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-2xl">
 						{/* Header */}
 						<div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-white/10 bg-[#0a0a0a] rounded-t-2xl">
 							<h2 className="text-lg font-semibold text-white">Channel Summary</h2>
@@ -258,9 +260,10 @@ export function ChannelSummary({
 									Failed to load summary. Please try again.
 								</div>
 							)}
+							</div>
 						</div>
 					</div>
-				</div>
+				</Portal>
 			)}
 		</>
 	);

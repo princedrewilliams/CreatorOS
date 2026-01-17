@@ -582,6 +582,27 @@ p {
 	animation: gradient-shift 3s ease infinite;
 }
 
+/* Smooth card interactions */
+.card-interactive {
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-interactive:hover {
+	border-color: rgba(236, 72, 153, 0.3);
+	box-shadow: 0 0 20px rgba(236, 72, 153, 0.1);
+}
+
+/* Text utility classes */
+.text-label {
+	color: var(--text-secondary);
+	font-size: 0.75rem;
+}
+
+.text-metric {
+	color: var(--text-primary);
+	font-weight: 600;
+}
+
 /* Remove focus outlines on Recharts elements */
 .recharts-wrapper,
 .recharts-wrapper svg,

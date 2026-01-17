@@ -31,7 +31,7 @@ function PillarTooltip({ pillar }: { pillar: ContentPillar }) {
 				<Info className="w-3 h-3 opacity-60" />
 			</button>
 			{isOpen && (
-				<div className="absolute z-50 left-0 top-full mt-1 w-64 p-3 rounded-lg bg-black/95 border border-white/10 shadow-xl text-xs text-white/80">
+				<div className="absolute z-50 left-0 top-full mt-1 w-64 p-3 rounded-lg bg-black/80 backdrop-blur-md border border-white/20 shadow-[0_0_30px_rgba(236,72,153,0.15)] text-xs text-white/80">
 					{definition}
 				</div>
 			)}
@@ -110,7 +110,7 @@ export function PillarsPanel({ data }: PillarsPanelProps) {
 						</h3>
 						<ul className="space-y-2">
 							{verdict.whyItWorks.map((reason, i) => (
-								<li key={i} className="flex items-start gap-2 text-sm text-white/80">
+								<li key={i} className="flex items-start gap-2 text-sm text-white/90">
 									<CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
 									{reason}
 								</li>
@@ -222,7 +222,7 @@ export function PillarsPanel({ data }: PillarsPanelProps) {
 							{item.pillar === "Creator-Led" ? (
 								<PillarTooltip pillar="Creator-Led" />
 							) : (
-								<span className="text-sm text-white/80">{item.label}</span>
+								<span className="text-sm text-white/90">{item.label}</span>
 							)}
 							<span className="text-xs text-white/60">({item.count})</span>
 						</div>

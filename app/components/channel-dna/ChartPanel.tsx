@@ -54,7 +54,7 @@ export function ChartPanel({ title, description, takeaway, takeawayType = "neutr
 			<div className="h-56 chart-enter">{children}</div>
 			{takeaway && (
 				<div
-					className={`mt-4 px-3 py-2 rounded-lg ${styles.bg} border ${styles.border} transition-all duration-300 hover:scale-[1.02]`}
+					className={`mt-4 px-3 py-2 rounded-lg ${styles.bg} border ${styles.border} transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_15px_rgba(236,72,153,0.08)]`}
 				>
 					<div className="flex items-center gap-2">
 						<Icon className={`w-4 h-4 ${styles.text} transition-transform duration-300`} />

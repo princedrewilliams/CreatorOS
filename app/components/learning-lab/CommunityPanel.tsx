@@ -85,7 +85,7 @@ export function CommunityPanel({ data }: CommunityPanelProps) {
 						</div>
 						<div className="h-2 bg-white/10 rounded-full overflow-hidden">
 							<div
-								className="h-full bg-gray-500 rounded-full transition-all duration-500"
+								className="h-full bg-white/40 rounded-full transition-all duration-500"
 								style={{ width: `${sentimentBreakdown.neutral}%` }}
 							/>
 						</div>
@@ -148,7 +148,7 @@ export function CommunityPanel({ data }: CommunityPanelProps) {
 								return (
 									<div
 										key={category}
-										className={`p-3 rounded-lg ${config.bg} border ${config.border} text-center`}
+										className={`p-3 rounded-lg ${config.bg} border ${config.border} text-center hover:scale-105 hover:border-opacity-60 transition-all duration-200`}
 									>
 										<p className={`text-lg font-bold ${config.text}`}>{count}</p>
 										<p className="text-xs text-white/70">{category}</p>

@@ -20,7 +20,7 @@ function ThumbnailCard({ thumbnail }: { thumbnail: ThumbnailAnalysis }) {
 	}
 
 	return (
-		<div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+		<div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden hover:border-[var(--accent-primary)]/30 hover:shadow-[0_0_20px_rgba(236,72,153,0.1)] transition-all duration-300">
 			<div className="aspect-video relative">
 				<img
 					src={thumbnailUrl}
@@ -30,12 +30,12 @@ function ThumbnailCard({ thumbnail }: { thumbnail: ThumbnailAnalysis }) {
 				{/* Overlay badges */}
 				<div className="absolute bottom-2 left-2 flex flex-wrap gap-1">
 					{analysis.hasFace && (
-						<span className="px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-500/80 text-white">
+						<span className="px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-500/70 border border-emerald-400/50 text-white">
 							{analysis.faceType || "Face"}
 						</span>
 					)}
 					{analysis.hasTextOverlay && (
-						<span className="px-2 py-0.5 rounded text-[10px] font-medium bg-blue-500/80 text-white">
+						<span className="px-2 py-0.5 rounded text-[10px] font-medium bg-blue-500/70 border border-blue-400/50 text-white">
 							Text
 						</span>
 					)}
@@ -45,7 +45,7 @@ function ThumbnailCard({ thumbnail }: { thumbnail: ThumbnailAnalysis }) {
 				{/* Composition score */}
 				{analysis.compositionScore !== undefined && (
 					<div className="flex items-center justify-between">
-						<span className="text-xs text-white/70">Composition</span>
+						<span className="text-xs text-white/90">Composition</span>
 						<div className="flex items-center gap-2">
 							<div className="w-16 h-1.5 rounded-full bg-white/10 overflow-hidden">
 								<div
@@ -68,7 +68,7 @@ function ThumbnailCard({ thumbnail }: { thumbnail: ThumbnailAnalysis }) {
 				{/* Color palette */}
 				{analysis.dominantColors && analysis.dominantColors.length > 0 && (
 					<div className="flex items-center gap-2">
-						<span className="text-xs text-white/70">Colors:</span>
+						<span className="text-xs text-white/90">Colors:</span>
 						<div className="flex gap-1">
 							{analysis.dominantColors.slice(0, 4).map((color, i) => (
 								<span
@@ -84,7 +84,7 @@ function ThumbnailCard({ thumbnail }: { thumbnail: ThumbnailAnalysis }) {
 				{/* Emotion */}
 				{analysis.faceEmotion && (
 					<div className="flex items-center justify-between">
-						<span className="text-xs text-white/70">Expression</span>
+						<span className="text-xs text-white/90">Expression</span>
 						<span className="text-xs text-white capitalize">{analysis.faceEmotion}</span>
 					</div>
 				)}
@@ -179,7 +179,7 @@ export function PackagingPanel({ data }: PackagingPanelProps) {
 							<div className="p-3 rounded-lg bg-white/5 border border-white/10">
 								<div className="flex items-center gap-2 mb-1">
 									<User className="w-4 h-4 text-violet-400" />
-									<span className="text-xs text-white/70">Face Usage</span>
+									<span className="text-xs text-white/85">Face Usage</span>
 								</div>
 								<p className="text-lg font-bold text-white">
 									{Math.round(thumbnailPatterns.faceUsagePercent)}%
@@ -193,7 +193,7 @@ export function PackagingPanel({ data }: PackagingPanelProps) {
 							<div className="p-3 rounded-lg bg-white/5 border border-white/10">
 								<div className="flex items-center gap-2 mb-1">
 									<Type className="w-4 h-4 text-blue-400" />
-									<span className="text-xs text-white/70">Text Overlay</span>
+									<span className="text-xs text-white/85">Text Overlay</span>
 								</div>
 								<p className="text-lg font-bold text-white">
 									{Math.round(thumbnailPatterns.textOverlayPercent)}%
@@ -203,7 +203,7 @@ export function PackagingPanel({ data }: PackagingPanelProps) {
 							<div className="p-3 rounded-lg bg-white/5 border border-white/10">
 								<div className="flex items-center gap-2 mb-1">
 									<Eye className="w-4 h-4 text-emerald-400" />
-									<span className="text-xs text-white/70">Composition</span>
+									<span className="text-xs text-white/85">Composition</span>
 								</div>
 								<p className="text-lg font-bold text-white">
 									{Math.round(thumbnailPatterns.avgCompositionScore)}/100
@@ -213,7 +213,7 @@ export function PackagingPanel({ data }: PackagingPanelProps) {
 							<div className="p-3 rounded-lg bg-white/5 border border-white/10">
 								<div className="flex items-center gap-2 mb-1">
 									<Palette className="w-4 h-4 text-pink-400" />
-									<span className="text-xs text-white/70">Colors</span>
+									<span className="text-xs text-white/85">Colors</span>
 								</div>
 								<div className="flex gap-1 mt-1">
 									{thumbnailPatterns.commonColors.slice(0, 4).map((color, i) => (
@@ -261,7 +261,7 @@ export function PackagingPanel({ data }: PackagingPanelProps) {
 					</>
 				) : (
 					<div className="text-center py-8">
-						<p className="text-sm text-[var(--text-muted)]">
+						<p className="text-sm text-white/80">
 							Thumbnail analysis is processing. Results will appear shortly.
 						</p>
 					</div>
@@ -281,7 +281,7 @@ export function PackagingPanel({ data }: PackagingPanelProps) {
 						<span
 							key={kw.keyword}
 							className={`
-								px-3 py-1.5 rounded-full text-sm
+								px-3 py-1.5 rounded-full text-sm hover:scale-105 transition-transform duration-200
 								${index < 3
 									? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
 									: "bg-white/5 text-[var(--text-secondary)] border border-[var(--frosted-border)]"
@@ -307,7 +307,7 @@ export function PackagingPanel({ data }: PackagingPanelProps) {
 					{titlePsychology.topPerformers.slice(0, 5).map((video, index) => (
 						<div
 							key={video.videoId}
-							className="flex items-start gap-3 p-3 rounded-lg bg-white/5 border border-[var(--frosted-border)]"
+							className="flex items-start gap-3 p-3 rounded-lg bg-white/5 border border-[var(--frosted-border)] hover:border-[var(--accent-primary)]/30 hover:bg-white/[0.07] transition-all duration-300"
 						>
 							<span className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] text-xs font-bold flex items-center justify-center">
 								{index + 1}

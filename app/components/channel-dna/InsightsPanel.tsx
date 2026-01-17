@@ -97,7 +97,7 @@ export function InsightsPanel({
 	return (
 		<div className="space-y-3 animate-slide-up">
 			<div className="flex items-center justify-between">
-				<h3 className="text-sm font-medium text-[var(--text-muted)] uppercase tracking-wider">
+				<h3 className="text-sm font-medium text-[var(--text-secondary)] uppercase tracking-wider">
 					{title}
 				</h3>
 				{categorySeverity && <SeverityBadge severity={categorySeverity} />}
