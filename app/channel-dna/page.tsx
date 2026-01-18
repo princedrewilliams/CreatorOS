@@ -18,6 +18,7 @@ import { ViralMedianChart } from "../components/channel-dna/charts/ViralMedianCh
 import { SearchVisibilityChart } from "../components/channel-dna/charts/SearchVisibilityChart";
 import { UploadFrequencyChart } from "../components/channel-dna/charts/UploadFrequencyChart";
 import { ThumbnailCTRChart } from "../components/channel-dna/charts/ThumbnailCTRChart";
+import { ThemeConsistencyChart } from "../components/channel-dna/charts/ThemeConsistencyChart";
 import { FormatConsistencyChart } from "../components/channel-dna/charts/FormatConsistencyChart";
 
 const TABS: Tab[] = [
@@ -25,7 +26,8 @@ const TABS: Tab[] = [
 	{ id: "search", label: "Search & Discoverability" },
 	{ id: "upload", label: "Upload Consistency" },
 	{ id: "thumb", label: "Thumbnail Performance" },
-	{ id: "identity", label: "Channel Identity" },
+	{ id: "theme", label: "Theme Consistency" },
+	{ id: "format", label: "Format Consistency" },
 ];
 
 interface ChannelData {
@@ -45,6 +47,7 @@ interface VideoData {
 	views?: number;
 	likes?: number;
 	comments?: number;
+	durationSec?: number;
 }
 
 type Severity = "strong" | "neutral" | "weak" | "concerning";
@@ -196,20 +199,56 @@ function ChannelDNAContent() {
 		}));
 	};
 
+	const getThemeConsistencyData = () => {
+		if (!data?.data.videos) return { data: [], average: 50 };
+		const videos = data.data.videos.slice(0, 10);
+		const keywords = data.data.metrics?.commonKeywords || [];
+		const topKeywords = new Set(keywords.slice(0, 6).map(k => k.word.toLowerCase()));
+
+		const scores = videos.map((v, idx) => {
+			const titleWords = v.title.toLowerCase().split(/\s+/);
+			const matchCount = titleWords.filter(w => topKeywords.has(w)).length;
+			const score = Math.min(100, Math.round((matchCount / Math.max(1, topKeywords.size)) * 100 + 20));
+			return { label: `V${idx + 1}`, score };
+		});
+
+		const average = scores.length
+			? Math.round(scores.reduce((sum, s) => sum + s.score, 0) / scores.length)
+			: 50;
+
+		return { data: scores, average };
+	};
+
 	const getFormatConsistencyData = () => {
-		return ["W1", "W2", "W3", "W4", "W5", "W6"].map((period) => ({
-			period,
-			consistency: 50 + Math.floor(Math.random() * 40),
-		}));
+		if (!data?.data.videos) return { data: [], average: 50 };
+		const videos = data.data.videos.slice(0, 10);
+
+		// Calculate format similarity based on video duration clustering
+		const durations = videos.map(v => v.durationSec || 0).filter(d => d > 0);
+		const avgDuration = durations.length ? durations.reduce((a, b) => a + b, 0) / durations.length : 300;
+
+		const scores = videos.map((v, idx) => {
+			const duration = v.durationSec || avgDuration;
+			const durationDiff = Math.abs(duration - avgDuration) / avgDuration;
+			const score = Math.max(20, Math.min(100, Math.round(100 - durationDiff * 80)));
+			return { label: `V${idx + 1}`, score };
+		});
+
+		const average = scores.length
+			? Math.round(scores.reduce((sum, s) => sum + s.score, 0) / scores.length)
+			: 50;
+
+		return { data: scores, average };
 	};
 
 	// Map tab IDs to analysis category names
 	const tabToCategoryMap: Record<string, string> = {
 		viral: "Viral Potential",
-		search: "SEO Strategy",
-		upload: "Posting Consistency",
-		thumb: "Thumbnail Strategy",
-		identity: "Channel Positioning",
+		search: "Discoverability / SEO",
+		upload: "Upload Consistency",
+		thumb: "Thumbnail Performance",
+		theme: "Theme Consistency",
+		format: "Format Consistency",
 	};
 
 	// Get insights from API response with severity data
@@ -254,9 +293,13 @@ function ChannelDNAContent() {
 			title: "Engagement Rate vs Views",
 			description: "Thumbnail effectiveness proxy",
 		},
-		identity: {
-			title: "Format Consistency Score",
-			description: "How consistent the content format remains",
+		theme: {
+			title: "Theme Consistency",
+			description: "How often recent videos focus on the same core topics",
+		},
+		format: {
+			title: "Format Consistency",
+			description: "How consistent your video structure and format are over time",
 		},
 	};
 
@@ -293,11 +336,17 @@ function ChannelDNAContent() {
 				if (score >= 50) return { text: "Thumbnail style has room for more consistency", type: "neutral" };
 				return { text: "Inconsistent thumbnails may hurt click-through rate", type: "negative" };
 			}
-			case "identity": {
-				const score = data?.score?.categories?.["Channel Identity & Focus"] || 50;
-				if (score >= 70) return { text: "Clear channel identity supports subscriber retention", type: "positive" };
-				if (score >= 50) return { text: "Channel positioning could be sharper", type: "neutral" };
-				return { text: "Unclear identity makes it harder for algorithm to recommend", type: "negative" };
+			case "theme": {
+				const { average } = getThemeConsistencyData();
+				if (average >= 70) return { text: "Most recent videos focus on a small set of recurring topics", type: "positive" };
+				if (average >= 45) return { text: "Videos moderately overlap with core themes", type: "neutral" };
+				return { text: "Reduce one-off topics and repeat your strongest themes to improve consistency", type: "negative" };
+			}
+			case "format": {
+				const { average } = getFormatConsistencyData();
+				if (average >= 70) return { text: "Recent uploads follow a recognizable and repeatable format", type: "positive" };
+				if (average >= 45) return { text: "Format varies moderately across uploads", type: "neutral" };
+				return { text: "Repeat your highest-performing formats more often to improve retention", type: "negative" };
 			}
 			default:
 				return { text: "Analysis complete", type: "neutral" };
@@ -321,8 +370,14 @@ function ChannelDNAContent() {
 				return <UploadFrequencyChart data={getUploadFrequencyData()} />;
 			case "thumb":
 				return <ThumbnailCTRChart data={getThumbnailCTRData()} />;
-			case "identity":
-				return <FormatConsistencyChart data={getFormatConsistencyData()} />;
+			case "theme": {
+				const { data: themeData, average } = getThemeConsistencyData();
+				return <ThemeConsistencyChart data={themeData} average={average} />;
+			}
+			case "format": {
+				const { data: formatData, average } = getFormatConsistencyData();
+				return <FormatConsistencyChart data={formatData} average={average} />;
+			}
 			default:
 				return null;
 		}
@@ -450,7 +505,8 @@ function ChannelDNAContent() {
 						search: "Discoverability / SEO",
 						upload: "Upload Consistency",
 						thumb: "Thumbnail Performance",
-						identity: "Channel Identity & Focus",
+						theme: "Channel Identity & Focus",
+						format: "Channel Identity & Focus",
 					};
 					const categoryScore = score?.categories?.[tabToScoreCategory[activeTab]] || 0;
 

@@ -779,6 +779,90 @@ function buildHeuristicAnalysis(payload: {
 		},
 	]);
 
+	// THEME CONSISTENCY
+	const themeScore = Math.round(metrics.topicAlignmentScore || 50);
+	const themeSeverity: Severity = themeScore >= 70 ? "strong" : themeScore >= 40 ? "neutral" : "weak";
+	const topThemes = metrics.topicClusters?.slice(0, 3).map((c: { topic: string }) => c.topic).join(", ") || "none";
+	const themeInsights: ScoredInsight[] = [
+		{
+			id: "theme-overlap",
+			label: "Topic Overlap",
+			severity: themeSeverity,
+			evidence: themeSeverity === "strong"
+				? `${themeScore}% of videos focus on recurring themes: ${topThemes}.`
+				: themeSeverity === "neutral"
+				? `${themeScore}% of videos share common themes: ${topThemes}.`
+				: `Only ${themeScore}% topic overlap detected across recent videos.`,
+			impact: themeSeverity === "strong"
+				? "Strong topic consistency helps the algorithm recommend your content."
+				: "Low topic overlap makes it harder for the algorithm to categorize you.",
+		},
+		{
+			id: "theme-recurring",
+			label: "Recurring Topics",
+			severity: metrics.topicClusters?.length >= 3 ? "strong" : metrics.topicClusters?.length >= 1 ? "neutral" : "weak",
+			evidence: metrics.topicClusters?.length >= 3
+				? `${metrics.topicClusters.length} distinct topic clusters identified.`
+				: metrics.topicClusters?.length >= 1
+				? `${metrics.topicClusters?.length || 0} topic cluster(s) detected.`
+				: "No clear topic clusters identified.",
+			impact: "Topic clusters help viewers know what to expect from your channel.",
+		},
+		{
+			id: "theme-action",
+			label: "Theme Recommendation",
+			severity: "neutral",
+			evidence: themeSeverity === "strong"
+				? "Continue focusing on your strongest themes."
+				: "Reduce one-off topics and repeat your strongest themes.",
+			impact: "Repeating themes builds authority and improves recommendations.",
+		},
+	];
+
+	// FORMAT CONSISTENCY
+	const durations = videos.map(v => v.durationSec || 0).filter(d => d > 0);
+	const avgDuration = durations.length ? durations.reduce((a, b) => a + b, 0) / durations.length : 300;
+	const durationVariance = durations.length > 0
+		? durations.reduce((sum, d) => sum + Math.pow(d - avgDuration, 2), 0) / durations.length
+		: 0;
+	const durationCV = avgDuration > 0 ? Math.sqrt(durationVariance) / avgDuration : 1;
+	const formatScore = Math.max(20, Math.min(100, Math.round(100 - durationCV * 80)));
+	const formatSeverity: Severity = formatScore >= 70 ? "strong" : formatScore >= 40 ? "neutral" : "weak";
+
+	const formatInsights: ScoredInsight[] = [
+		{
+			id: "format-length",
+			label: "Video Length Consistency",
+			severity: formatSeverity,
+			evidence: formatSeverity === "strong"
+				? `Videos maintain consistent length (~${Math.round(avgDuration / 60)} min average).`
+				: formatSeverity === "neutral"
+				? `Video lengths vary moderately (~${Math.round(avgDuration / 60)} min average).`
+				: `Video lengths vary significantly (${Math.round(avgDuration / 60)} min average with high variance).`,
+			impact: formatSeverity === "strong"
+				? "Consistent format helps viewers know what to expect."
+				: "Varying formats may confuse viewer expectations.",
+		},
+		{
+			id: "format-structure",
+			label: "Format Pattern",
+			severity: formatScore >= 60 ? "strong" : "neutral",
+			evidence: formatScore >= 60
+				? "Videos follow a recognizable format pattern."
+				: "No consistent format pattern detected.",
+			impact: "Repeatable formats improve production efficiency and viewer retention.",
+		},
+		{
+			id: "format-action",
+			label: "Format Recommendation",
+			severity: "neutral",
+			evidence: formatSeverity === "strong"
+				? "Continue with your proven format."
+				: "Identify your highest-performing format and repeat it more often.",
+			impact: "Consistent formats build audience expectations and improve retention.",
+		},
+	];
+
 	// WINNING TOPICS
 	const topicsScore = scores.categories["Winning Topics"];
 	const topicsSeverity = getSeverity(topicsScore);
@@ -856,6 +940,22 @@ function buildHeuristicAnalysis(payload: {
 				? "Clear channel identity and positioning."
 				: "Channel positioning needs refinement.",
 			insights: identityInsights,
+		},
+		"Theme Consistency": {
+			score: themeScore,
+			severity: themeSeverity,
+			summary: themeSeverity === "strong"
+				? "Videos focus on consistent themes."
+				: "Theme focus could be stronger.",
+			insights: themeInsights,
+		},
+		"Format Consistency": {
+			score: formatScore,
+			severity: formatSeverity,
+			summary: formatSeverity === "strong"
+				? "Videos follow a consistent format."
+				: "Format varies across uploads.",
+			insights: formatInsights,
 		},
 		"Replication Score": {
 			score: Math.round((viralScore + engagementScore + uploadScore) / 3),

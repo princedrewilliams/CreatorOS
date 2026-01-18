@@ -71,6 +71,10 @@ function extractHandleOrId(channelUrl: string): {
 		return { type: "search", value: trimmed };
 	} catch {
 		const trimmed = channelUrl.replace(/^@/, "").trim();
+		// Check if it's a raw YouTube channel ID (starts with UC and is 24 chars)
+		if (trimmed.startsWith("UC") && trimmed.length === 24) {
+			return { type: "id", value: trimmed };
+		}
 		return { type: "search", value: trimmed };
 	}
 }
