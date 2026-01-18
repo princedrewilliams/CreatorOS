@@ -186,6 +186,7 @@ function ChannelDNAContent() {
 	const getThumbnailCTRData = () => {
 		if (!data?.data.videos) return [];
 		return data.data.videos.slice(0, 12).map((v) => ({
+			id: v.id,
 			title: v.title.slice(0, 30) + "...",
 			views: v.views || 0,
 			ctrProxy:
