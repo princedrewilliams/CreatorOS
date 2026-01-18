@@ -127,6 +127,51 @@ function commonKeywords(titles: string[], top = 12) {
 		.map(([word, count]) => ({ word, count }));
 }
 
+function extractNgrams(titles: string[], n: number = 2): { phrase: string; count: number }[] {
+	const counts: Record<string, number> = {};
+	for (const title of titles) {
+		const words = title.toLowerCase().split(/\s+/)
+			.map(w => cleanWord(w))
+			.filter(w => w.length >= 3 && !STOP_WORDS.has(w));
+		for (let i = 0; i <= words.length - n; i++) {
+			const phrase = words.slice(i, i + n).join(" ");
+			counts[phrase] = (counts[phrase] || 0) + 1;
+		}
+	}
+	return Object.entries(counts)
+		.filter(([_, count]) => count >= 2)
+		.sort((a, b) => b[1] - a[1])
+		.slice(0, 10)
+		.map(([phrase, count]) => ({ phrase, count }));
+}
+
+function extractTopicClusters(titles: string[], keywords: { word: string; count: number }[]): {
+	clusters: { topic: string; videoCount: number }[];
+	alignmentScore: number;
+} {
+	const topKeywords = keywords.slice(0, 6).map(k => k.word);
+	const videoTopics: Set<number>[] = topKeywords.map(() => new Set());
+
+	titles.forEach((title, idx) => {
+		const titleWords = title.toLowerCase().split(/\s+/).map(w => cleanWord(w));
+		topKeywords.forEach((kw, kwIdx) => {
+			if (titleWords.includes(kw)) videoTopics[kwIdx].add(idx);
+		});
+	});
+
+	const videosInClusters = new Set<number>();
+	videoTopics.forEach(s => s.forEach(v => videosInClusters.add(v)));
+	const alignmentScore = titles.length > 0 ? (videosInClusters.size / titles.length) * 100 : 0;
+
+	return {
+		clusters: topKeywords.map((kw, i) => ({ topic: kw, videoCount: videoTopics[i].size }))
+			.filter(c => c.videoCount >= 2)
+			.sort((a, b) => b.videoCount - a.videoCount)
+			.slice(0, 4),
+		alignmentScore
+	};
+}
+
 async function ytFetch(path: string, params: Record<string, string>) {
 	const key = process.env.YOUTUBE_API_KEY;
 	if (!key) {
@@ -308,7 +353,10 @@ function deriveMetrics(videos: YoutubeVideo[]) {
 	const averageTitleLength =
 		videos.reduce((sum, v) => sum + (v.title?.length || 0), 0) / videos.length;
 
-	const keywords = commonKeywords(videos.map((v) => v.title));
+	const titles = videos.map((v) => v.title);
+	const keywords = commonKeywords(titles);
+	const repeatedPhrases = extractNgrams(titles, 2);
+	const topicData = extractTopicClusters(titles, keywords);
 
 	let postingFrequency = "Not enough data";
 	if (avgGap !== null) {
@@ -323,6 +371,9 @@ function deriveMetrics(videos: YoutubeVideo[]) {
 		postingFrequency,
 		averageTitleLength: Number.isFinite(averageTitleLength) ? Math.round(averageTitleLength) : 0,
 		commonKeywords: keywords,
+		repeatedPhrases,
+		topicClusters: topicData.clusters,
+		topicAlignmentScore: topicData.alignmentScore,
 	};
 }
 
@@ -562,42 +613,35 @@ function buildHeuristicAnalysis(payload: {
 	const seoScore = scores.categories["Discoverability / SEO"];
 	const seoSeverity = getSeverity(seoScore);
 	const avgTitleLength = metrics.averageTitleLength;
-	const keywordCount = metrics.commonKeywords.length;
 
-	// Get top keywords for display
-	const topKeywords = metrics.commonKeywords.slice(0, 5).map(k => k.word);
-	const keywordsDisplay = topKeywords.join(", ") || "none detected";
-
-	// Get top topics (same as keywords for now)
-	const topTopics = metrics.commonKeywords.slice(0, 3).map(k => k.word);
-	const topicsDisplay = topTopics.join(", ") || "none detected";
-
-	// Determine keyword focus severity
-	const keywordSeverity: Severity = keywordCount >= 6 ? "strong" : keywordCount >= 3 ? "neutral" : "weak";
+	// Keyword Focus - based on repeated phrases (n-grams)
+	const phraseCount = metrics.repeatedPhrases?.length || 0;
+	const topPhrases = metrics.repeatedPhrases?.slice(0, 3).map(p => `"${p.phrase}"`).join(", ") || "none";
+	const keywordSeverity: Severity = phraseCount >= 4 ? "strong" : phraseCount >= 2 ? "neutral" : "weak";
 
 	// Determine title length severity (optimal: 42-55)
 	const titleLengthSeverity: Severity =
 		(avgTitleLength >= 42 && avgTitleLength <= 55) ? "strong" :
 		(avgTitleLength >= 35 && avgTitleLength <= 65) ? "neutral" : "weak";
 
-	// Determine topic alignment based on keyword distribution
-	const topKeywordUsage = metrics.commonKeywords[0]?.count || 0;
-	const topicAlignmentStrong = topKeywordUsage >= totalVideos * 0.4;
-	const topicSeverity: Severity = topicAlignmentStrong ? "strong" : keywordCount >= 3 ? "neutral" : "weak";
+	// Topic Alignment - based on clustering analysis
+	const alignmentPct = Math.round(metrics.topicAlignmentScore || 0);
+	const topThemes = metrics.topicClusters?.slice(0, 3).map(c => c.topic).join(", ") || "none";
+	const topicSeverity: Severity = alignmentPct >= 70 ? "strong" : alignmentPct >= 40 ? "neutral" : "weak";
 
 	const seoInsights: ScoredInsight[] = [
 		{
 			id: "seo-keyword-focus",
 			label: "Keyword Focus",
 			severity: keywordSeverity,
-			evidence: keywordCount >= 6
-				? `This channel repeats keywords like: ${keywordsDisplay} consistently across titles.`
-				: keywordCount >= 3
-				? `This channel uses keywords like: ${keywordsDisplay} across titles.`
-				: `This channel lacks consistent keyword usage (only ${keywordCount} recurring terms detected).`,
+			evidence: keywordSeverity === "strong"
+				? `This channel consistently repeats the same search phrases in video titles: ${topPhrases}.`
+				: keywordSeverity === "neutral"
+				? `This channel uses some repeated phrases in titles: ${topPhrases}.`
+				: `This channel lacks consistent phrase repetition (only ${phraseCount} recurring phrases detected).`,
 			impact: keywordSeverity === "strong"
-				? "Strong keyword repetition builds topical authority."
-				: "Limited keyword consistency reduces search discoverability.",
+				? "Strong phrase repetition improves search discovery."
+				: "Limited phrase consistency reduces search discoverability.",
 		},
 		{
 			id: "seo-title-length",
@@ -616,14 +660,14 @@ function buildHeuristicAnalysis(payload: {
 			id: "seo-topic-alignment",
 			label: "Topic Alignment",
 			severity: topicSeverity,
-			evidence: topicAlignmentStrong
-				? `New uploads strongly reinforce topics like: ${topicsDisplay}.`
-				: keywordCount >= 3
-				? `New uploads moderately reinforce topics like: ${topicsDisplay}.`
-				: "New uploads weakly reinforce existing topic clusters.",
+			evidence: topicSeverity === "strong"
+				? `Recent videos stay focused on the same core ideas and themes: ${topThemes}. ${alignmentPct}% of videos align with topic clusters.`
+				: topicSeverity === "neutral"
+				? `Videos moderately align with themes like: ${topThemes}. ${alignmentPct}% clustering detected.`
+				: `Videos weakly reinforce topic clusters. Only ${alignmentPct}% alignment detected.`,
 			impact: topicSeverity === "strong"
-				? "Consistent topics help the algorithm categorize this channel."
-				: "Scattered topics make algorithmic recommendations less likely.",
+				? "Focused themes improve algorithmic recommendations."
+				: "Scattered topics make recommendation systems less likely to suggest videos together.",
 		},
 	];
 

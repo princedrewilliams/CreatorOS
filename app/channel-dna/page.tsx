@@ -243,7 +243,7 @@ function ChannelDNAContent() {
 		},
 		search: {
 			title: "Search Visibility Over Time",
-			description: "How consistently this channel aligns titles and topics for discovery",
+			description: "How well video titles match past high-performing search terms",
 		},
 		upload: {
 			title: "Upload Frequency by Week",

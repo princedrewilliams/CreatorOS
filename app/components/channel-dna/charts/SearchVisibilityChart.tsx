@@ -58,6 +58,7 @@ export function SearchVisibilityChart({ data, median }: SearchVisibilityChartPro
 							axisLine={false}
 							tickLine={false}
 							tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }}
+							label={{ value: "Uploads (Old → New)", position: "bottom", fill: "rgba(255,255,255,0.4)", fontSize: 10, offset: -5 }}
 						/>
 						<YAxis
 							domain={[0, 100]}
@@ -65,7 +66,8 @@ export function SearchVisibilityChart({ data, median }: SearchVisibilityChartPro
 							tickLine={false}
 							tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }}
 							ticks={[0, 25, 50, 75, 100]}
-							width={35}
+							width={45}
+							label={{ value: "Search Score (0-100)", angle: -90, position: "insideLeft", fill: "rgba(255,255,255,0.4)", fontSize: 10, dx: -5 }}
 						/>
 
 						{/* Dashed baseline for median */}
@@ -74,7 +76,7 @@ export function SearchVisibilityChart({ data, median }: SearchVisibilityChartPro
 							stroke="rgba(255,255,255,0.25)"
 							strokeDasharray="6 4"
 							label={{
-								value: `Median: ${median}`,
+								value: `Channel Baseline: ${median}`,
 								position: "right",
 								fill: "rgba(255,255,255,0.5)",
 								fontSize: 10,
@@ -93,7 +95,8 @@ export function SearchVisibilityChart({ data, median }: SearchVisibilityChartPro
 							labelStyle={{ color: "rgba(255,255,255,0.7)", marginBottom: "4px" }}
 							formatter={(value: number) => [
 								<span key="value" className="text-white font-medium">
-									Search Visibility: <span className="text-[#ec4899]">{value}</span>/100
+									<span className="text-white/60 text-xs block mb-1">How closely this title matches past high-performing keywords</span>
+									Score: <span className="text-[#ec4899]">{value}</span>/100
 								</span>,
 								""
 							]}
@@ -132,8 +135,8 @@ export function SearchVisibilityChart({ data, median }: SearchVisibilityChartPro
 			<div className="mt-2 text-center">
 				<p className="text-xs text-white/50">
 					<span className="text-white/70 font-medium">{aboveMedian}</span> of the last{" "}
-					<span className="text-white/70 font-medium">{data.length}</span> videos exceeded
-					the channel's typical search visibility.
+					<span className="text-white/70 font-medium">{data.length}</span> videos performed above
+					the channel's usual search visibility, driven by stronger keyword alignment in titles.
 				</p>
 			</div>
 		</div>
