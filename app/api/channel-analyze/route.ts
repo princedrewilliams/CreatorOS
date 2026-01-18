@@ -800,10 +800,10 @@ function buildHeuristicAnalysis(payload: {
 		{
 			id: "theme-recurring",
 			label: "Recurring Topics",
-			severity: metrics.topicClusters?.length >= 3 ? "strong" : metrics.topicClusters?.length >= 1 ? "neutral" : "weak",
-			evidence: metrics.topicClusters?.length >= 3
-				? `${metrics.topicClusters.length} distinct topic clusters identified.`
-				: metrics.topicClusters?.length >= 1
+			severity: (metrics.topicClusters?.length || 0) >= 3 ? "strong" : (metrics.topicClusters?.length || 0) >= 1 ? "neutral" : "weak",
+			evidence: (metrics.topicClusters?.length || 0) >= 3
+				? `${metrics.topicClusters?.length || 0} distinct topic clusters identified.`
+				: (metrics.topicClusters?.length || 0) >= 1
 				? `${metrics.topicClusters?.length || 0} topic cluster(s) detected.`
 				: "No clear topic clusters identified.",
 			impact: "Topic clusters help viewers know what to expect from your channel.",
