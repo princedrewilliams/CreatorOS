@@ -442,6 +442,17 @@ function ChannelDNAContent() {
 					const { insights, severity } = getInsightsForTab(activeTab);
 					const takeaway = getChartTakeaway(activeTab);
 					const soWhatSection = data?.soWhat?.[activeTab];
+
+					// Map tab to score category
+					const tabToScoreCategory: Record<string, string> = {
+						viral: "Viral Potential",
+						search: "Discoverability / SEO",
+						upload: "Upload Consistency",
+						thumb: "Thumbnail Performance",
+						identity: "Channel Identity & Focus",
+					};
+					const categoryScore = score?.categories?.[tabToScoreCategory[activeTab]] || 0;
+
 					return (
 						<TabContent
 							tabKey={activeTab}
@@ -450,7 +461,7 @@ function ChannelDNAContent() {
 									<InsightsPanel
 										insights={insights}
 										categorySeverity={severity}
-										title={tabToCategoryMap[activeTab] || "Analysis"}
+										title={`${tabToCategoryMap[activeTab] || "Analysis"} Breakdown`}
 									/>
 									<SoWhatPanel
 										section={soWhatSection}
@@ -462,7 +473,7 @@ function ChannelDNAContent() {
 							chart={
 								<ChartPanel
 									title={chartConfig[activeTab]?.title || "Chart"}
-									description={chartConfig[activeTab]?.description}
+									score={categoryScore}
 									takeaway={takeaway.text}
 									takeawayType={takeaway.type}
 								>

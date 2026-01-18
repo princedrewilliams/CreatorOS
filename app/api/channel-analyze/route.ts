@@ -614,20 +614,21 @@ function buildHeuristicAnalysis(payload: {
 	const seoSeverity = getSeverity(seoScore);
 	const avgTitleLength = metrics.averageTitleLength;
 
-	// Keyword Focus - based on repeated phrases (n-grams)
-	const phraseCount = metrics.repeatedPhrases?.length || 0;
-	const topPhrases = metrics.repeatedPhrases?.slice(0, 3).map(p => `"${p.phrase}"`).join(", ") || "none";
-	const keywordSeverity: Severity = phraseCount >= 4 ? "strong" : phraseCount >= 2 ? "neutral" : "weak";
+	// Keyword Focus - based on single recurring keywords
+	const keywordCount = metrics.commonKeywords?.length || 0;
+	const topKeywords = metrics.commonKeywords?.slice(0, 5).map(k => k.word).join(", ") || "none";
+	const keywordSeverity: Severity = keywordCount >= 6 ? "strong" : keywordCount >= 3 ? "neutral" : "weak";
 
 	// Determine title length severity (optimal: 42-55)
 	const titleLengthSeverity: Severity =
 		(avgTitleLength >= 42 && avgTitleLength <= 55) ? "strong" :
 		(avgTitleLength >= 35 && avgTitleLength <= 65) ? "neutral" : "weak";
 
-	// Topic Alignment - based on clustering analysis
+	// Topic Alignment - based on repeated phrases (n-grams)
+	const phraseCount = metrics.repeatedPhrases?.length || 0;
+	const topPhrases = metrics.repeatedPhrases?.slice(0, 3).map(p => `"${p.phrase}"`).join(", ") || "none";
 	const alignmentPct = Math.round(metrics.topicAlignmentScore || 0);
-	const topThemes = metrics.topicClusters?.slice(0, 3).map(c => c.topic).join(", ") || "none";
-	const topicSeverity: Severity = alignmentPct >= 70 ? "strong" : alignmentPct >= 40 ? "neutral" : "weak";
+	const topicSeverity: Severity = phraseCount >= 4 ? "strong" : phraseCount >= 2 ? "neutral" : "weak";
 
 	const seoInsights: ScoredInsight[] = [
 		{
@@ -635,13 +636,13 @@ function buildHeuristicAnalysis(payload: {
 			label: "Keyword Focus",
 			severity: keywordSeverity,
 			evidence: keywordSeverity === "strong"
-				? `This channel consistently repeats the same search phrases in video titles: ${topPhrases}.`
+				? `This channel consistently uses keywords like: ${topKeywords} across video titles.`
 				: keywordSeverity === "neutral"
-				? `This channel uses some repeated phrases in titles: ${topPhrases}.`
-				: `This channel lacks consistent phrase repetition (only ${phraseCount} recurring phrases detected).`,
+				? `This channel uses some recurring keywords: ${topKeywords}.`
+				: `This channel lacks consistent keyword usage (only ${keywordCount} recurring terms detected).`,
 			impact: keywordSeverity === "strong"
-				? "Strong phrase repetition improves search discovery."
-				: "Limited phrase consistency reduces search discoverability.",
+				? "Strong keyword repetition builds topical authority in search."
+				: "Limited keyword consistency reduces search discoverability.",
 		},
 		{
 			id: "seo-title-length",
@@ -661,13 +662,13 @@ function buildHeuristicAnalysis(payload: {
 			label: "Topic Alignment",
 			severity: topicSeverity,
 			evidence: topicSeverity === "strong"
-				? `Recent videos stay focused on the same core ideas and themes: ${topThemes}. ${alignmentPct}% of videos align with topic clusters.`
+				? `This channel repeats thematic phrases like: ${topPhrases}. ${alignmentPct}% of videos share common topic clusters.`
 				: topicSeverity === "neutral"
-				? `Videos moderately align with themes like: ${topThemes}. ${alignmentPct}% clustering detected.`
-				: `Videos weakly reinforce topic clusters. Only ${alignmentPct}% alignment detected.`,
+				? `Videos use some repeated phrases: ${topPhrases}. ${alignmentPct}% topic overlap detected.`
+				: `Videos lack repeated thematic phrases. Only ${phraseCount} recurring phrases and ${alignmentPct}% topic overlap.`,
 			impact: topicSeverity === "strong"
-				? "Focused themes improve algorithmic recommendations."
-				: "Scattered topics make recommendation systems less likely to suggest videos together.",
+				? "Consistent thematic phrases improve algorithmic recommendations."
+				: "Scattered themes make recommendation systems less likely to suggest videos together.",
 		},
 	];
 

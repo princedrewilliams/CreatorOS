@@ -1,8 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronDown, AlertTriangle, AlertCircle, CheckCircle, Minus } from "lucide-react";
-
 type Severity = "strong" | "neutral" | "weak" | "concerning";
 
 interface Insight {
@@ -12,7 +9,7 @@ interface Insight {
 	evidence: string;
 	impact: string;
 	action?: string;
-	pattern?: string; // Legacy support
+	pattern?: string;
 	examples?: string[];
 }
 
@@ -22,191 +19,107 @@ interface InsightsPanelProps {
 	categorySeverity?: Severity;
 }
 
+const severityToScore: Record<Severity, number> = {
+	strong: 85,
+	neutral: 60,
+	weak: 40,
+	concerning: 25,
+};
+
 const severityConfig: Record<Severity, {
-	icon: typeof CheckCircle;
-	borderColor: string;
-	bgColor: string;
-	labelColor: string;
-	badgeColor: string;
-	badgeBg: string;
+	barColor: string;
+	textColor: string;
 }> = {
 	strong: {
-		icon: CheckCircle,
-		borderColor: "border-emerald-500/30",
-		bgColor: "bg-emerald-500/5",
-		labelColor: "text-emerald-400",
-		badgeColor: "text-emerald-300",
-		badgeBg: "bg-emerald-500/20",
+		barColor: "bg-gradient-to-r from-emerald-500 to-emerald-400",
+		textColor: "text-emerald-400",
 	},
 	neutral: {
-		icon: Minus,
-		borderColor: "border-[var(--frosted-border)]",
-		bgColor: "bg-[var(--frosted-bg)]",
-		labelColor: "text-[var(--text-secondary)]",
-		badgeColor: "text-[var(--text-muted)]",
-		badgeBg: "bg-white/5",
+		barColor: "bg-gradient-to-r from-blue-500 to-blue-400",
+		textColor: "text-blue-400",
 	},
 	weak: {
-		icon: AlertCircle,
-		borderColor: "border-amber-500/30",
-		bgColor: "bg-amber-500/5",
-		labelColor: "text-amber-400",
-		badgeColor: "text-amber-300",
-		badgeBg: "bg-amber-500/20",
+		barColor: "bg-gradient-to-r from-amber-500 to-amber-400",
+		textColor: "text-amber-400",
 	},
 	concerning: {
-		icon: AlertTriangle,
-		borderColor: "border-red-500/30",
-		bgColor: "bg-red-500/5",
-		labelColor: "text-red-400",
-		badgeColor: "text-red-300",
-		badgeBg: "bg-red-500/20",
+		barColor: "bg-gradient-to-r from-red-500 to-red-400",
+		textColor: "text-red-400",
 	},
 };
 
-function SeverityBadge({ severity }: { severity: Severity }) {
-	const config = severityConfig[severity];
-	const labels: Record<Severity, string> = {
-		strong: "Strong",
-		neutral: "Neutral",
-		weak: "Needs Work",
-		concerning: "Concerning",
-	};
-
-	return (
-		<span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${config.badgeBg} ${config.badgeColor} transition-all duration-300`}>
-			{labels[severity]}
-		</span>
-	);
-}
-
 export function InsightsPanel({
-	title = "Analysis",
+	title = "Breakdown",
 	insights,
 	categorySeverity,
 }: InsightsPanelProps) {
-	const [expanded, setExpanded] = useState<string | null>(null);
-
-	const toggle = (id: string) => {
-		setExpanded(expanded === id ? null : id);
-	};
-
-	// Determine if we have new-style insights (with severity) or legacy
-	const hasNewFormat = insights.some(i => i.severity !== undefined);
+	// Calculate overall score from category severity
+	const overallScore = categorySeverity ? severityToScore[categorySeverity] : 60;
 
 	return (
-		<div className="space-y-3 animate-slide-up">
-			<div className="flex items-center justify-between">
-				<h3 className="text-sm font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+		<div className="bg-[var(--frosted-bg)] backdrop-blur-[var(--frosted-blur)] border border-[var(--frosted-border)] rounded-2xl p-5 h-full">
+			{/* Header with score */}
+			<div className="flex items-center justify-between mb-5">
+				<h3 className="text-base font-semibold text-white flex items-center gap-2">
+					<span className="text-[var(--accent-primary)]">●</span>
 					{title}
 				</h3>
-				{categorySeverity && <SeverityBadge severity={categorySeverity} />}
+				{categorySeverity && (
+					<span className={`text-sm font-medium ${severityConfig[categorySeverity].textColor}`}>
+						{overallScore}%
+					</span>
+				)}
 			</div>
 
-			<div className="space-y-2">
-				{insights.slice(0, 3).map((insight, index) => {
-					const isExpanded = expanded === insight.id;
-					const hasDetails = insight.action || (insight.examples && insight.examples.length > 0);
+			{/* Breakdown list with progress bars */}
+			<div className="space-y-4">
+				{insights.slice(0, 4).map((insight, index) => {
 					const severity = insight.severity || "neutral";
 					const config = severityConfig[severity];
-					const Icon = config.icon;
+					const score = severityToScore[severity];
 
 					return (
 						<div
 							key={insight.id}
-							className={`
-								backdrop-blur-[var(--frosted-blur)] border rounded-xl overflow-hidden
-								${config.borderColor} ${config.bgColor}
-								insight-card animate-stagger-item
-								transition-all duration-300
-							`}
+							className="group"
 							style={{ animationDelay: `${index * 0.1}s` }}
 						>
-							<button
-								onClick={() => hasDetails && toggle(insight.id)}
-								disabled={!hasDetails}
-								className={`
-									w-full text-left p-4
-									${hasDetails ? "cursor-pointer hover:bg-white/[0.03]" : "cursor-default"}
-									transition-all duration-300
-								`}
-							>
-								<div className="flex items-start gap-3">
-									<Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${config.labelColor} transition-transform duration-300 ${isExpanded ? 'scale-110' : ''}`} />
-									<div className="flex-1 min-w-0">
-										{hasNewFormat ? (
-											<>
-												<div className="flex items-center gap-2 mb-1">
-													<span className={`text-sm font-medium ${config.labelColor}`}>
-														{insight.label}
-													</span>
-												</div>
-												<p className="text-sm text-[var(--text-primary)] leading-relaxed">
-													{insight.evidence}
-												</p>
-												<p className="text-xs text-[var(--text-muted)] mt-1">
-													{insight.impact}
-												</p>
-											</>
-										) : (
-											<p className="text-sm text-[var(--text-primary)] leading-relaxed">
-												{insight.pattern}
-											</p>
-										)}
-									</div>
-									{hasDetails && (
-										<ChevronDown
-											className={`
-												w-4 h-4 text-[var(--text-muted)] flex-shrink-0 mt-0.5
-												transition-transform duration-300 ease-out
-												${isExpanded ? "rotate-180" : ""}
-											`}
-										/>
-									)}
-								</div>
-							</button>
-
-							<div
-								className={`
-									overflow-hidden transition-all duration-300 ease-out
-									${isExpanded && hasDetails ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}
-								`}
-							>
-								<div className="px-4 pb-4 pt-0 pl-11">
-									<div className="border-t border-[var(--frosted-border)] pt-3 space-y-2">
-										{insight.action && (
-											<div className="space-y-1 animate-fade-in">
-												<span className="text-xs text-[var(--text-muted)] uppercase tracking-wide">
-													Recommended Action
-												</span>
-												<p className="text-sm text-[var(--accent-primary)] pl-3 border-l-2 border-[var(--accent-primary)]/50">
-													{insight.action}
-												</p>
-											</div>
-										)}
-										{insight.examples && insight.examples.length > 0 && (
-											<div className="space-y-1 mt-2 animate-fade-in">
-												<span className="text-xs text-[var(--text-muted)] uppercase tracking-wide">
-													Examples
-												</span>
-												{insight.examples.map((example, i) => (
-													<p
-														key={i}
-														className="text-xs text-[var(--text-secondary)] pl-3 border-l-2 border-[var(--frosted-border)]"
-														style={{ animationDelay: `${i * 0.05}s` }}
-													>
-														{example}
-													</p>
-												))}
-											</div>
-										)}
-									</div>
-								</div>
+							{/* Label and score row */}
+							<div className="flex items-center justify-between mb-1.5">
+								<span className="text-sm text-[var(--text-primary)] font-medium">
+									{insight.label}
+								</span>
+								<span className={`text-sm font-semibold ${config.textColor}`}>
+									{score}%
+								</span>
 							</div>
+
+							{/* Progress bar */}
+							<div className="h-2 bg-white/5 rounded-full overflow-hidden">
+								<div
+									className={`h-full ${config.barColor} rounded-full transition-all duration-700 ease-out`}
+									style={{ width: `${score}%` }}
+								/>
+							</div>
+
+							{/* Evidence text (subtle) */}
+							<p className="text-xs text-[var(--text-muted)] mt-1.5 leading-relaxed line-clamp-2 group-hover:line-clamp-none transition-all">
+								{insight.evidence}
+							</p>
 						</div>
 					);
 				})}
 			</div>
+
+			{/* Impact summary at bottom */}
+			{insights[0]?.impact && (
+				<div className="mt-5 pt-4 border-t border-[var(--frosted-border)]">
+					<p className="text-xs text-[var(--text-muted)] leading-relaxed">
+						<span className="text-[var(--text-secondary)] font-medium">Impact: </span>
+						{insights[0].impact}
+					</p>
+				</div>
+			)}
 		</div>
 	);
 }

@@ -1,19 +1,20 @@
 "use client";
 
 import { type ReactNode } from "react";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, ChevronDown } from "lucide-react";
 
 type TakeawayType = "positive" | "negative" | "neutral";
 
 interface ChartPanelProps {
 	title: string;
 	description?: string;
+	score?: number;
 	takeaway?: string;
 	takeawayType?: TakeawayType;
 	children: ReactNode;
 }
 
-export function ChartPanel({ title, description, takeaway, takeawayType = "neutral", children }: ChartPanelProps) {
+export function ChartPanel({ title, description, score, takeaway, takeawayType = "neutral", children }: ChartPanelProps) {
 	const getTakeawayStyles = () => {
 		switch (takeawayType) {
 			case "positive":
@@ -44,20 +45,38 @@ export function ChartPanel({ title, description, takeaway, takeawayType = "neutr
 	const Icon = styles.icon;
 
 	return (
-		<div className="bg-[var(--frosted-bg)] backdrop-blur-[var(--frosted-blur)] border border-[var(--frosted-border)] rounded-2xl p-5 card-hover-lift animate-scale-in">
-			<div className="mb-4">
-				<h3 className="text-base font-semibold text-white">{title}</h3>
+		<div className="bg-[var(--frosted-bg)] backdrop-blur-[var(--frosted-blur)] border border-[var(--frosted-border)] rounded-2xl p-5 h-full">
+			{/* Header with title and optional score */}
+			<div className="flex items-center justify-between mb-4">
+				<div className="flex items-center gap-2">
+					<span className="text-[var(--accent-primary)]">●</span>
+					<h3 className="text-base font-semibold text-white">
+						{title}
+						{score !== undefined && (
+							<span className="text-[var(--text-muted)] font-normal ml-2">
+								({score}% Score)
+							</span>
+						)}
+					</h3>
+				</div>
 				{description && (
-					<p className="text-sm text-[var(--text-muted)] mt-1">{description}</p>
+					<button className="flex items-center gap-1 text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors">
+						<span>Full Video</span>
+						<ChevronDown className="w-3 h-3" />
+					</button>
 				)}
 			</div>
-			<div className="h-56 chart-enter">{children}</div>
+
+			{/* Chart area */}
+			<div className="h-52 chart-enter">{children}</div>
+
+			{/* Takeaway strip at bottom */}
 			{takeaway && (
 				<div
-					className={`mt-4 px-3 py-2 rounded-lg ${styles.bg} border ${styles.border} transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_15px_rgba(236,72,153,0.08)]`}
+					className={`mt-4 px-3 py-2 rounded-lg ${styles.bg} border ${styles.border}`}
 				>
 					<div className="flex items-center gap-2">
-						<Icon className={`w-4 h-4 ${styles.text} transition-transform duration-300`} />
+						<Icon className={`w-4 h-4 ${styles.text} flex-shrink-0`} />
 						<p className={`text-sm ${styles.text}`}>{takeaway}</p>
 					</div>
 				</div>

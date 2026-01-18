@@ -42,23 +42,23 @@ export function TabContent({ insights, chart, tabKey }: TabContentProps) {
 					</motion.div>
 				</div>
 
-				{/* Desktop layout - 40/60 split */}
+				{/* Desktop layout - 60/40 split (chart left, breakdown right) */}
 				<div className="hidden lg:grid lg:grid-cols-5 gap-6">
 					<motion.div
-						className="lg:col-span-2"
+						className="lg:col-span-3"
 						initial={{ opacity: 0, x: -15 }}
 						animate={{ opacity: 1, x: 0 }}
 						transition={{ duration: 0.3, delay: 0.05 }}
 					>
-						{insights}
+						{chart}
 					</motion.div>
 					<motion.div
-						className="lg:col-span-3"
+						className="lg:col-span-2"
 						initial={{ opacity: 0, x: 15 }}
 						animate={{ opacity: 1, x: 0 }}
 						transition={{ duration: 0.3, delay: 0.1 }}
 					>
-						{chart}
+						{insights}
 					</motion.div>
 				</div>
 			</motion.div>
