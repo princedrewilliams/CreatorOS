@@ -127,9 +127,9 @@ export function ChannelSummary({
 						/>
 
 						{/* Modal */}
-						<div className="relative w-full max-w-2xl my-8 bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-2xl">
+						<div className="relative w-full max-w-2xl my-8 bg-[#0a0a0a]/95 backdrop-blur-[var(--frosted-blur)] border border-[var(--frosted-border)] rounded-2xl shadow-2xl">
 						{/* Header */}
-						<div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-white/10 bg-[#0a0a0a] rounded-t-2xl">
+						<div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-[var(--frosted-border)] bg-[#0a0a0a]/95 backdrop-blur-[var(--frosted-blur)] rounded-t-2xl">
 							<h2 className="text-lg font-semibold text-white">Channel Summary</h2>
 							<button
 								onClick={() => setIsOpen(false)}
@@ -154,11 +154,11 @@ export function ChannelSummary({
 											Channel Snapshot
 										</h3>
 										<div className="grid grid-cols-2 gap-3">
-											<div className="p-3 bg-white/5 rounded-lg">
+											<div className="p-3 bg-[var(--frosted-bg)] rounded-lg">
 												<p className="text-xs text-white/70">Niche</p>
 												<p className="text-sm text-white mt-1">{summary.snapshot.niche}</p>
 											</div>
-											<div className="p-3 bg-white/5 rounded-lg">
+											<div className="p-3 bg-[var(--frosted-bg)] rounded-lg">
 												<p className="text-xs text-white/70">Health Score</p>
 												<p className="text-sm text-white mt-1">
 													<span className={`font-semibold ${summary.snapshot.healthScore >= 70 ? "text-emerald-400" : summary.snapshot.healthScore >= 50 ? "text-amber-400" : "text-red-400"}`}>
@@ -217,7 +217,7 @@ export function ChannelSummary({
 										<h3 className="text-sm font-medium text-white uppercase tracking-wider">
 											Pattern Diagnosis
 										</h3>
-										<div className="p-4 bg-white/5 border border-white/10 rounded-lg">
+										<div className="p-4 bg-[var(--frosted-bg)] border border-[var(--frosted-border)] rounded-lg">
 											<p className="text-sm text-white leading-relaxed">
 												{summary.patternDiagnosis}
 											</p>
@@ -225,13 +225,13 @@ export function ChannelSummary({
 									</div>
 
 									{/* Export Buttons */}
-									<div className="pt-4 border-t border-white/10">
-										<p className="text-xs text-white/70 mb-3">Export Summary</p>
+									<div className="pt-4 border-t border-[var(--frosted-border)]">
+										<p className="text-xs text-white mb-3">Export Summary</p>
 										<div className="flex gap-3">
 											<button
 												onClick={() => handleExport("csv")}
 												disabled={exporting !== null}
-												className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors text-sm disabled:opacity-50"
+												className="flex items-center gap-2 px-4 py-2 bg-[var(--frosted-bg)] backdrop-blur-[var(--frosted-blur)] border border-[var(--frosted-border)] rounded-xl hover:bg-[var(--frosted-bg-hover)] transition-colors text-sm text-white disabled:opacity-50"
 											>
 												{exporting === "csv" ? (
 													<Loader2 className="w-4 h-4 animate-spin" />
@@ -243,7 +243,7 @@ export function ChannelSummary({
 											<button
 												onClick={() => handleExport("markdown")}
 												disabled={exporting !== null}
-												className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors text-sm disabled:opacity-50"
+												className="flex items-center gap-2 px-4 py-2 bg-[var(--frosted-bg)] backdrop-blur-[var(--frosted-blur)] border border-[var(--frosted-border)] rounded-xl hover:bg-[var(--frosted-bg-hover)] transition-colors text-sm text-white disabled:opacity-50"
 											>
 												{exporting === "markdown" ? (
 													<Loader2 className="w-4 h-4 animate-spin" />
