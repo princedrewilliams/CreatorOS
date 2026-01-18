@@ -38,7 +38,7 @@ export function UploadFrequencyChart({ data, targetUploads = 1 }: UploadFrequenc
 
 	return (
 		<ResponsiveContainer width="100%" height="100%">
-			<BarChart data={data} margin={{ top: 20, right: 20, left: 0, bottom: 10 }}>
+			<BarChart data={data} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
 				<defs>
 					{/* Gradient for bars */}
 					<linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
@@ -59,6 +59,13 @@ export function UploadFrequencyChart({ data, targetUploads = 1 }: UploadFrequenc
 					axisLine={false}
 					tickLine={false}
 					tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }}
+					label={{
+						value: "Week",
+						position: "bottom",
+						fill: "rgba(255,255,255,0.4)",
+						fontSize: 10,
+						offset: -5,
+					}}
 				/>
 				<YAxis
 					axisLine={false}
@@ -67,6 +74,14 @@ export function UploadFrequencyChart({ data, targetUploads = 1 }: UploadFrequenc
 					width={25}
 					allowDecimals={false}
 					domain={[0, Math.max(maxUploads + 1, targetUploads + 1)]}
+					label={{
+						value: "Uploads",
+						angle: -90,
+						position: "insideLeft",
+						fill: "rgba(255,255,255,0.4)",
+						fontSize: 10,
+						dx: -5,
+					}}
 				/>
 				<Tooltip
 					contentStyle={{

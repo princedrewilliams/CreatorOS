@@ -143,16 +143,16 @@ function heuristicClassify(video: YoutubeVideo): ContentPillar {
 	// Check for Shorts first
 	if (isShortVideo(video)) return "Shorts";
 
-	// Pattern matching
-	if (/how to|tutorial|guide|step by step|learn/i.test(combined)) return "Tutorial";
-	if (/review|unboxing|tested|hands on/i.test(combined)) return "Review";
-	if (/vlog|day in|behind the scenes|my life/i.test(combined)) return "Vlog";
-	if (/q&a|ama|interview|asks|questions/i.test(combined)) return "Q&A";
-	if (/documentary|investigation|deep dive|story of/i.test(combined)) return "Documentary";
-	if (/react|response|my thoughts|opinion/i.test(combined)) return "Commentary";
-	if (/news|update|announcement|breaking/i.test(combined)) return "News";
-	if (/explained|what is|why|facts|science/i.test(combined)) return "Educational";
-	if (/challenge|prank|funny|comedy/i.test(combined)) return "Entertainment";
+	// Pattern matching with enhanced keywords
+	if (/how to|tutorial|guide|step.?by.?step|learn|teaching|lesson|walkthrough|beginners?|tips|tricks/i.test(combined)) return "Tutorial";
+	if (/review|unboxing|tested|hands.?on|comparison|versus|worth it|should you buy|first impressions/i.test(combined)) return "Review";
+	if (/vlog|day in|behind the scenes|my life|morning routine|night routine|grwm|get ready|what i eat/i.test(combined)) return "Vlog";
+	if (/q\s?&\s?a|ama\b|interview|asks|questions|answering|podcast|talking to|conversation with/i.test(combined)) return "Q&A";
+	if (/documentary|investigation|deep dive|story of|history of|the truth|exposed|untold|rise and fall/i.test(combined)) return "Documentary";
+	if (/react|reaction|response|my thoughts|opinion|rant|discussing|thoughts on|take on|hot take/i.test(combined)) return "Commentary";
+	if (/news|update|announcement|breaking|just happened|happening now|latest|urgent/i.test(combined)) return "News";
+	if (/explained|what is|why does|how does|facts|science|history|everything you need|understand/i.test(combined)) return "Educational";
+	if (/challenge|prank|funny|comedy|hilarious|try not to|compilation|memes|roast|parody|skit/i.test(combined)) return "Entertainment";
 
 	return "Creator-Led";
 }

@@ -46,9 +46,26 @@ export function analyzeThumbnailFast(
 	// Heuristic analysis based on title/video patterns
 	const title = video.title?.toLowerCase() || "";
 
-	// Face detection heuristic: personal pronouns, reaction words suggest face thumbnails
-	const faceIndicators = ["i ", "my ", "me ", "we ", "our ", "reaction", "reacts", "vlog", "day in", "grwm", "routine"];
-	const hasFace = faceIndicators.some(ind => title.includes(ind)) || Math.random() > 0.4; // 60% base rate
+	// No-face indicators: content types that typically don't show faces
+	const noFaceIndicators = [
+		"gameplay", "walkthrough", "no commentary", "music", "asmr",
+		"compilation", "facts", "explained", "documentary", "timelapse",
+		"animation", "animated", "trailer", "official"
+	];
+
+	// Enhanced face indicators with word boundaries
+	const faceIndicators: (string | RegExp)[] = [
+		/\bi\s/i, /\bmy\s/i, /\bme\b/i, /\bwe\s/i, /\bour\s/i,
+		"reaction", "reacts", "reacting", "vlog", "day in", "grwm",
+		"routine", "storytime", "update", "talking", "podcast", "interview"
+	];
+
+	// Deterministic logic: Check no-face first, then face indicators
+	const likelyNoFace = noFaceIndicators.some(ind => title.includes(ind));
+	const hasFaceIndicator = faceIndicators.some(ind =>
+		typeof ind === "string" ? title.includes(ind) : ind.test(title)
+	);
+	const hasFace = !likelyNoFace && hasFaceIndicator;
 
 	// Face type based on content type
 	let faceType: "close-up" | "medium" | "wide" | "none" = "none";

@@ -90,7 +90,7 @@ export function FormatConsistencyChart({ data, average }: FormatConsistencyChart
 						formatter={(value: number) => [
 							<span key="value" className="text-white font-medium">
 								<span className="text-white/60 text-xs block mb-1">
-									Measures how closely this video matches your most common format
+									Measures how closely this video matches the channel's most common format
 								</span>
 								Format Similarity: <span className="text-[#ec4899]">{value}</span>/100
 							</span>,

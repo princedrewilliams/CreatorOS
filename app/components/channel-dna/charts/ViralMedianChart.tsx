@@ -43,7 +43,7 @@ export function ViralMedianChart({ data, median }: ViralMedianChartProps) {
 		<div className="w-full h-full flex flex-col">
 			<div className="flex-1 min-h-0">
 				<ResponsiveContainer width="100%" height="100%">
-					<BarChart data={data} margin={{ top: 20, right: 20, left: 0, bottom: 10 }}>
+					<BarChart data={data} margin={{ top: 20, right: 80, left: 0, bottom: 20 }}>
 						<defs>
 							{/* Glow effect for bars */}
 							<filter id="viralGlow" x="-20%" y="-20%" width="140%" height="140%">
@@ -59,6 +59,13 @@ export function ViralMedianChart({ data, median }: ViralMedianChartProps) {
 							axisLine={false}
 							tickLine={false}
 							tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }}
+							label={{
+								value: "Videos (Recent)",
+								position: "bottom",
+								fill: "rgba(255,255,255,0.4)",
+								fontSize: 10,
+								offset: -5,
+							}}
 						/>
 						<YAxis
 							axisLine={false}
@@ -66,6 +73,14 @@ export function ViralMedianChart({ data, median }: ViralMedianChartProps) {
 							tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }}
 							tickFormatter={formatViews}
 							width={50}
+							label={{
+								value: "Views",
+								angle: -90,
+								position: "insideLeft",
+								fill: "rgba(255,255,255,0.4)",
+								fontSize: 10,
+								dx: -5,
+							}}
 						/>
 						<Tooltip
 							contentStyle={{
@@ -94,7 +109,7 @@ export function ViralMedianChart({ data, median }: ViralMedianChartProps) {
 								value: `Median: ${formatViews(median)}`,
 								fill: "rgba(255,255,255,0.6)",
 								fontSize: 10,
-								position: "right",
+								position: "insideTopRight",
 							}}
 						/>
 						<Bar

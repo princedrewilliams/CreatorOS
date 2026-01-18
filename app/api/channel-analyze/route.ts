@@ -538,7 +538,7 @@ function buildHeuristicAnalysis(payload: {
 				severity: "weak",
 				evidence: `Only ${aboveMedian} of ${totalVideos} videos exceeded channel median views.`,
 				impact: "Inconsistent performance makes growth unpredictable.",
-				action: "Study your top performers for replicable patterns.",
+				action: "Study the channel's top performers for replicable patterns.",
 			},
 		},
 		{
@@ -549,7 +549,7 @@ function buildHeuristicAnalysis(payload: {
 				severity: "concerning",
 				evidence: `Views vary by ${Math.round(viewsCV * 100)}% from average.`,
 				impact: "Extreme swings suggest no reliable content formula.",
-				action: "Identify what your top 3 videos have in common.",
+				action: "Identify what the top 3 videos have in common.",
 			},
 		},
 		{
@@ -560,7 +560,7 @@ function buildHeuristicAnalysis(payload: {
 				severity: "concerning",
 				evidence: `Recent videos average ${Math.round((1 - secondHalfAvg / firstHalfAvg) * 100)}% fewer views than older ones.`,
 				impact: "Audience interest may be fading.",
-				action: "Revisit formats and topics from your peak period.",
+				action: "Revisit formats and topics from the channel's peak period.",
 			},
 		},
 		{
@@ -587,7 +587,7 @@ function buildHeuristicAnalysis(payload: {
 				severity: "weak",
 				evidence: `${engagementRate.toFixed(2)}% engagement rate (likes + comments / views).`,
 				impact: "Low engagement signals weak audience connection.",
-				action: "Add specific CTAs and questions in your first 30 seconds.",
+				action: "Add specific CTAs and questions in the first 30 seconds.",
 			},
 		},
 		{
@@ -620,7 +620,7 @@ function buildHeuristicAnalysis(payload: {
 
 	// Keyword Focus - based on single recurring keywords
 	const keywordCount = metrics.commonKeywords?.length || 0;
-	const topKeywords = metrics.commonKeywords?.slice(0, 5).map(k => k.word).join(", ") || "none";
+	const topKeywords = metrics.commonKeywords?.slice(0, 8).map(k => k.word).join(", ") || "none";
 	const keywordSeverity: Severity = keywordCount >= 6 ? "strong" : keywordCount >= 3 ? "neutral" : "weak";
 
 	// Determine title length severity (optimal: 42-55)
@@ -630,7 +630,7 @@ function buildHeuristicAnalysis(payload: {
 
 	// Topic Alignment - based on repeated phrases (n-grams)
 	const phraseCount = metrics.repeatedPhrases?.length || 0;
-	const topPhrases = metrics.repeatedPhrases?.slice(0, 3).map(p => `"${p.phrase}"`).join(", ") || "none";
+	const topPhrases = metrics.repeatedPhrases?.slice(0, 5).map(p => `"${p.phrase}"`).join(", ") || "none";
 	const alignmentPct = Math.round(metrics.topicAlignmentScore || 0);
 	const topicSeverity: Severity = phraseCount >= 4 ? "strong" : phraseCount >= 2 ? "neutral" : "weak";
 
@@ -763,7 +763,7 @@ function buildHeuristicAnalysis(payload: {
 				label: "Unclear Topic Focus",
 				severity: "weak",
 				evidence: `Only ${metrics.commonKeywords.length} recurring themes detected.`,
-				impact: "Algorithm struggles to categorize your content.",
+				impact: "Algorithm struggles to categorize the channel's content.",
 				action: "Focus on 2-3 core topics for the next 10 uploads.",
 			},
 		},
@@ -782,7 +782,7 @@ function buildHeuristicAnalysis(payload: {
 	// THEME CONSISTENCY
 	const themeScore = Math.round(metrics.topicAlignmentScore || 50);
 	const themeSeverity: Severity = themeScore >= 70 ? "strong" : themeScore >= 40 ? "neutral" : "weak";
-	const topThemes = metrics.topicClusters?.slice(0, 3).map((c: { topic: string }) => c.topic).join(", ") || "none";
+	const topThemes = metrics.topicClusters?.slice(0, 6).map((c: { topic: string }) => c.topic).join(", ") || "none";
 	const themeInsights: ScoredInsight[] = [
 		{
 			id: "theme-overlap",
@@ -794,8 +794,8 @@ function buildHeuristicAnalysis(payload: {
 				? `${themeScore}% of videos share common themes: ${topThemes}.`
 				: `Only ${themeScore}% topic overlap detected across recent videos.`,
 			impact: themeSeverity === "strong"
-				? "Strong topic consistency helps the algorithm recommend your content."
-				: "Low topic overlap makes it harder for the algorithm to categorize you.",
+				? "Strong topic consistency helps the algorithm recommend this channel's content."
+				: "Low topic overlap makes it harder for the algorithm to categorize this channel.",
 		},
 		{
 			id: "theme-recurring",
@@ -806,15 +806,15 @@ function buildHeuristicAnalysis(payload: {
 				: (metrics.topicClusters?.length || 0) >= 1
 				? `${metrics.topicClusters?.length || 0} topic cluster(s) detected.`
 				: "No clear topic clusters identified.",
-			impact: "Topic clusters help viewers know what to expect from your channel.",
+			impact: "Topic clusters help viewers know what to expect from the channel.",
 		},
 		{
 			id: "theme-action",
 			label: "Theme Recommendation",
 			severity: "neutral",
 			evidence: themeSeverity === "strong"
-				? "Continue focusing on your strongest themes."
-				: "Reduce one-off topics and repeat your strongest themes.",
+				? "Continue focusing on the channel's strongest themes."
+				: "Reduce one-off topics and repeat the channel's strongest themes.",
 			impact: "Repeating themes builds authority and improves recommendations.",
 		},
 	];
@@ -857,8 +857,8 @@ function buildHeuristicAnalysis(payload: {
 			label: "Format Recommendation",
 			severity: "neutral",
 			evidence: formatSeverity === "strong"
-				? "Continue with your proven format."
-				: "Identify your highest-performing format and repeat it more often.",
+				? "Continue with the channel's proven format."
+				: "Identify the channel's highest-performing format and repeat it more often.",
 			impact: "Consistent formats build audience expectations and improve retention.",
 		},
 	];
@@ -875,7 +875,7 @@ function buildHeuristicAnalysis(payload: {
 				severity: "weak",
 				evidence: `Content spans too many unrelated topics.`,
 				impact: "No topic cluster to double down on.",
-				action: "Analyze your top 5 videos and identify shared themes.",
+				action: "Analyze the channel's top 5 videos and identify shared themes.",
 			},
 		},
 		{
@@ -907,19 +907,19 @@ function buildHeuristicAnalysis(payload: {
 			summary: `${engagementRate.toFixed(2)}% engagement rate. ${avgComments.toFixed(0)} avg comments per video.`,
 			insights: engagementInsights,
 		},
-		"SEO Strategy": {
+		"Discoverability / SEO": {
 			score: seoScore,
 			severity: seoSeverity,
 			summary: `${metrics.commonKeywords.length} recurring keywords. Avg title: ${avgTitleLength} chars.`,
 			insights: seoInsights,
 		},
-		"Posting Consistency": {
+		"Upload Consistency": {
 			score: uploadScore,
 			severity: uploadSeverity,
 			summary: `Upload cadence: ${metrics.postingFrequency}.`,
 			insights: uploadInsights,
 		},
-		"Thumbnail Strategy": {
+		"Thumbnail Performance": {
 			score: thumbScore,
 			severity: thumbSeverity,
 			summary: thumbSeverity === "strong" ? "Consistent visual branding." : "Visual branding varies.",

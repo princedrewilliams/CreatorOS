@@ -90,7 +90,7 @@ export function ThemeConsistencyChart({ data, average }: ThemeConsistencyChartPr
 						formatter={(value: number) => [
 							<span key="value" className="text-white font-medium">
 								<span className="text-white/60 text-xs block mb-1">
-									Measures how similar this video's topic is to your most common themes
+									Measures how similar this video's topic is to the channel's most common themes
 								</span>
 								Theme Overlap: <span className="text-[#8b5cf6]">{value}</span>/100
 							</span>,

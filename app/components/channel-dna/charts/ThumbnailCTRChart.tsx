@@ -103,59 +103,9 @@ export function ThumbnailCTRChart({ data }: ThumbnailCTRChartProps) {
 	};
 
 	return (
-		<div className="relative w-full h-full">
-			{/* Info dropdown button */}
-			<div className="absolute top-0 right-0 z-10">
-				<button
-					onClick={() => setShowInfo(!showInfo)}
-					className="flex items-center gap-1 px-2 py-1 text-xs text-[var(--text-muted)] hover:text-white hover:bg-white/5 rounded-lg transition-all"
-				>
-					<Info className="w-3.5 h-3.5" />
-					<span>Guide</span>
-					<ChevronDown className={`w-3 h-3 transition-transform ${showInfo ? "rotate-180" : ""}`} />
-				</button>
-
-				{/* Info dropdown panel */}
-				{showInfo && (
-					<div className="absolute top-full right-0 mt-1 w-80 bg-[#0a0a0a] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
-						<div className="p-3 border-b border-white/5">
-							<h4 className="text-sm font-medium text-white">Understanding the Chart</h4>
-							<p className="text-xs text-[var(--text-muted)] mt-1">
-								Click any dot to watch the video on YouTube
-							</p>
-						</div>
-						<div className="max-h-64 overflow-y-auto p-2 space-y-2">
-							{QUADRANT_INFO.map((quadrant, idx) => (
-								<div key={idx} className={`p-2.5 rounded-lg ${quadrant.bgColor}`}>
-									<h5 className={`text-xs font-semibold ${quadrant.color}`}>
-										{quadrant.title}
-									</h5>
-									<p className="text-xs text-[var(--text-secondary)] mt-1">
-										{quadrant.description}
-									</p>
-									{quadrant.highlight && (
-										<p className="text-xs text-emerald-300 font-medium mt-1">
-											{quadrant.highlight}
-										</p>
-									)}
-									{quadrant.reasons.length > 0 && (
-										<ul className="mt-1.5 space-y-0.5">
-											{quadrant.reasons.map((reason, i) => (
-												<li key={i} className="text-xs text-[var(--text-muted)] flex items-center gap-1.5">
-													<span className={`w-1 h-1 rounded-full ${quadrant.color.replace("text-", "bg-")}`} />
-													{reason}
-												</li>
-											))}
-										</ul>
-									)}
-								</div>
-							))}
-						</div>
-					</div>
-				)}
-			</div>
-
-			<ResponsiveContainer width="100%" height="100%">
+		<div className="w-full h-full flex flex-col">
+			<div className="flex-1 min-h-0">
+				<ResponsiveContainer width="100%" height="100%">
 				<ScatterChart margin={{ top: 20, right: 20, left: 0, bottom: 30 }}>
 					<defs>
 						{/* Glow filter for dots */}
@@ -281,6 +231,57 @@ export function ThumbnailCTRChart({ data }: ThumbnailCTRChartProps) {
 					</Scatter>
 				</ScatterChart>
 			</ResponsiveContainer>
+			</div>
+			{/* Guide button below chart */}
+			<div className="mt-2 flex justify-end relative">
+				<button
+					onClick={() => setShowInfo(!showInfo)}
+					className="flex items-center gap-1 px-2 py-1 text-xs text-[var(--text-muted)] hover:text-white hover:bg-white/5 rounded-lg transition-all"
+				>
+					<Info className="w-3.5 h-3.5" />
+					<span>Guide</span>
+					<ChevronDown className={`w-3 h-3 transition-transform ${showInfo ? "rotate-180" : ""}`} />
+				</button>
+
+				{/* Info dropdown panel */}
+				{showInfo && (
+					<div className="absolute bottom-full right-0 mb-1 w-80 bg-[#0a0a0a] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
+						<div className="p-3 border-b border-white/5">
+							<h4 className="text-sm font-medium text-white">Understanding the Chart</h4>
+							<p className="text-xs text-[var(--text-muted)] mt-1">
+								Click any dot to watch the video on YouTube
+							</p>
+						</div>
+						<div className="max-h-64 overflow-y-auto p-2 space-y-2">
+							{QUADRANT_INFO.map((quadrant, idx) => (
+								<div key={idx} className={`p-2.5 rounded-lg ${quadrant.bgColor}`}>
+									<h5 className={`text-xs font-semibold ${quadrant.color}`}>
+										{quadrant.title}
+									</h5>
+									<p className="text-xs text-[var(--text-secondary)] mt-1">
+										{quadrant.description}
+									</p>
+									{quadrant.highlight && (
+										<p className="text-xs text-emerald-300 font-medium mt-1">
+											{quadrant.highlight}
+										</p>
+									)}
+									{quadrant.reasons.length > 0 && (
+										<ul className="mt-1.5 space-y-0.5">
+											{quadrant.reasons.map((reason, i) => (
+												<li key={i} className="text-xs text-[var(--text-muted)] flex items-center gap-1.5">
+													<span className={`w-1 h-1 rounded-full ${quadrant.color.replace("text-", "bg-")}`} />
+													{reason}
+												</li>
+											))}
+										</ul>
+									)}
+								</div>
+							))}
+						</div>
+					</div>
+				)}
+			</div>
 		</div>
 	);
 }

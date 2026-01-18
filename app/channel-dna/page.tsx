@@ -182,6 +182,11 @@ function ChannelDNAContent() {
 		});
 
 		return Object.entries(weeks)
+			.sort((a, b) => {
+				const weekNumA = parseInt(a[0].substring(1), 10);
+				const weekNumB = parseInt(b[0].substring(1), 10);
+				return weekNumA - weekNumB;
+			})
 			.slice(0, 6)
 			.map(([week, uploads]) => ({ week, uploads }));
 	};
