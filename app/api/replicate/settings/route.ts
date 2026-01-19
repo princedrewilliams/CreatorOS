@@ -2,7 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { requirePro } from "@/lib/paywall";
+// import { requirePro } from "@/lib/paywall"; // Temporarily disabled for testing
 import {
 	getUserReplicationSettings,
 	setUserReplicationSettings,

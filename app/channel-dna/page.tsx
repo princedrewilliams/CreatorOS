@@ -4,7 +4,6 @@ import { Suspense, useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, FlaskConical, Copy } from "lucide-react";
 import Link from "next/link";
-import { ProLockedButton } from "../components/ui/ProLockedButton";
 import { ReplicateThisModal } from "../components/replicate/ReplicateThisModal";
 
 import { FrostedTabs, type Tab } from "../components/ui/FrostedTabs";

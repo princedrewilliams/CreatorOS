@@ -10,7 +10,7 @@ import {
 import { analyzePillars } from "@/lib/learning-lab/pillar-analyzer";
 import { analyzePackaging } from "@/lib/learning-lab/packaging-analyzer";
 import { analyzeCommunity } from "@/lib/learning-lab/community-analyzer";
-import { requirePro } from "@/lib/paywall";
+// import { requirePro } from "@/lib/paywall"; // Temporarily disabled for testing
 import type { LearningLabResponse } from "@/lib/learning-lab/types";
 
 export async function POST(req: Request) {
