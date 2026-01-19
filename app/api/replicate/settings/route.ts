@@ -45,14 +45,14 @@ export async function GET() {
 // POST - Create new replication settings (derives constraints from channel)
 export async function POST(request: NextRequest) {
 	try {
-		// Pro feature check
-		const { allowed, reason } = await requirePro("replicate-this");
-		if (!allowed) {
-			return NextResponse.json(
-				{ error: reason, requiresPro: true },
-				{ status: 403 }
-			);
-		}
+		// Pro feature check - temporarily disabled for testing
+		// const { allowed, reason } = await requirePro("replicate-this");
+		// if (!allowed) {
+		// 	return NextResponse.json(
+		// 		{ error: reason, requiresPro: true },
+		// 		{ status: 403 }
+		// 	);
+		// }
 
 		const user = await getCurrentUser();
 

@@ -15,14 +15,14 @@ import type { LearningLabResponse } from "@/lib/learning-lab/types";
 
 export async function POST(req: Request) {
 	try {
-		// Pro feature check
-		const { allowed, reason } = await requirePro("learning-lab");
-		if (!allowed) {
-			return NextResponse.json(
-				{ error: reason, requiresPro: true },
-				{ status: 403 }
-			);
-		}
+		// Pro feature check - temporarily disabled for testing
+		// const { allowed, reason } = await requirePro("learning-lab");
+		// if (!allowed) {
+		// 	return NextResponse.json(
+		// 		{ error: reason, requiresPro: true },
+		// 		{ status: 403 }
+		// 	);
+		// }
 
 		const body = await req.json();
 		const channelUrl = body?.channelUrl?.trim();

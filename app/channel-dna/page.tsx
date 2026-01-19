@@ -480,22 +480,20 @@ function ChannelDNAContent() {
 									viewCount={channel?.viewCount}
 									videoCount={channel?.videoCount}
 								/>
-								<ProLockedButton
+								<Link
 									href={`/learning-lab?channelUrl=${encodeURIComponent(channelUrl)}`}
-									feature="Learning Lab"
-									icon={<FlaskConical className="w-4 h-4" />}
-									className="px-4 py-2 rounded-xl bg-gradient-to-r from-violet-500 to-pink-500 text-white text-sm font-medium hover:opacity-90 transition-all btn-glow"
+									className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-violet-500 to-pink-500 text-white text-sm font-medium hover:opacity-90 transition-all btn-glow"
 								>
-									Learning Lab
-								</ProLockedButton>
-								<ProLockedButton
+									<FlaskConical className="w-4 h-4" />
+									<span>Learning Lab</span>
+								</Link>
+								<button
 									onClick={() => setShowReplicateModal(true)}
-									feature="Replicate This"
-									icon={<Copy className="w-4 h-4" />}
-									className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-medium hover:opacity-90 transition-all btn-glow"
+									className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-medium hover:opacity-90 transition-all btn-glow"
 								>
-									Replicate This
-								</ProLockedButton>
+									<Copy className="w-4 h-4" />
+									<span>Replicate This</span>
+								</button>
 							</div>
 						)}
 					</div>
