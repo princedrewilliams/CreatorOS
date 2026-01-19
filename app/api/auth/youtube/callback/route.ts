@@ -9,24 +9,27 @@ export async function GET(request: NextRequest) {
 		const state = searchParams.get("state");
 		const error = searchParams.get("error");
 
+		// Get return URL from cookie (default to /planner)
+		const returnUrl = request.cookies.get("youtube_oauth_return_url")?.value || "/planner";
+
 		if (error) {
-			return NextResponse.redirect(
-				new URL(`/planner?error=${encodeURIComponent(error)}`, request.url)
-			);
+			const errorRedirect = new URL(returnUrl, request.url);
+			errorRedirect.searchParams.set("error", error);
+			return NextResponse.redirect(errorRedirect);
 		}
 
 		if (!code || !state) {
-			return NextResponse.redirect(
-				new URL("/planner?error=missing_code_or_state", request.url)
-			);
+			const errorRedirect = new URL(returnUrl, request.url);
+			errorRedirect.searchParams.set("error", "missing_code_or_state");
+			return NextResponse.redirect(errorRedirect);
 		}
 
 		// Verify state
 		const storedState = request.cookies.get("youtube_oauth_state")?.value;
 		if (state !== storedState) {
-			return NextResponse.redirect(
-				new URL("/planner?error=invalid_state", request.url)
-			);
+			const errorRedirect = new URL(returnUrl, request.url);
+			errorRedirect.searchParams.set("error", "invalid_state");
+			return NextResponse.redirect(errorRedirect);
 		}
 
 		const clientId = process.env.YOUTUBE_CLIENT_ID;
@@ -36,9 +39,9 @@ export async function GET(request: NextRequest) {
 			process.env.NEXT_PUBLIC_YOUTUBE_OAUTH_ENABLED === "true" && !!clientId && !!clientSecret;
 
 		if (!oauthEnabled) {
-			return NextResponse.redirect(
-				new URL("/planner?error=youtube_oauth_disabled", request.url)
-			);
+			const errorRedirect = new URL(returnUrl, request.url);
+			errorRedirect.searchParams.set("error", "youtube_oauth_disabled");
+			return NextResponse.redirect(errorRedirect);
 		}
 
 		// Exchange code for tokens
@@ -59,9 +62,9 @@ export async function GET(request: NextRequest) {
 		if (!tokenResponse.ok) {
 			const errorData = await tokenResponse.json();
 			console.error("Token exchange error:", errorData);
-			return NextResponse.redirect(
-				new URL("/planner?error=token_exchange_failed", request.url)
-			);
+			const errorRedirect = new URL(returnUrl, request.url);
+			errorRedirect.searchParams.set("error", "token_exchange_failed");
+			return NextResponse.redirect(errorRedirect);
 		}
 
 		const tokens = await tokenResponse.json();
@@ -129,10 +132,13 @@ export async function GET(request: NextRequest) {
 		}
 		
 		// Store tokens in a secure cookie (in production, use a database)
-		const profilePictureParam = profilePicture ? `&profilePicture=${encodeURIComponent(profilePicture)}` : "";
-		const response = NextResponse.redirect(
-			new URL(`/planner?connected=youtube&username=${encodeURIComponent(username)}${profilePictureParam}`, request.url)
-		);
+		const successRedirect = new URL(returnUrl, request.url);
+		successRedirect.searchParams.set("connected", "youtube");
+		successRedirect.searchParams.set("username", username);
+		if (profilePicture) {
+			successRedirect.searchParams.set("profilePicture", profilePicture);
+		}
+		const response = NextResponse.redirect(successRedirect);
 		
 		// Also store in cookies for immediate access (will sync from user-data on next load)
 		response.cookies.set("youtube_access_token", tokens.access_token, {
@@ -151,12 +157,14 @@ export async function GET(request: NextRequest) {
 			});
 		}
 
-		// Clear state cookie
+		// Clear OAuth cookies
 		response.cookies.delete("youtube_oauth_state");
+		response.cookies.delete("youtube_oauth_return_url");
 
 		return response;
 	} catch (error) {
 		console.error("Error in YouTube OAuth callback:", error);
+		// Fallback to planner if we can't get return URL
 		return NextResponse.redirect(
 			new URL("/planner?error=oauth_callback_failed", request.url)
 		);

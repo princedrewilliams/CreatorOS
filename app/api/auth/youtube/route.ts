@@ -9,16 +9,21 @@ export async function GET(request: NextRequest) {
 		const oauthEnabled =
 			process.env.NEXT_PUBLIC_YOUTUBE_OAUTH_ENABLED === "true" && !!clientId;
 
+		// Get return URL from query params or referer
+		const returnUrl = request.nextUrl.searchParams.get("returnUrl")
+			|| request.headers.get("referer")
+			|| "/planner";
+
 		if (!oauthEnabled) {
-			const fallback = request.headers.get("referer") || `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/planner`;
-			const redirectTarget = new URL(fallback);
+			const fallback = returnUrl || `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/planner`;
+			const redirectTarget = new URL(fallback, request.url);
 			redirectTarget.searchParams.set("error", "youtube_oauth_disabled");
 			return NextResponse.redirect(redirectTarget);
 		}
 
 		// Generate state for CSRF protection
 		const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-		
+
 		// Store state in a cookie (in production, use a secure session store)
 		const response = NextResponse.redirect(
 			`https://accounts.google.com/o/oauth2/v2/auth?` +
@@ -30,8 +35,16 @@ export async function GET(request: NextRequest) {
 			`prompt=consent&` +
 			`state=${state}`
 		);
-		
+
 		response.cookies.set("youtube_oauth_state", state, {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === "production",
+			sameSite: "lax",
+			maxAge: 600, // 10 minutes
+		});
+
+		// Store return URL in cookie
+		response.cookies.set("youtube_oauth_return_url", returnUrl, {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === "production",
 			sameSite: "lax",

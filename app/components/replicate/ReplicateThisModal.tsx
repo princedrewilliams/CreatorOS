@@ -66,7 +66,9 @@ export function ReplicateThisModal({
 	};
 
 	const handleConnectYouTube = () => {
-		window.location.href = "/api/auth/youtube";
+		// Pass current URL as return URL so user comes back here after OAuth
+		const returnUrl = encodeURIComponent(window.location.href);
+		window.location.href = `/api/auth/youtube?returnUrl=${returnUrl}`;
 	};
 
 	const handleSelectChannel = (channel: UserYouTubeChannel) => {
