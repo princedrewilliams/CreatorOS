@@ -2,8 +2,10 @@
 
 import { Suspense, useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, FlaskConical } from "lucide-react";
+import { ArrowLeft, FlaskConical, Copy } from "lucide-react";
 import Link from "next/link";
+import { ProLockedButton } from "../components/ui/ProLockedButton";
+import { ReplicateThisModal } from "../components/replicate/ReplicateThisModal";
 
 import { FrostedTabs, type Tab } from "../components/ui/FrostedTabs";
 import { ChannelHeader } from "../components/channel-dna/ChannelHeader";
@@ -115,6 +117,7 @@ function ChannelDNAContent() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [data, setData] = useState<AnalysisResponse | null>(null);
+	const [showReplicateModal, setShowReplicateModal] = useState(false);
 
 	const fetchAnalysis = useCallback(async () => {
 		if (!channelUrl) {
@@ -477,13 +480,22 @@ function ChannelDNAContent() {
 									viewCount={channel?.viewCount}
 									videoCount={channel?.videoCount}
 								/>
-								<Link
+								<ProLockedButton
 									href={`/learning-lab?channelUrl=${encodeURIComponent(channelUrl)}`}
-									className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-violet-500 to-pink-500 text-white text-sm font-medium hover:opacity-90 transition-all btn-glow"
+									feature="Learning Lab"
+									icon={<FlaskConical className="w-4 h-4" />}
+									className="px-4 py-2 rounded-xl bg-gradient-to-r from-violet-500 to-pink-500 text-white text-sm font-medium hover:opacity-90 transition-all btn-glow"
 								>
-									<FlaskConical className="w-4 h-4" />
-									<span>Learning Lab</span>
-								</Link>
+									Learning Lab
+								</ProLockedButton>
+								<ProLockedButton
+									onClick={() => setShowReplicateModal(true)}
+									feature="Replicate This"
+									icon={<Copy className="w-4 h-4" />}
+									className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-medium hover:opacity-90 transition-all btn-glow"
+								>
+									Replicate This
+								</ProLockedButton>
 							</div>
 						)}
 					</div>
@@ -546,6 +558,14 @@ function ChannelDNAContent() {
 					);
 				})()}
 			</div>
+
+			{/* Replicate This Modal */}
+			<ReplicateThisModal
+				isOpen={showReplicateModal}
+				onClose={() => setShowReplicateModal(false)}
+				channelUrl={channelUrl}
+				referenceChannelName={channel?.title || "Channel"}
+			/>
 		</div>
 	);
 }

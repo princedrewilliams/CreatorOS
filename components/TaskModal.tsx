@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Heading, Text, Button, Separator } from "@whop/react/components";
-import { Cross2Icon, UploadIcon } from "@radix-ui/react-icons";
+import { Cross2Icon, UploadIcon, InfoCircledIcon } from "@radix-ui/react-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppStore, type Task } from "@/lib/store";
+import { ValidationSummary } from "@/app/components/replicate/ViolationBadge";
+import type { ReplicationSettings, ValidationResult } from "@/lib/replicate/types";
 
 interface TaskModalProps {
 	isOpen: boolean;
@@ -15,7 +17,7 @@ interface TaskModalProps {
 }
 
 export function TaskModal({ isOpen, onClose, task, selectedDate }: TaskModalProps) {
-	const { addTask, updateTask, deleteTask } = useAppStore();
+	const { addTask, updateTask, deleteTask, isPro } = useAppStore();
 	const [title, setTitle] = useState("");
 	const [description, setDescription] = useState("");
 	const [date, setDate] = useState(selectedDate ? format(selectedDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"));
@@ -23,6 +25,62 @@ export function TaskModal({ isOpen, onClose, task, selectedDate }: TaskModalProp
 	const [platforms, setPlatforms] = useState<("youtube")[]>([]);
 	const [status, setStatus] = useState<"planned" | "scheduled" | "posted" | "cancelled">("planned");
 	const [video, setVideo] = useState<File | null>(null);
+
+	// Replication settings
+	const [replicationSettings, setReplicationSettings] = useState<ReplicationSettings[]>([]);
+	const [selectedSettingsId, setSelectedSettingsId] = useState<string>("");
+	const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
+	const [validating, setValidating] = useState(false);
+
+	// Fetch replication settings
+	useEffect(() => {
+		if (isOpen && isPro) {
+			fetch("/api/replicate/settings")
+				.then((res) => res.json())
+				.then((data) => {
+					if (data.settings) {
+						setReplicationSettings(data.settings);
+					}
+				})
+				.catch(console.error);
+		}
+	}, [isOpen, isPro]);
+
+	// Validate against constraints when title or description changes
+	useEffect(() => {
+		if (!selectedSettingsId || !title) {
+			setValidationResult(null);
+			return;
+		}
+
+		const validateTimeout = setTimeout(async () => {
+			setValidating(true);
+			try {
+				const response = await fetch("/api/replicate/validate", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						settingsId: selectedSettingsId,
+						upload: {
+							title,
+							description,
+							tags: [],
+						},
+					}),
+				});
+				const data = await response.json();
+				if (response.ok) {
+					setValidationResult(data);
+				}
+			} catch (error) {
+				console.error("Validation error:", error);
+			} finally {
+				setValidating(false);
+			}
+		}, 500);
+
+		return () => clearTimeout(validateTimeout);
+	}, [title, description, selectedSettingsId]);
 
 	useEffect(() => {
 		if (task) {
@@ -40,6 +98,8 @@ export function TaskModal({ isOpen, onClose, task, selectedDate }: TaskModalProp
 			setPlatforms([]);
 			setStatus("planned");
 		}
+		setSelectedSettingsId("");
+		setValidationResult(null);
 	}, [task, selectedDate]);
 
 	const handlePlatformToggle = (platform: "youtube") => {
@@ -144,6 +204,50 @@ export function TaskModal({ isOpen, onClose, task, selectedDate }: TaskModalProp
 										className="w-full px-4 py-2 rounded-lg border border-gray-a6 bg-white dark:bg-gray-a4 text-gray-12 dark:text-gray-12 placeholder-gray-9 dark:placeholder-gray-10 focus:outline-none focus:ring-2 focus:ring-blue-6 focus:border-blue-6 transition-colors resize-none"
 									/>
 								</div>
+
+								{/* Replication Settings (Pro Feature) */}
+								{isPro && replicationSettings.length > 0 && (
+									<div>
+										<div className="flex items-center gap-2 mb-2">
+											<Text size="2" weight="medium" className="text-gray-11 dark:text-gray-11">
+												Apply Content Constraints
+											</Text>
+											<InfoCircledIcon className="w-4 h-4 text-gray-9" />
+										</div>
+										<select
+											value={selectedSettingsId}
+											onChange={(e) => setSelectedSettingsId(e.target.value)}
+											className="w-full px-4 py-2 rounded-lg border border-gray-a6 bg-white dark:bg-gray-a4 text-gray-12 dark:text-gray-12 focus:outline-none focus:ring-2 focus:ring-blue-6 focus:border-blue-6 transition-colors"
+										>
+											<option value="">No constraints (free-form)</option>
+											{replicationSettings.map((settings) => (
+												<option key={settings.id} value={settings.id}>
+													Replicate: {settings.referenceChannelName}
+												</option>
+											))}
+										</select>
+										{selectedSettingsId && (
+											<Text size="1" color="gray" className="mt-1 text-gray-10 dark:text-gray-10">
+												Content will be validated against constraints from the selected channel
+											</Text>
+										)}
+									</div>
+								)}
+
+								{/* Validation Results */}
+								{selectedSettingsId && validationResult && (
+									<div className="p-4 rounded-lg border border-gray-a6 bg-gray-a2 dark:bg-gray-a3">
+										<div className="flex items-center gap-2 mb-3">
+											<Text size="2" weight="medium" className="text-gray-12 dark:text-gray-12">
+												Constraint Validation
+											</Text>
+											{validating && (
+												<span className="w-4 h-4 border-2 border-blue-9 border-t-transparent rounded-full animate-spin" />
+											)}
+										</div>
+										<ValidationSummary result={validationResult} />
+									</div>
+								)}
 
 								{/* Date and Time */}
 								<div className="grid grid-cols-2 gap-4">

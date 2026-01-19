@@ -67,6 +67,7 @@ interface AppState {
 	setUser: (user: User | null) => void;
 	isPro: boolean;
 	setIsPro: (isPro: boolean) => void;
+	syncProStatus: () => Promise<void>;
 	sidebarOpen: boolean;
 	setSidebarOpen: (open: boolean) => void;
 	tasks: Task[];
@@ -91,6 +92,17 @@ export const useAppStore = create<AppState>()(
 			setUser: (user) => set({ user }),
 			isPro: false,
 			setIsPro: (isPro) => set({ isPro }),
+			syncProStatus: async () => {
+				try {
+					const response = await fetch("/api/user/pro-status");
+					const data = await response.json();
+					if (response.ok) {
+						set({ isPro: data.isPro });
+					}
+				} catch (error) {
+					console.error("Failed to sync Pro status:", error);
+				}
+			},
 			sidebarOpen: false,
 			setSidebarOpen: (open) => set({ sidebarOpen: open }),
 			tasks: [],
