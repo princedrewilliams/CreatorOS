@@ -26,7 +26,7 @@ export function TopicUsageChart({ data }: TopicUsageChartProps) {
 
 	return (
 		<ResponsiveContainer width="100%" height="100%">
-			<AreaChart data={data} margin={{ top: 20, right: 20, left: 0, bottom: 10 }}>
+			<AreaChart data={data} margin={{ top: 20, right: 20, left: 10, bottom: 10 }}>
 				<defs>
 					{/* Area gradient */}
 					<linearGradient id="usageGradient" x1="0" y1="0" x2="0" y2="1">
@@ -61,7 +61,7 @@ export function TopicUsageChart({ data }: TopicUsageChartProps) {
 					tickLine={false}
 					tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }}
 					ticks={[0, 25, 50, 75, 100]}
-					width={30}
+					width={40}
 					tickFormatter={(v) => `${v}%`}
 				/>
 				<Tooltip

@@ -31,7 +31,7 @@ export function PillarScatterChart({ data, growthDriver }: PillarScatterChartPro
 
 	return (
 		<ResponsiveContainer width="100%" height="100%">
-			<ScatterChart margin={{ top: 10, right: 10, left: 0, bottom: 30 }}>
+			<ScatterChart margin={{ top: 10, right: 10, left: 10, bottom: 30 }}>
 				<XAxis
 					dataKey="engagementRate"
 					name="Engagement Rate"

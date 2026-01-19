@@ -47,7 +47,7 @@ export function EngagementVelocityChart({ data }: EngagementVelocityChartProps) 
 		<ResponsiveContainer width="100%" height="100%">
 			<BarChart
 				data={chartData}
-				margin={{ top: 10, right: 10, left: 0, bottom: 10 }}
+				margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
 			>
 				<XAxis
 					dataKey="label"

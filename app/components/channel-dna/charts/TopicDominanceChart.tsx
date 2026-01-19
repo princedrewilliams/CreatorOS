@@ -27,7 +27,7 @@ export function TopicDominanceChart({ data, topicName = "Primary Topic" }: Topic
 
 	return (
 		<ResponsiveContainer width="100%" height="100%">
-			<AreaChart data={data} margin={{ top: 20, right: 20, left: 0, bottom: 10 }}>
+			<AreaChart data={data} margin={{ top: 20, right: 20, left: 10, bottom: 10 }}>
 				<defs>
 					{/* Multi-stop gradient for area */}
 					<linearGradient id="topicGradient" x1="0" y1="0" x2="0" y2="1">
@@ -62,7 +62,7 @@ export function TopicDominanceChart({ data, topicName = "Primary Topic" }: Topic
 					tickLine={false}
 					tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }}
 					tickFormatter={(v) => `${v}%`}
-					width={35}
+					width={40}
 					ticks={[0, 25, 50, 75, 100]}
 				/>
 				<Tooltip

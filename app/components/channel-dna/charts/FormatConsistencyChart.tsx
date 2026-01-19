@@ -24,7 +24,7 @@ export function FormatConsistencyChart({ data, average }: FormatConsistencyChart
 	return (
 		<div className="w-full h-full">
 			<ResponsiveContainer width="100%" height="100%">
-				<AreaChart data={data} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
+				<AreaChart data={data} margin={{ top: 20, right: 20, left: 10, bottom: 20 }}>
 					<defs>
 						{/* Gradient fill */}
 						<linearGradient id="formatGradient" x1="0" y1="0" x2="0" y2="1">

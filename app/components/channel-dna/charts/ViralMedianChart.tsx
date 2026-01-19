@@ -43,7 +43,7 @@ export function ViralMedianChart({ data, median }: ViralMedianChartProps) {
 		<div className="w-full h-full flex flex-col">
 			<div className="flex-1 min-h-0">
 				<ResponsiveContainer width="100%" height="100%">
-					<BarChart data={data} margin={{ top: 20, right: 80, left: 0, bottom: 20 }}>
+					<BarChart data={data} margin={{ top: 20, right: 80, left: 10, bottom: 20 }}>
 						<defs>
 							{/* Glow effect for bars */}
 							<filter id="viralGlow" x="-20%" y="-20%" width="140%" height="140%">

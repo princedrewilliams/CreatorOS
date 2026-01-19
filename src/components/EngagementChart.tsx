@@ -81,7 +81,7 @@ export function EngagementChart() {
           <AreaChart data={data} margin={{
           top: 10,
           right: 10,
-          left: -20,
+          left: 10,
           bottom: 0
         }}>
             <defs>
@@ -98,7 +98,7 @@ export function EngagementChart() {
             <YAxis stroke="rgba(255,255,255,0.5)" tick={{
             fill: 'rgba(255,255,255,0.5)',
             fontSize: 12
-          }} tickLine={false} axisLine={false} tickFormatter={value => `${value / 1000}k`} />
+          }} tickLine={false} axisLine={false} tickFormatter={value => `${value / 1000}k`} width={45} />
             <Tooltip content={<CustomTooltip />} />
             <Area type="monotone" dataKey="value" stroke="#c084fc" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" animationDuration={1500} />
           </AreaChart>

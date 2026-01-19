@@ -180,7 +180,16 @@ export async function POST(req: Request) {
 		}
 
 		// Get details for similar channels
-		const channels = await getChannelDetails(similarIds);
+		const allChannels = await getChannelDetails(similarIds);
+
+		// Filter to channels within subscriber range (50% to 2x of current)
+		const currentSubs = subscriberCount || 0;
+		const minSubs = Math.max(currentSubs * 0.5, 1000); // 50% of current, min 1K
+		const maxSubs = currentSubs * 2; // 2x of current
+
+		const channels = currentSubs > 0
+			? allChannels.filter(c => c.subscriberCount >= minSubs && c.subscriberCount <= maxSubs)
+			: allChannels;
 
 		// Calculate benchmarks
 		const subscribers = channels.map(c => c.subscriberCount);
