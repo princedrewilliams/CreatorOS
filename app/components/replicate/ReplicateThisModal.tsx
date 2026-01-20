@@ -64,8 +64,11 @@ export function ReplicateThisModal({
 
 	// Pre-populate tags from settings when available
 	useEffect(() => {
-		if (settings?.constraints?.title?.suggestedKeywords) {
-			setVideoTags(settings.constraints.title.suggestedKeywords.slice(0, 5));
+		const powerWords = settings?.constraints?.title?.suggestedPowerWords || [];
+		const seoKeywords = settings?.constraints?.seo?.primaryKeywords || [];
+		const combinedTags = [...new Set([...powerWords, ...seoKeywords])].slice(0, 5);
+		if (combinedTags.length > 0) {
+			setVideoTags(combinedTags);
 		}
 	}, [settings]);
 
@@ -229,7 +232,10 @@ export function ReplicateThisModal({
 		}
 	};
 
-	const suggestedTags = settings?.constraints?.title?.suggestedKeywords || [];
+	const suggestedTags = [
+		...(settings?.constraints?.title?.suggestedPowerWords || []),
+		...(settings?.constraints?.seo?.primaryKeywords || []),
+	].filter((tag, index, self) => self.indexOf(tag) === index);
 
 	if (!isOpen) return null;
 
