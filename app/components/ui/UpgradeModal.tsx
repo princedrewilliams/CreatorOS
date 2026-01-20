@@ -76,14 +76,14 @@ export function UpgradeModal({ isOpen, onClose, feature }: UpgradeModalProps) {
 
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center">
-			{/* Backdrop */}
+			{/* Backdrop - darker for better visibility */}
 			<div
-				className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+				className="absolute inset-0 bg-black/80 backdrop-blur-md"
 				onClick={onClose}
 			/>
 
-			{/* Modal */}
-			<div className="relative w-full max-w-lg mx-4 bg-[var(--frosted-bg)] backdrop-blur-xl border border-[var(--frosted-border)] rounded-2xl shadow-2xl overflow-hidden animate-scale-in">
+			{/* Modal - more opaque background */}
+			<div className="relative w-full max-w-lg mx-4 bg-[#0a0a12] border border-[var(--frosted-border)] rounded-2xl shadow-2xl overflow-hidden animate-scale-in">
 				{/* Gradient accent */}
 				<div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-violet-500 via-pink-500 to-amber-500" />
 

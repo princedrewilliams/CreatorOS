@@ -2,9 +2,11 @@
 
 import { Suspense, useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, FlaskConical, Copy } from "lucide-react";
+import { ArrowLeft, FlaskConical, Copy, Crown } from "lucide-react";
 import Link from "next/link";
 import { ReplicateThisModal } from "../components/replicate/ReplicateThisModal";
+import { UpgradeModal } from "../components/ui/UpgradeModal";
+import { useAppStore } from "@/lib/store";
 
 import { FrostedTabs, type Tab } from "../components/ui/FrostedTabs";
 import { ChannelHeader } from "../components/channel-dna/ChannelHeader";
@@ -117,6 +119,8 @@ function ChannelDNAContent() {
 	const [error, setError] = useState<string | null>(null);
 	const [data, setData] = useState<AnalysisResponse | null>(null);
 	const [showReplicateModal, setShowReplicateModal] = useState(false);
+	const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+	const isPro = useAppStore((state) => state.isPro);
 
 	const fetchAnalysis = useCallback(async () => {
 		if (!channelUrl) {
@@ -493,6 +497,15 @@ function ChannelDNAContent() {
 									<Copy className="w-4 h-4" />
 									<span>Replicate This</span>
 								</button>
+								{!isPro && (
+									<button
+										onClick={() => setShowUpgradeModal(true)}
+										className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl hover:opacity-90 transition-all text-sm text-white font-medium"
+									>
+										<Crown className="w-4 h-4" />
+										<span>Upgrade to Pro</span>
+									</button>
+								)}
 							</div>
 						)}
 					</div>
@@ -562,6 +575,12 @@ function ChannelDNAContent() {
 				onClose={() => setShowReplicateModal(false)}
 				channelUrl={channelUrl}
 				referenceChannelName={channel?.title || "Channel"}
+			/>
+
+			{/* Upgrade Modal */}
+			<UpgradeModal
+				isOpen={showUpgradeModal}
+				onClose={() => setShowUpgradeModal(false)}
 			/>
 		</div>
 	);
