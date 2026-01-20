@@ -19,7 +19,7 @@ interface ThumbnailStepProps {
 	formatProfile: ThumbnailFormatProfile;
 	matchedTemplate: CanvaTemplateMatch;
 	suggestedColors: string[];
-	isPro: boolean;
+	isPro?: boolean; // Kept for backwards compatibility but no longer used
 	onOpenCanva: () => void;
 	onSkip: () => void;
 	onContinue: () => void;
