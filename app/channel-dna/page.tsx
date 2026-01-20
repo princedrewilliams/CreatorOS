@@ -509,46 +509,60 @@ function ChannelDNAContent() {
 					</div>
 				</div>
 
-				{/* Navigation Tabs - Including Summary, Benchmarks, Learning Lab, Replicate */}
+				{/* Navigation - All buttons in one scrollable row */}
 				<div className="mb-6 animate-slide-up stagger-2">
-					{/* Action Buttons Row */}
-					<div className="flex flex-wrap gap-2 mb-4">
+					<div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+						{/* Action Buttons */}
 						<button
 							onClick={() => setShowSummary(true)}
-							className="flex items-center gap-2 px-3 py-1.5 bg-[var(--frosted-bg)] backdrop-blur-sm border border-[var(--frosted-border)] rounded-lg hover:bg-[var(--frosted-bg-hover)] transition-colors text-xs text-[var(--text-secondary)] hover:text-white"
+							className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
 						>
-							<FileText className="w-3.5 h-3.5" />
+							<FileText className="w-4 h-4" />
 							<span>Summary</span>
 						</button>
 						<button
 							onClick={() => setShowBenchmarks(true)}
-							className="flex items-center gap-2 px-3 py-1.5 bg-[var(--frosted-bg)] backdrop-blur-sm border border-[var(--frosted-border)] rounded-lg hover:bg-[var(--frosted-bg-hover)] transition-colors text-xs text-[var(--text-secondary)] hover:text-white"
+							className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
 						>
-							<BarChart3 className="w-3.5 h-3.5" />
-							<span>Niche Benchmarks</span>
+							<BarChart3 className="w-4 h-4" />
+							<span>Benchmarks</span>
 						</button>
 						<Link
 							href={`/learning-lab?channelUrl=${encodeURIComponent(channelUrl)}`}
-							className="flex items-center gap-2 px-3 py-1.5 bg-[var(--frosted-bg)] backdrop-blur-sm border border-[var(--frosted-border)] rounded-lg hover:bg-[var(--frosted-bg-hover)] transition-colors text-xs text-[var(--text-secondary)] hover:text-white"
+							className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
 						>
-							<FlaskConical className="w-3.5 h-3.5" />
+							<FlaskConical className="w-4 h-4" />
 							<span>Learning Lab</span>
 						</Link>
 						<button
 							onClick={() => setShowReplicateModal(true)}
-							className="flex items-center gap-2 px-3 py-1.5 bg-[var(--frosted-bg)] backdrop-blur-sm border border-[var(--frosted-border)] rounded-lg hover:bg-[var(--frosted-bg-hover)] transition-colors text-xs text-[var(--text-secondary)] hover:text-white"
+							className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
 						>
-							<Copy className="w-3.5 h-3.5" />
-							<span>Replicate This</span>
+							<Copy className="w-4 h-4" />
+							<span>Replicate</span>
 						</button>
-					</div>
 
-					{/* Analysis Tabs */}
-					<FrostedTabs
-						tabs={TABS}
-						activeTab={activeTab}
-						onTabChange={setActiveTab}
-					/>
+						{/* Divider */}
+						<div className="w-px bg-white/10 mx-1 self-stretch" />
+
+						{/* Analysis Tabs - inline */}
+						{TABS.map((tab) => {
+							const isActive = tab.id === activeTab;
+							return (
+								<button
+									key={tab.id}
+									onClick={() => setActiveTab(tab.id)}
+									className={`relative px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+										isActive
+											? "bg-[var(--accent-muted)] text-white shadow-[0_0_20px_var(--accent-glow)]"
+											: "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+									}`}
+								>
+									{tab.label}
+								</button>
+							);
+						})}
+					</div>
 				</div>
 
 				{/* Tab Content */}

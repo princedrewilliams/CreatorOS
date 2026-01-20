@@ -935,10 +935,20 @@ function buildHeuristicAnalysis(payload: {
 				`(hooks, pacing, and structure vary significantly).`;
 		}
 	} else {
-		// Fallback when no AI analysis available
+		// Fallback when no AI analysis - still identify patterns
+		const avgMinutes = Math.round(avgDuration / 60);
+		const titles = videos.map(v => v.title || "");
+		const patterns: string[] = [];
+
+		if (titles.filter(t => t.includes("?")).length >= 2) patterns.push("question hooks");
+		if (titles.filter(t => t.toLowerCase().includes("how")).length >= 2) patterns.push("how-to style");
+		if (titles.filter(t => /\d+/.test(t)).length >= 2) patterns.push("numbered lists");
+
+		const detectedPatterns = patterns.length > 0 ? patterns.join(", ") : "similar topic focus";
+
 		recognizableEvidence = formatSeverity === "strong"
-			? `Videos maintain consistent ~${Math.round(avgDuration / 60)} min format with predictable structure.`
-			: `Video lengths and formats vary (${Math.round(avgDuration / 60)} min avg). No clear repeatable structure.`;
+			? `Videos maintain consistent ~${avgMinutes} min format with ${detectedPatterns}.`
+			: `Pattern detected: ${avgMinutes}-min videos with ${detectedPatterns}. Room to strengthen consistency.`;
 	}
 
 	formatInsights.push({
@@ -988,29 +998,46 @@ function buildHeuristicAnalysis(payload: {
 			examples: hookExamples.map(e => `"${e.videoTitle}" → ${e.hookStyle}`),
 		});
 	} else {
-		// Fallback insight when no AI analysis
+		// Fallback insight when no AI analysis - always find some pattern
+		// Detect patterns from video data
+		const avgMinutes = Math.round(avgDuration / 60);
+		const titlePatterns: string[] = [];
+
+		// Check for common title patterns
+		const titles = videos.map(v => v.title || "");
+		const hasQuestions = titles.filter(t => t.includes("?")).length >= 2;
+		const hasHowTo = titles.filter(t => t.toLowerCase().includes("how to")).length >= 2;
+		const hasNumbers = titles.filter(t => /\d+/.test(t)).length >= 2;
+		const hasColons = titles.filter(t => t.includes(":")).length >= 2;
+
+		if (hasQuestions) titlePatterns.push("question-based titles");
+		if (hasHowTo) titlePatterns.push("how-to format");
+		if (hasNumbers) titlePatterns.push("numbered titles");
+		if (hasColons) titlePatterns.push("title:subtitle format");
+
+		let detectedPattern = titlePatterns.length > 0
+			? titlePatterns.slice(0, 2).join(" and ")
+			: `${avgMinutes}-minute videos`;
+
 		formatInsights.push({
 			id: "format-structure",
 			label: "Format Structure",
 			severity: formatSeverity,
 			evidence: formatSeverity === "strong"
-				? "Videos follow a predictable structure based on length and title patterns."
-				: "No clear structural pattern detected across recent uploads.",
+				? `Videos follow a ${avgMinutes}-min format with ${detectedPattern}.`
+				: `Pattern detected: ${detectedPattern}. Could be applied more consistently.`,
 			impact: "Repeatable structures improve production speed and viewer retention.",
 		});
 	}
 
-	// 4. Follow-up suggestion for scores below 90%
+	// 4. Follow-up suggestion for scores below 90% - keep it short
 	if (formatScore < 90) {
-		const suggestionSeverity: Severity = formatScore < 50 ? "weak" : "neutral";
 		formatInsights.push({
 			id: "format-improvement",
 			label: "Format Improvement Opportunity",
-			severity: suggestionSeverity,
-			evidence: hookAnalysis?.recommendation ||
-				`To improve format consistency: 1) Choose your best-performing hook type and use it for every video. ` +
-				`2) Standardize intro length (aim for 15-30 seconds). 3) Keep videos within ±20% of your average duration.`,
-			impact: "Improving format consistency from current level could significantly boost retention metrics.",
+			severity: formatScore < 50 ? "weak" : "neutral",
+			evidence: hookAnalysis?.recommendation || "Use your best-performing video's structure as a template.",
+			impact: "Consistent formats boost retention.",
 		});
 	}
 
