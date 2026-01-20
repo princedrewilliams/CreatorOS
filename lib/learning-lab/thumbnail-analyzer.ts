@@ -13,6 +13,13 @@ interface VisionAnalysisResult {
 	hasTextOverlay: boolean;
 	textDensity: "low" | "medium" | "high";
 	compositionScore: number;
+	// Layout analysis fields
+	subjectPosition?: "left" | "center" | "right";
+	subjectScale?: number;
+	textBlockCount?: 0 | 1 | 2;
+	textPosition?: "top" | "center" | "bottom" | "none";
+	averageTextLength?: number;
+	dominantLayoutType?: "face-led" | "object-led" | "text-led";
 }
 
 /**
@@ -168,6 +175,14 @@ Evaluate:
 5. Text overlay presence and density (low, medium, high)
 6. Overall composition score (0-100)
 
+LAYOUT ANALYSIS:
+7. Subject position - where is the main subject? (left/center/right)
+8. Subject scale - what % of frame does subject occupy? (0-100)
+9. Text block count - distinct text areas visible (0, 1, or 2)
+10. Text position - where is text located? (top/center/bottom/none)
+11. Average text length - estimate total characters visible
+12. Dominant layout type - what drives design? (face-led/object-led/text-led)
+
 Return JSON:
 {
   "hasFace": true,
@@ -177,7 +192,13 @@ Return JSON:
   "colorPalette": "high-saturation",
   "hasTextOverlay": true,
   "textDensity": "medium",
-  "compositionScore": 75
+  "compositionScore": 75,
+  "subjectPosition": "left",
+  "subjectScale": 45,
+  "textBlockCount": 1,
+  "textPosition": "top",
+  "averageTextLength": 15,
+  "dominantLayoutType": "face-led"
 }`;
 
 	const userPrompt = "Analyze this YouTube thumbnail image.";
@@ -206,6 +227,13 @@ Return JSON:
 				hasTextOverlay: result.hasTextOverlay,
 				textDensity: result.textDensity,
 				compositionScore: result.compositionScore,
+				// Layout analysis fields
+				subjectPosition: result.subjectPosition,
+				subjectScale: result.subjectScale,
+				textBlockCount: result.textBlockCount,
+				textPosition: result.textPosition,
+				averageTextLength: result.averageTextLength,
+				dominantLayoutType: result.dominantLayoutType,
 			},
 			status: "analyzed",
 		};
@@ -222,12 +250,26 @@ Return JSON:
  */
 export async function analyzeThumbnailsBatch(
 	videos: YoutubeVideo[],
-	_useVision = false,
-	_batchSize = 5
+	useVision = false,
+	batchSize = 5
 ): Promise<ThumbnailAnalysis[]> {
-	// Always use fast heuristic analysis for instant results
-	// Vision API is too slow for real-time UX
-	return videos.map(analyzeThumbnailFast);
+	// Fast mode: instant heuristic-based analysis
+	if (!useVision) {
+		return videos.map(analyzeThumbnailFast);
+	}
+
+	// Vision mode: GPT-4o analysis with batching
+	const results: ThumbnailAnalysis[] = [];
+
+	for (let i = 0; i < videos.length; i += batchSize) {
+		const batch = videos.slice(i, i + batchSize);
+		const batchResults = await Promise.all(
+			batch.map(video => analyzeThumbnailWithVision(video))
+		);
+		results.push(...batchResults);
+	}
+
+	return results;
 }
 
 /**

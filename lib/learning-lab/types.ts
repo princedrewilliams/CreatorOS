@@ -189,6 +189,13 @@ export interface ThumbnailAnalysis {
 		hasTextOverlay: boolean | null;
 		textDensity?: "low" | "medium" | "high";
 		compositionScore?: number;
+		// Layout analysis fields for thumbnail replication
+		subjectPosition?: "left" | "center" | "right";
+		subjectScale?: number; // 0-100
+		textBlockCount?: 0 | 1 | 2;
+		textPosition?: "top" | "center" | "bottom" | "none";
+		averageTextLength?: number;
+		dominantLayoutType?: "face-led" | "object-led" | "text-led";
 	};
 	status: "analyzed" | "pending" | "unsupported";
 }

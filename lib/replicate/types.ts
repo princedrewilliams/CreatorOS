@@ -1,5 +1,29 @@
 // Replicate This - Type Definitions
 
+export interface ThumbnailFormatProfile {
+	aspectRatio: "16:9";
+	subjectPosition: "left" | "center" | "right";
+	subjectScale: number; // 0-100
+	textBlockCount: 0 | 1 | 2;
+	textPosition: "top" | "center" | "bottom" | "none";
+	averageTextLength: number;
+	dominantLayoutType: "face-led" | "object-led" | "text-led";
+}
+
+export type CanvaTemplateType =
+	| "face-left-text-right"
+	| "face-right-text-left"
+	| "center-subject-no-text"
+	| "text-heavy-top-image-bottom";
+
+export interface CanvaTemplateMatch {
+	templateType: CanvaTemplateType;
+	confidence: number;
+	deepLinkUrl: string;
+	displayName: string;
+	description: string;
+}
+
 export interface ContentConstraints {
 	title: {
 		minLength: number;
@@ -22,6 +46,8 @@ export interface ContentConstraints {
 		faceType: "close-up" | "medium" | "wide" | "none";
 		recommendTextOverlay: boolean;
 		suggestedColors: string[];
+		formatProfile?: ThumbnailFormatProfile;
+		matchedTemplate?: CanvaTemplateMatch;
 	};
 	schedule: {
 		recommendedDays: number[]; // 0-6 (Sunday-Saturday)

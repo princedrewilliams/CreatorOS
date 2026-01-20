@@ -12,6 +12,8 @@ import {
 	AlertCircle,
 } from "lucide-react";
 import { ConstraintDisplay } from "./ConstraintDisplay";
+import { ThumbnailStep } from "./ThumbnailStep";
+import { useAppStore } from "@/lib/store";
 import type { ReplicationSettings, UserYouTubeChannel } from "@/lib/replicate/types";
 
 interface ReplicateThisModalProps {
@@ -21,7 +23,9 @@ interface ReplicateThisModalProps {
 	referenceChannelName: string;
 }
 
-type Step = "connect" | "select" | "deriving" | "success";
+type Step = "connect" | "select" | "deriving" | "thumbnail" | "success";
+
+const STEPS: Step[] = ["connect", "select", "deriving", "thumbnail", "success"];
 
 export function ReplicateThisModal({
 	isOpen,
@@ -35,6 +39,7 @@ export function ReplicateThisModal({
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [settings, setSettings] = useState<ReplicationSettings | null>(null);
+	const isPro = useAppStore((state) => state.isPro);
 
 	useEffect(() => {
 		if (isOpen) {
@@ -98,7 +103,12 @@ export function ReplicateThisModal({
 			}
 
 			setSettings(data.settings);
-			setStep("success");
+			// Go to thumbnail step if we have format profile data
+			if (data.settings?.constraints?.thumbnail?.formatProfile) {
+				setStep("thumbnail");
+			} else {
+				setStep("success");
+			}
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Failed to derive constraints");
 			setStep("select");
@@ -147,27 +157,27 @@ export function ReplicateThisModal({
 
 					{/* Progress steps */}
 					<div className="flex items-center gap-2 mb-6">
-						{["connect", "select", "deriving", "success"].map((s, i) => (
+						{STEPS.map((s, i) => (
 							<div key={s} className="flex items-center gap-2">
 								<div
-									className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-colors ${
+									className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium transition-colors ${
 										step === s
 											? "bg-cyan-500 text-white"
-											: ["connect", "select", "deriving", "success"].indexOf(step) > i
+											: STEPS.indexOf(step) > i
 											? "bg-green-500 text-white"
 											: "bg-white/10 text-[var(--text-muted)]"
 									}`}
 								>
-									{["connect", "select", "deriving", "success"].indexOf(step) > i ? (
-										<Check className="w-4 h-4" />
+									{STEPS.indexOf(step) > i ? (
+										<Check className="w-3.5 h-3.5" />
 									) : (
 										i + 1
 									)}
 								</div>
-								{i < 3 && (
+								{i < STEPS.length - 1 && (
 									<div
-										className={`w-8 h-0.5 ${
-											["connect", "select", "deriving", "success"].indexOf(step) > i
+										className={`w-6 h-0.5 ${
+											STEPS.indexOf(step) > i
 												? "bg-green-500"
 												: "bg-white/10"
 										}`}
@@ -284,6 +294,24 @@ export function ReplicateThisModal({
 								This may take a moment
 							</p>
 						</div>
+					)}
+
+					{step === "thumbnail" && settings?.constraints?.thumbnail && (
+						<ThumbnailStep
+							formatProfile={settings.constraints.thumbnail.formatProfile!}
+							matchedTemplate={settings.constraints.thumbnail.matchedTemplate!}
+							suggestedColors={settings.constraints.thumbnail.suggestedColors}
+							isPro={isPro}
+							onOpenCanva={() => {
+								window.open(
+									settings.constraints.thumbnail.matchedTemplate?.deepLinkUrl ||
+										"https://www.canva.com/design?create&type=TABzW6DJhNk&category=youtube-thumbnails",
+									"_blank"
+								);
+							}}
+							onSkip={() => setStep("success")}
+							onContinue={() => setStep("success")}
+						/>
 					)}
 
 					{step === "success" && settings && (

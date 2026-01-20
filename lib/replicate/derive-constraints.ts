@@ -2,6 +2,7 @@
 
 import type { ContentConstraints } from "./types";
 import type { PackagingResponse, PillarsResponse } from "@/lib/learning-lab/types";
+import { aggregateFormatProfile, matchToCanvaTemplate } from "./template-matcher";
 
 interface VideoData {
 	id: string;
@@ -137,6 +138,7 @@ function deriveThumbnailConstraints(
 	packaging?: PackagingResponse
 ): ContentConstraints["thumbnail"] {
 	const patterns = packaging?.thumbnailPatterns;
+	const thumbnails = packaging?.thumbnails || [];
 
 	// Determine if face is recommended (>50% usage)
 	const recommendFace = (patterns?.faceUsagePercent || 0) > 50;
@@ -156,11 +158,19 @@ function deriveThumbnailConstraints(
 	// Get common colors
 	const suggestedColors = patterns?.commonColors || ["#FF0000", "#FFFFFF", "#000000"];
 
+	// Aggregate format profile from thumbnail analyses
+	const formatProfile = aggregateFormatProfile(thumbnails);
+
+	// Match to best Canva template
+	const matchedTemplate = matchToCanvaTemplate(formatProfile);
+
 	return {
 		recommendFace,
 		faceType,
 		recommendTextOverlay,
 		suggestedColors: suggestedColors.slice(0, 5),
+		formatProfile,
+		matchedTemplate,
 	};
 }
 
