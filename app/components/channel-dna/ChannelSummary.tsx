@@ -19,6 +19,9 @@ interface ChannelSummaryProps {
 		commonKeywords: { word: string; count: number }[];
 	};
 	videos: { views?: number; likes?: number; comments?: number }[];
+	// Optional controlled mode props
+	isOpen?: boolean;
+	onClose?: () => void;
 }
 
 interface Summary {
@@ -41,11 +44,18 @@ export function ChannelSummary({
 	score,
 	metrics,
 	videos,
+	isOpen: controlledIsOpen,
+	onClose,
 }: ChannelSummaryProps) {
-	const [isOpen, setIsOpen] = useState(false);
+	// Support both controlled (parent manages state) and uncontrolled (internal state) modes
+	const [internalIsOpen, setInternalIsOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [summary, setSummary] = useState<Summary | null>(null);
 	const [exporting, setExporting] = useState<string | null>(null);
+
+	// Use controlled state if provided, otherwise use internal state
+	const isControlled = controlledIsOpen !== undefined;
+	const isOpen = isControlled ? controlledIsOpen : internalIsOpen;
 
 	const fetchSummary = async () => {
 		setLoading(true);
@@ -65,10 +75,18 @@ export function ChannelSummary({
 		}
 	};
 
+	// Fetch summary when modal opens in controlled mode
 	const handleOpen = () => {
-		setIsOpen(true);
+		if (!isControlled) {
+			setInternalIsOpen(true);
+		}
 		if (!summary) fetchSummary();
 	};
+
+	// Auto-fetch when controlled mode opens
+	if (isControlled && isOpen && !summary && !loading) {
+		fetchSummary();
+	}
 
 	const handleExport = async (format: "csv" | "markdown") => {
 		setExporting(format);
@@ -105,16 +123,26 @@ export function ChannelSummary({
 		return colors[confidence as keyof typeof colors] || colors.medium;
 	};
 
+	const handleClose = () => {
+		if (isControlled && onClose) {
+			onClose();
+		} else {
+			setInternalIsOpen(false);
+		}
+	};
+
 	return (
 		<>
-			{/* Trigger Button */}
-			<button
-				onClick={handleOpen}
-				className="flex items-center gap-2 px-4 py-2 bg-[var(--frosted-bg)] backdrop-blur-sm border border-[var(--frosted-border)] rounded-xl hover:bg-[var(--frosted-bg-hover)] transition-colors text-sm text-[var(--text-secondary)] hover:text-white"
-			>
-				<FileText className="w-4 h-4" />
-				<span>Summary</span>
-			</button>
+			{/* Trigger Button - only show in uncontrolled mode */}
+			{!isControlled && (
+				<button
+					onClick={handleOpen}
+					className="flex items-center gap-2 px-4 py-2 bg-[var(--frosted-bg)] backdrop-blur-sm border border-[var(--frosted-border)] rounded-xl hover:bg-[var(--frosted-bg-hover)] transition-colors text-sm text-[var(--text-secondary)] hover:text-white"
+				>
+					<FileText className="w-4 h-4" />
+					<span>Summary</span>
+				</button>
+			)}
 
 			{/* Modal Overlay */}
 			{isOpen && (
@@ -123,7 +151,7 @@ export function ChannelSummary({
 						{/* Backdrop */}
 						<div
 							className="fixed inset-0 bg-black/80 backdrop-blur-sm"
-							onClick={() => setIsOpen(false)}
+							onClick={handleClose}
 						/>
 
 						{/* Modal */}
@@ -132,7 +160,7 @@ export function ChannelSummary({
 						<div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-[var(--frosted-border)] bg-[#0a0a0a]/95 backdrop-blur-[var(--frosted-blur)] rounded-t-2xl">
 							<h2 className="text-lg font-semibold text-white">Channel Summary</h2>
 							<button
-								onClick={() => setIsOpen(false)}
+								onClick={handleClose}
 								className="p-2 rounded-lg hover:bg-white/10 transition-colors"
 							>
 								<X className="w-5 h-5 text-white" />

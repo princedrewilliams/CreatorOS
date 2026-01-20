@@ -2,20 +2,22 @@
 
 import { Suspense, useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, FlaskConical, Copy, Crown } from "lucide-react";
+import { ArrowLeft, FlaskConical, Copy, Crown, FileText, BarChart3 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { ReplicateThisModal } from "../components/replicate/ReplicateThisModal";
 import { UpgradeModal } from "../components/ui/UpgradeModal";
 import { useAppStore } from "@/lib/store";
 
 import { FrostedTabs, type Tab } from "../components/ui/FrostedTabs";
-import { ChannelHeader } from "../components/channel-dna/ChannelHeader";
 import { ChannelSummary } from "../components/channel-dna/ChannelSummary";
 import { NicheBenchmarks } from "../components/channel-dna/NicheBenchmarks";
 import { InsightsPanel } from "../components/channel-dna/InsightsPanel";
 import { ChartPanel } from "../components/channel-dna/ChartPanel";
 import { TabContent } from "../components/channel-dna/TabContent";
 import { SoWhatPanel } from "../components/channel-dna/SoWhatPanel";
+import { CircularScoreBadge } from "../components/ui/CircularScoreBadge";
+import { SaveChannelButton } from "../components/auth/SaveChannelButton";
 
 import { ViralMedianChart } from "../components/channel-dna/charts/ViralMedianChart";
 import { SearchVisibilityChart } from "../components/channel-dna/charts/SearchVisibilityChart";
@@ -120,6 +122,8 @@ function ChannelDNAContent() {
 	const [data, setData] = useState<AnalysisResponse | null>(null);
 	const [showReplicateModal, setShowReplicateModal] = useState(false);
 	const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+	const [showSummary, setShowSummary] = useState(false);
+	const [showBenchmarks, setShowBenchmarks] = useState(false);
 	const isPro = useAppStore((state) => state.isPro);
 
 	const fetchAnalysis = useCallback(async () => {
@@ -234,7 +238,6 @@ function ChannelDNAContent() {
 		if (!data?.data.videos) return { data: [], average: 50 };
 		const videos = data.data.videos.slice(0, 10);
 
-		// Calculate format similarity based on video duration clustering
 		const durations = videos.map(v => v.durationSec || 0).filter(d => d > 0);
 		const avgDuration = durations.length ? durations.reduce((a, b) => a + b, 0) / durations.length : 300;
 
@@ -252,7 +255,6 @@ function ChannelDNAContent() {
 		return { data: scores, average };
 	};
 
-	// Map tab IDs to analysis category names
 	const tabToCategoryMap: Record<string, string> = {
 		viral: "Viral Potential",
 		search: "Discoverability / SEO",
@@ -262,7 +264,6 @@ function ChannelDNAContent() {
 		format: "Format Consistency",
 	};
 
-	// Get insights from API response with severity data
 	const getInsightsForTab = (tabId: string): { insights: ScoredInsight[]; severity: Severity } => {
 		const categoryName = tabToCategoryMap[tabId];
 		const categoryData = data?.analysis?.[categoryName];
@@ -274,7 +275,6 @@ function ChannelDNAContent() {
 			};
 		}
 
-		// Fallback for legacy or missing data
 		return {
 			insights: [{
 				id: `${tabId}-fallback`,
@@ -314,7 +314,6 @@ function ChannelDNAContent() {
 		},
 	};
 
-	// Compute takeaways for each chart
 	const getChartTakeaway = (tabId: string): { text: string; type: "positive" | "negative" | "neutral" } => {
 		const videos = data?.data.videos || [];
 		const views = videos.map(v => v.views || 0).filter(v => v > 0);
@@ -335,7 +334,7 @@ function ChannelDNAContent() {
 				if (freq.includes("Weekly")) return { text: `${freq} uploads - adequate for steady growth`, type: "neutral" };
 				return { text: `${freq} - increasing frequency could accelerate growth`, type: "negative" };
 			}
-				case "search": {
+			case "search": {
 				const titleLen = data?.data.metrics?.averageTitleLength || 0;
 				if (titleLen >= 40 && titleLen <= 60) return { text: `${titleLen} char avg title length - optimal for discovery`, type: "positive" };
 				if (titleLen >= 30 && titleLen <= 70) return { text: `${titleLen} char avg titles - acceptable range`, type: "neutral" };
@@ -446,73 +445,105 @@ function ChannelDNAContent() {
 			/>
 
 			<div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
-				{/* Back link */}
-				<Link
-					href="/"
-					className="inline-flex items-center gap-2 text-[var(--text-muted)] hover:text-white transition-colors mb-6 animate-fade-in"
-				>
-					<ArrowLeft className="w-4 h-4" />
-					<span className="text-sm">Back</span>
-				</Link>
+				{/* Top Bar - Back and Upgrade */}
+				<div className="flex items-center justify-between mb-6 animate-fade-in">
+					<Link
+						href="/"
+						className="inline-flex items-center gap-2 text-[var(--text-muted)] hover:text-white transition-colors"
+					>
+						<ArrowLeft className="w-4 h-4" />
+						<span className="text-sm">Back</span>
+					</Link>
 
-				{/* Header */}
+					{!isPro && (
+						<button
+							onClick={() => setShowUpgradeModal(true)}
+							className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl hover:opacity-90 transition-all text-sm text-white font-medium"
+						>
+							<Crown className="w-4 h-4" />
+							<span>Upgrade to Pro</span>
+						</button>
+					)}
+				</div>
+
+				{/* Channel Header - Centered on Mobile */}
 				<div className="mb-8 animate-slide-up">
-					<div className="flex items-start justify-between gap-4">
-						<div className="flex-1">
-							<ChannelHeader
-								channelId={channel?.id || ""}
-								thumbnail={channel?.thumbnail || ""}
-								name={channel?.title || "Channel"}
-								summary={getSummary()}
-								score={score?.total || 0}
-							/>
+					<div className="flex flex-col items-center text-center sm:flex-row sm:text-left sm:items-start gap-4 sm:gap-6">
+						{/* Avatar */}
+						<div className="relative w-20 h-20 sm:w-16 sm:h-16 rounded-full overflow-hidden ring-2 ring-white/10 flex-shrink-0">
+							{channel?.thumbnail ? (
+								<Image
+									src={channel.thumbnail}
+									alt={channel?.title || "Channel"}
+									fill
+									className="object-cover"
+								/>
+							) : (
+								<div className="w-full h-full bg-white/10 flex items-center justify-center">
+									<span className="text-2xl font-bold text-white/40">
+										{channel?.title?.charAt(0) || "?"}
+									</span>
+								</div>
+							)}
 						</div>
-						{data && (
-							<div className="flex flex-col sm:flex-row gap-2 animate-slide-in-right">
-								<ChannelSummary
-									channelName={channel?.title || "Channel"}
-									channelId={channel?.id || ""}
-									score={score || { total: 0, categories: {}, strengths: [], weaknesses: [] }}
-									metrics={data.data.metrics}
-									videos={data.data.videos}
-								/>
-								<NicheBenchmarks
-									channelId={channel?.id || ""}
-									keywords={data.data.metrics.commonKeywords.map(k => k.word)}
-									subscriberCount={channel?.subscriberCount}
-									viewCount={channel?.viewCount}
-									videoCount={channel?.videoCount}
-								/>
-								<Link
-									href={`/learning-lab?channelUrl=${encodeURIComponent(channelUrl)}`}
-									className="flex items-center gap-2 px-4 py-2 bg-[var(--frosted-bg)] backdrop-blur-sm border border-[var(--frosted-border)] rounded-xl hover:bg-[var(--frosted-bg-hover)] transition-colors text-sm text-[var(--text-secondary)] hover:text-white"
-								>
-									<FlaskConical className="w-4 h-4" />
-									<span>Learning Lab</span>
-								</Link>
-								<button
-									onClick={() => setShowReplicateModal(true)}
-									className="flex items-center gap-2 px-4 py-2 bg-[var(--frosted-bg)] backdrop-blur-sm border border-[var(--frosted-border)] rounded-xl hover:bg-[var(--frosted-bg-hover)] transition-colors text-sm text-[var(--text-secondary)] hover:text-white"
-								>
-									<Copy className="w-4 h-4" />
-									<span>Replicate This</span>
-								</button>
-								{!isPro && (
-									<button
-										onClick={() => setShowUpgradeModal(true)}
-										className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl hover:opacity-90 transition-all text-sm text-white font-medium"
-									>
-										<Crown className="w-4 h-4" />
-										<span>Upgrade to Pro</span>
-									</button>
-								)}
-							</div>
-						)}
+
+						{/* Channel info - centered on mobile */}
+						<div className="flex-1 min-w-0">
+							<h1 className="text-2xl sm:text-2xl font-bold text-white">
+								{channel?.title || "Channel"}
+							</h1>
+							<p className="text-sm text-[var(--text-secondary)] mt-1 line-clamp-2 max-w-md mx-auto sm:mx-0">
+								{getSummary()}
+							</p>
+						</div>
+
+						{/* Score and Save */}
+						<div className="flex items-center gap-3 flex-shrink-0">
+							<SaveChannelButton
+								channelId={channel?.id || ""}
+								channelName={channel?.title || ""}
+								thumbnail={channel?.thumbnail || ""}
+							/>
+							<CircularScoreBadge score={score?.total || 0} size="lg" label="Score" />
+						</div>
 					</div>
 				</div>
 
-				{/* Tabs */}
+				{/* Navigation Tabs - Including Summary, Benchmarks, Learning Lab, Replicate */}
 				<div className="mb-6 animate-slide-up stagger-2">
+					{/* Action Buttons Row */}
+					<div className="flex flex-wrap gap-2 mb-4">
+						<button
+							onClick={() => setShowSummary(true)}
+							className="flex items-center gap-2 px-3 py-1.5 bg-[var(--frosted-bg)] backdrop-blur-sm border border-[var(--frosted-border)] rounded-lg hover:bg-[var(--frosted-bg-hover)] transition-colors text-xs text-[var(--text-secondary)] hover:text-white"
+						>
+							<FileText className="w-3.5 h-3.5" />
+							<span>Summary</span>
+						</button>
+						<button
+							onClick={() => setShowBenchmarks(true)}
+							className="flex items-center gap-2 px-3 py-1.5 bg-[var(--frosted-bg)] backdrop-blur-sm border border-[var(--frosted-border)] rounded-lg hover:bg-[var(--frosted-bg-hover)] transition-colors text-xs text-[var(--text-secondary)] hover:text-white"
+						>
+							<BarChart3 className="w-3.5 h-3.5" />
+							<span>Niche Benchmarks</span>
+						</button>
+						<Link
+							href={`/learning-lab?channelUrl=${encodeURIComponent(channelUrl)}`}
+							className="flex items-center gap-2 px-3 py-1.5 bg-[var(--frosted-bg)] backdrop-blur-sm border border-[var(--frosted-border)] rounded-lg hover:bg-[var(--frosted-bg-hover)] transition-colors text-xs text-[var(--text-secondary)] hover:text-white"
+						>
+							<FlaskConical className="w-3.5 h-3.5" />
+							<span>Learning Lab</span>
+						</Link>
+						<button
+							onClick={() => setShowReplicateModal(true)}
+							className="flex items-center gap-2 px-3 py-1.5 bg-[var(--frosted-bg)] backdrop-blur-sm border border-[var(--frosted-border)] rounded-lg hover:bg-[var(--frosted-bg-hover)] transition-colors text-xs text-[var(--text-secondary)] hover:text-white"
+						>
+							<Copy className="w-3.5 h-3.5" />
+							<span>Replicate This</span>
+						</button>
+					</div>
+
+					{/* Analysis Tabs */}
 					<FrostedTabs
 						tabs={TABS}
 						activeTab={activeTab}
@@ -526,7 +557,6 @@ function ChannelDNAContent() {
 					const takeaway = getChartTakeaway(activeTab);
 					const soWhatSection = data?.soWhat?.[activeTab];
 
-					// Map tab to score category
 					const tabToScoreCategory: Record<string, string> = {
 						viral: "Viral Potential",
 						search: "Discoverability / SEO",
@@ -582,6 +612,32 @@ function ChannelDNAContent() {
 				isOpen={showUpgradeModal}
 				onClose={() => setShowUpgradeModal(false)}
 			/>
+
+			{/* Summary Modal */}
+			{showSummary && data && (
+				<ChannelSummary
+					channelName={channel?.title || "Channel"}
+					channelId={channel?.id || ""}
+					score={score || { total: 0, categories: {}, strengths: [], weaknesses: [] }}
+					metrics={data.data.metrics}
+					videos={data.data.videos}
+					isOpen={showSummary}
+					onClose={() => setShowSummary(false)}
+				/>
+			)}
+
+			{/* Benchmarks Modal */}
+			{showBenchmarks && data && (
+				<NicheBenchmarks
+					channelId={channel?.id || ""}
+					keywords={data.data.metrics.commonKeywords.map(k => k.word)}
+					subscriberCount={channel?.subscriberCount}
+					viewCount={channel?.viewCount}
+					videoCount={channel?.videoCount}
+					isOpen={showBenchmarks}
+					onClose={() => setShowBenchmarks(false)}
+				/>
+			)}
 		</div>
 	);
 }
