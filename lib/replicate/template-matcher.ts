@@ -69,41 +69,12 @@ const TEMPLATE_CONFIGS: Record<CanvaTemplateType, TemplateConfig> = {
 const CANVA_THUMBNAIL_DEEP_LINK =
 	"https://www.canva.com/design?create&type=TABzW6DJhNk&category=youtube-thumbnails";
 
-// Curated Canva template IDs for each template type
-// These are real Canva YouTube thumbnail templates matched to each layout style
-const CANVA_TEMPLATE_IDS: Record<CanvaTemplateType, string[]> = {
-	// Face on left, text on right templates
-	"face-left-text-right": [
-		"EAFaQUU6W0c", // Bold face left with text overlay
-		"EAFaQVJZpwQ", // Portrait left, title right
-		"EAFaQYMEyQQ", // Face focused left layout
-	],
-	// Face on right, text on left templates
-	"face-right-text-left": [
-		"EAFaQQ4XGRY", // Portrait right with bold text
-		"EAFaQSk7HZs", // Face right, text left layout
-		"EAFaQbk7Xh4", // Right-aligned portrait
-	],
-	// Centered subject, minimal text templates
-	"center-subject-no-text": [
-		"EAFaQUcWRbA", // Clean centered subject
-		"EAFaQV0l-p8", // Minimal center focus
-		"EAFaQZLTwbI", // Simple centered layout
-	],
-	// Text-heavy with image below templates
-	"text-heavy-top-image-bottom": [
-		"EAFaQTTECSI", // Bold typography top
-		"EAFaQW4dpSY", // Text-led design
-		"EAFaQcYmFx4", // Large text overlay
-	],
-};
-
-// Search queries for template gallery fallback (when no specific template ID)
+// Search queries for template gallery - these create working URLs
 const CANVA_TEMPLATE_SEARCH_QUERIES: Record<CanvaTemplateType, string> = {
-	"face-left-text-right": "face portrait",
-	"face-right-text-left": "portrait person",
-	"center-subject-no-text": "minimal clean",
-	"text-heavy-top-image-bottom": "bold text typography",
+	"face-left-text-right": "youtube thumbnail face portrait bold text",
+	"face-right-text-left": "youtube thumbnail portrait person bold",
+	"center-subject-no-text": "youtube thumbnail minimal clean simple",
+	"text-heavy-top-image-bottom": "youtube thumbnail bold text typography",
 };
 
 /**
@@ -277,26 +248,17 @@ export function aggregateFormatProfile(
 
 /**
  * Build Canva deep link URL for a specific template type
- * Uses curated template IDs when available, falls back to search-filtered gallery
+ * Opens Canva template gallery filtered by relevant search terms
  */
 export function buildCanvaDeepLink(templateType?: CanvaTemplateType): string {
 	if (!templateType) {
 		return CANVA_THUMBNAIL_DEEP_LINK;
 	}
 
-	const templateIds = CANVA_TEMPLATE_IDS[templateType];
-
-	// Use curated template if available
-	if (templateIds && templateIds.length > 0) {
-		// Pick random template for variety
-		const templateId = templateIds[Math.floor(Math.random() * templateIds.length)];
-		return `https://www.canva.com/templates/${templateId}`;
-	}
-
-	// Fallback to filtered template gallery
+	// Use search query to filter template gallery
 	const searchQuery = CANVA_TEMPLATE_SEARCH_QUERIES[templateType];
 	if (searchQuery) {
-		return `https://www.canva.com/youtube-thumbnails/templates/?query=${encodeURIComponent(searchQuery)}`;
+		return `https://www.canva.com/templates/?query=${encodeURIComponent(searchQuery)}`;
 	}
 
 	return CANVA_THUMBNAIL_DEEP_LINK;
