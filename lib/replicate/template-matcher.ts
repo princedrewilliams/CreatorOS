@@ -67,7 +67,7 @@ const TEMPLATE_CONFIGS: Record<CanvaTemplateType, TemplateConfig> = {
 
 // Canva YouTube thumbnail create URL
 const CANVA_THUMBNAIL_DEEP_LINK =
-	"https://www.canva.com/design?create&type=TABzW6DJhNk&category=youtube-thumbnails";
+	"https://www.canva.com/create/youtube-thumbnails/";
 
 /**
  * Match a format profile to the best Canva template
