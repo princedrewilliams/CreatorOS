@@ -9,7 +9,7 @@ import { ReplicateThisModal } from "../components/replicate/ReplicateThisModal";
 import { UpgradeModal } from "../components/ui/UpgradeModal";
 import { useAppStore } from "@/lib/store";
 
-import { FrostedTabs, type Tab } from "../components/ui/FrostedTabs";
+import type { Tab } from "../components/ui/FrostedTabs";
 import { ChannelSummary } from "../components/channel-dna/ChannelSummary";
 import { NicheBenchmarks } from "../components/channel-dna/NicheBenchmarks";
 import { InsightsPanel } from "../components/channel-dna/InsightsPanel";
