@@ -201,10 +201,10 @@ export function ThumbnailStep({
 				</button>
 				<button
 					onClick={handleOpenTemplate}
-					className="flex-1 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-medium transition-all hover:opacity-90 flex items-center justify-center gap-2 relative"
+					className="flex-1 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-medium transition-all hover:opacity-90 flex items-center justify-center gap-2"
 				>
 					{!isPro && (
-						<Crown className="w-4 h-4 text-amber-400 absolute left-4" />
+						<Crown className="w-4 h-4 text-amber-400" />
 					)}
 					Open Canva Template
 					<ExternalLink className="w-4 h-4" />

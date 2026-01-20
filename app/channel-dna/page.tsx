@@ -481,14 +481,14 @@ function ChannelDNAContent() {
 								/>
 								<Link
 									href={`/learning-lab?channelUrl=${encodeURIComponent(channelUrl)}`}
-									className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-violet-500 to-pink-500 text-white text-sm font-medium hover:opacity-90 transition-all btn-glow"
+									className="flex items-center gap-2 px-4 py-2 bg-[var(--frosted-bg)] backdrop-blur-sm border border-[var(--frosted-border)] rounded-xl hover:bg-[var(--frosted-bg-hover)] transition-colors text-sm text-[var(--text-secondary)] hover:text-white"
 								>
 									<FlaskConical className="w-4 h-4" />
 									<span>Learning Lab</span>
 								</Link>
 								<button
 									onClick={() => setShowReplicateModal(true)}
-									className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-medium hover:opacity-90 transition-all btn-glow"
+									className="flex items-center gap-2 px-4 py-2 bg-[var(--frosted-bg)] backdrop-blur-sm border border-[var(--frosted-border)] rounded-xl hover:bg-[var(--frosted-bg-hover)] transition-colors text-sm text-[var(--text-secondary)] hover:text-white"
 								>
 									<Copy className="w-4 h-4" />
 									<span>Replicate This</span>

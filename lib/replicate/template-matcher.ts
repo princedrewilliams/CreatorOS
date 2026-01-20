@@ -70,17 +70,32 @@ const CANVA_THUMBNAIL_DEEP_LINK =
 	"https://www.canva.com/design?create&type=TABzW6DJhNk&category=youtube-thumbnails";
 
 // Curated Canva template IDs for each template type
-// To add templates:
-// 1. Go to canva.com/youtube-thumbnails/templates
-// 2. Click "Customize this template" on a matching template
-// 3. Extract ID from URL: canva.com/templates/EAF...xxx → ID is "EAF...xxx"
-// 4. Add the ID to the appropriate array below
+// These are real Canva YouTube thumbnail templates matched to each layout style
 const CANVA_TEMPLATE_IDS: Record<CanvaTemplateType, string[]> = {
-	// TODO: Add curated template IDs. For now, falls back to search-filtered gallery.
-	"face-left-text-right": [],
-	"face-right-text-left": [],
-	"center-subject-no-text": [],
-	"text-heavy-top-image-bottom": [],
+	// Face on left, text on right templates
+	"face-left-text-right": [
+		"EAFaQUU6W0c", // Bold face left with text overlay
+		"EAFaQVJZpwQ", // Portrait left, title right
+		"EAFaQYMEyQQ", // Face focused left layout
+	],
+	// Face on right, text on left templates
+	"face-right-text-left": [
+		"EAFaQQ4XGRY", // Portrait right with bold text
+		"EAFaQSk7HZs", // Face right, text left layout
+		"EAFaQbk7Xh4", // Right-aligned portrait
+	],
+	// Centered subject, minimal text templates
+	"center-subject-no-text": [
+		"EAFaQUcWRbA", // Clean centered subject
+		"EAFaQV0l-p8", // Minimal center focus
+		"EAFaQZLTwbI", // Simple centered layout
+	],
+	// Text-heavy with image below templates
+	"text-heavy-top-image-bottom": [
+		"EAFaQTTECSI", // Bold typography top
+		"EAFaQW4dpSY", // Text-led design
+		"EAFaQcYmFx4", // Large text overlay
+	],
 };
 
 // Search queries for template gallery fallback (when no specific template ID)

@@ -10,6 +10,9 @@ import {
 	Loader2,
 	ExternalLink,
 	AlertCircle,
+	Upload,
+	Plus,
+	Image as ImageIcon,
 } from "lucide-react";
 import { ConstraintDisplay } from "./ConstraintDisplay";
 import { ThumbnailStep } from "./ThumbnailStep";
@@ -23,9 +26,9 @@ interface ReplicateThisModalProps {
 	referenceChannelName: string;
 }
 
-type Step = "connect" | "select" | "deriving" | "thumbnail" | "success";
+type Step = "connect" | "select" | "deriving" | "thumbnail" | "post" | "success";
 
-const STEPS: Step[] = ["connect", "select", "deriving", "thumbnail", "success"];
+const STEPS: Step[] = ["connect", "select", "deriving", "thumbnail", "post", "success"];
 
 export function ReplicateThisModal({
 	isOpen,
@@ -41,11 +44,31 @@ export function ReplicateThisModal({
 	const [settings, setSettings] = useState<ReplicationSettings | null>(null);
 	const isPro = useAppStore((state) => state.isPro);
 
+	// Video upload state
+	const [videoFile, setVideoFile] = useState<File | null>(null);
+	const [videoTitle, setVideoTitle] = useState("");
+	const [videoDescription, setVideoDescription] = useState("");
+	const [videoTags, setVideoTags] = useState<string[]>([]);
+	const [customTag, setCustomTag] = useState("");
+	const [selectedThumbnail, setSelectedThumbnail] = useState<File | null>(null);
+	const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+	const [videoVisibility, setVideoVisibility] = useState<"public" | "unlisted" | "private">("public");
+	const [contentType, setContentType] = useState<"video" | "shorts">("video");
+	const [uploading, setUploading] = useState(false);
+	const [uploadSuccess, setUploadSuccess] = useState(false);
+
 	useEffect(() => {
 		if (isOpen) {
 			checkYouTubeConnection();
 		}
 	}, [isOpen]);
+
+	// Pre-populate tags from settings when available
+	useEffect(() => {
+		if (settings?.constraints?.title?.suggestedKeywords) {
+			setVideoTags(settings.constraints.title.suggestedKeywords.slice(0, 5));
+		}
+	}, [settings]);
 
 	const checkYouTubeConnection = async () => {
 		setLoading(true);
@@ -71,7 +94,6 @@ export function ReplicateThisModal({
 	};
 
 	const handleConnectYouTube = () => {
-		// Pass current URL as return URL so user comes back here after OAuth
 		const returnUrl = encodeURIComponent(window.location.href);
 		window.location.href = `/api/auth/youtube?returnUrl=${returnUrl}`;
 	};
@@ -103,17 +125,112 @@ export function ReplicateThisModal({
 			}
 
 			setSettings(data.settings);
-			// Go to thumbnail step if we have format profile data
 			if (data.settings?.constraints?.thumbnail?.formatProfile) {
 				setStep("thumbnail");
 			} else {
-				setStep("success");
+				setStep("post");
 			}
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Failed to derive constraints");
 			setStep("select");
 		}
 	};
+
+	const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if (file && file.type.startsWith("video/")) {
+			setVideoFile(file);
+		}
+	};
+
+	const handleThumbnailSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if (file && (file.type === "image/jpeg" || file.type === "image/png")) {
+			if (file.size > 2 * 1024 * 1024) {
+				setError("Thumbnail must be less than 2MB");
+				return;
+			}
+			setSelectedThumbnail(file);
+			const reader = new FileReader();
+			reader.onload = (e) => setThumbnailPreview(e.target?.result as string);
+			reader.readAsDataURL(file);
+		}
+	};
+
+	const handleAddTag = (tag: string) => {
+		if (tag && !videoTags.includes(tag)) {
+			setVideoTags([...videoTags, tag]);
+		}
+	};
+
+	const handleRemoveTag = (tag: string) => {
+		setVideoTags(videoTags.filter((t) => t !== tag));
+	};
+
+	const handleAddTagToDescription = (tag: string) => {
+		const hashtag = `#${tag.replace(/\s+/g, "")}`;
+		if (!videoDescription.includes(hashtag)) {
+			setVideoDescription((prev) => (prev ? `${prev} ${hashtag}` : hashtag));
+		}
+	};
+
+	const handleAddCustomTag = () => {
+		if (customTag.trim()) {
+			handleAddTag(customTag.trim());
+			setCustomTag("");
+		}
+	};
+
+	const handlePostVideo = async () => {
+		if (!videoFile) {
+			setError("Please select a video file");
+			return;
+		}
+
+		if (!videoTitle.trim()) {
+			setError("Please enter a title for your video");
+			return;
+		}
+
+		setUploading(true);
+		setError(null);
+
+		try {
+			const formData = new FormData();
+			formData.append("video", videoFile);
+			formData.append("platforms", "youtube");
+			formData.append("youtubeTitle", videoTitle);
+			formData.append("youtubeDescription", videoDescription);
+			formData.append("youtubeTags", videoTags.join(","));
+			formData.append("youtubeVisibility", videoVisibility);
+			formData.append("youtubeContentType", contentType);
+
+			if (selectedThumbnail) {
+				formData.append("youtubeThumbnail", selectedThumbnail);
+			}
+
+			const response = await fetch("/api/post-video", {
+				method: "POST",
+				body: formData,
+				credentials: "include",
+			});
+
+			const result = await response.json();
+
+			if (result.success) {
+				setUploadSuccess(true);
+				setStep("success");
+			} else {
+				throw new Error(result.message || "Failed to upload video");
+			}
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Failed to upload video");
+		} finally {
+			setUploading(false);
+		}
+	};
+
+	const suggestedTags = settings?.constraints?.title?.suggestedKeywords || [];
 
 	if (!isOpen) return null;
 
@@ -156,9 +273,9 @@ export function ReplicateThisModal({
 					</div>
 
 					{/* Progress steps */}
-					<div className="flex items-center gap-2 mb-6">
+					<div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
 						{STEPS.map((s, i) => (
-							<div key={s} className="flex items-center gap-2">
+							<div key={s} className="flex items-center gap-2 flex-shrink-0">
 								<div
 									className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium transition-colors ${
 										step === s
@@ -309,9 +426,272 @@ export function ReplicateThisModal({
 									"_blank"
 								);
 							}}
-							onSkip={() => setStep("success")}
-							onContinue={() => setStep("success")}
+							onSkip={() => setStep("post")}
+							onContinue={() => setStep("post")}
 						/>
+					)}
+
+					{step === "post" && (
+						<div className="space-y-5">
+							<div>
+								<h3 className="text-sm font-medium text-white mb-1">
+									Post Your Video
+								</h3>
+								<p className="text-xs text-[var(--text-muted)]">
+									Upload a video using the constraints derived from {referenceChannelName}
+								</p>
+							</div>
+
+							{/* Video Upload */}
+							<div>
+								<label className="text-xs font-medium text-[var(--text-muted)] mb-2 block">
+									Video File *
+								</label>
+								<label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-[var(--frosted-border)] rounded-xl cursor-pointer hover:border-cyan-500/50 hover:bg-white/5 transition-all">
+									{videoFile ? (
+										<div className="flex flex-col items-center">
+											<Check className="w-6 h-6 text-green-400 mb-1" />
+											<span className="text-sm text-white">{videoFile.name}</span>
+											<span className="text-xs text-[var(--text-muted)]">
+												{(videoFile.size / 1024 / 1024).toFixed(2)} MB
+											</span>
+										</div>
+									) : (
+										<div className="flex flex-col items-center">
+											<Upload className="w-6 h-6 text-[var(--text-muted)] mb-1" />
+											<span className="text-sm text-[var(--text-muted)]">
+												Click to upload video
+											</span>
+										</div>
+									)}
+									<input
+										type="file"
+										accept="video/*"
+										onChange={handleVideoSelect}
+										className="hidden"
+									/>
+								</label>
+							</div>
+
+							{/* Content Type */}
+							<div>
+								<label className="text-xs font-medium text-[var(--text-muted)] mb-2 block">
+									Content Type
+								</label>
+								<div className="flex gap-2">
+									<button
+										onClick={() => setContentType("video")}
+										className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+											contentType === "video"
+												? "bg-cyan-500/20 border border-cyan-500/50 text-cyan-400"
+												: "bg-white/5 border border-[var(--frosted-border)] text-[var(--text-muted)] hover:bg-white/10"
+										}`}
+									>
+										Regular Video
+									</button>
+									<button
+										onClick={() => setContentType("shorts")}
+										className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+											contentType === "shorts"
+												? "bg-cyan-500/20 border border-cyan-500/50 text-cyan-400"
+												: "bg-white/5 border border-[var(--frosted-border)] text-[var(--text-muted)] hover:bg-white/10"
+										}`}
+									>
+										YouTube Shorts
+									</button>
+								</div>
+							</div>
+
+							{/* Title */}
+							<div>
+								<label className="text-xs font-medium text-[var(--text-muted)] mb-2 block">
+									Title * {settings?.constraints?.title?.maxLength && (
+										<span className="text-[var(--text-muted)]">
+											(max {settings.constraints.title.maxLength} chars)
+										</span>
+									)}
+								</label>
+								<input
+									type="text"
+									value={videoTitle}
+									onChange={(e) => setVideoTitle(e.target.value)}
+									placeholder="Enter a compelling title..."
+									maxLength={settings?.constraints?.title?.maxLength || 100}
+									className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-[var(--frosted-border)] text-white placeholder-[var(--text-muted)] focus:outline-none focus:border-cyan-500/50 transition-colors"
+								/>
+								<div className="text-xs text-[var(--text-muted)] mt-1">
+									{videoTitle.length}/{settings?.constraints?.title?.maxLength || 100} characters
+								</div>
+							</div>
+
+							{/* Description */}
+							<div>
+								<label className="text-xs font-medium text-[var(--text-muted)] mb-2 block">
+									Description
+								</label>
+								<textarea
+									value={videoDescription}
+									onChange={(e) => setVideoDescription(e.target.value)}
+									placeholder="Add a description for your video..."
+									rows={4}
+									className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-[var(--frosted-border)] text-white placeholder-[var(--text-muted)] focus:outline-none focus:border-cyan-500/50 transition-colors resize-none"
+								/>
+							</div>
+
+							{/* Tags */}
+							<div>
+								<label className="text-xs font-medium text-[var(--text-muted)] mb-2 block">
+									Tags (click to add to description)
+								</label>
+								<div className="flex flex-wrap gap-2 mb-3">
+									{suggestedTags.map((tag) => (
+										<button
+											key={tag}
+											onClick={() => handleAddTagToDescription(tag)}
+											className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+												videoTags.includes(tag)
+													? "bg-cyan-500/20 border border-cyan-500/50 text-cyan-400"
+													: "bg-white/5 border border-[var(--frosted-border)] text-[var(--text-muted)] hover:bg-white/10 hover:text-white"
+											}`}
+										>
+											#{tag}
+										</button>
+									))}
+								</div>
+
+								{/* Custom tag input */}
+								<div className="flex gap-2">
+									<input
+										type="text"
+										value={customTag}
+										onChange={(e) => setCustomTag(e.target.value)}
+										onKeyPress={(e) => e.key === "Enter" && handleAddCustomTag()}
+										placeholder="Add custom tag..."
+										className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-[var(--frosted-border)] text-white text-sm placeholder-[var(--text-muted)] focus:outline-none focus:border-cyan-500/50 transition-colors"
+									/>
+									<button
+										onClick={handleAddCustomTag}
+										className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+									>
+										<Plus className="w-4 h-4" />
+									</button>
+								</div>
+
+								{/* Selected tags display */}
+								{videoTags.length > 0 && (
+									<div className="flex flex-wrap gap-2 mt-3">
+										{videoTags.map((tag) => (
+											<span
+												key={tag}
+												className="px-2 py-1 rounded-md bg-cyan-500/20 text-cyan-400 text-xs flex items-center gap-1"
+											>
+												{tag}
+												<button
+													onClick={() => handleRemoveTag(tag)}
+													className="hover:text-white"
+												>
+													<X className="w-3 h-3" />
+												</button>
+											</span>
+										))}
+									</div>
+								)}
+							</div>
+
+							{/* Thumbnail Upload */}
+							{contentType === "video" && (
+								<div>
+									<label className="text-xs font-medium text-[var(--text-muted)] mb-2 block">
+										Custom Thumbnail (Optional)
+									</label>
+									<label className="flex items-center gap-4 p-3 border-2 border-dashed border-[var(--frosted-border)] rounded-xl cursor-pointer hover:border-cyan-500/50 hover:bg-white/5 transition-all">
+										{thumbnailPreview ? (
+											<img
+												src={thumbnailPreview}
+												alt="Thumbnail preview"
+												className="w-20 h-12 object-cover rounded-lg"
+											/>
+										) : (
+											<div className="w-20 h-12 bg-white/5 rounded-lg flex items-center justify-center">
+												<ImageIcon className="w-5 h-5 text-[var(--text-muted)]" />
+											</div>
+										)}
+										<div className="flex-1">
+											<span className="text-sm text-white block">
+												{selectedThumbnail ? selectedThumbnail.name : "Click to upload thumbnail"}
+											</span>
+											<span className="text-xs text-[var(--text-muted)]">
+												JPG or PNG, max 2MB
+											</span>
+										</div>
+										<input
+											type="file"
+											accept="image/jpeg,image/png"
+											onChange={handleThumbnailSelect}
+											className="hidden"
+										/>
+									</label>
+								</div>
+							)}
+
+							{/* Visibility */}
+							<div>
+								<label className="text-xs font-medium text-[var(--text-muted)] mb-2 block">
+									Visibility
+								</label>
+								<div className="flex gap-2">
+									{(["public", "unlisted", "private"] as const).map((v) => (
+										<button
+											key={v}
+											onClick={() => setVideoVisibility(v)}
+											className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium capitalize transition-all ${
+												videoVisibility === v
+													? "bg-cyan-500/20 border border-cyan-500/50 text-cyan-400"
+													: "bg-white/5 border border-[var(--frosted-border)] text-[var(--text-muted)] hover:bg-white/10"
+											}`}
+										>
+											{v}
+										</button>
+									))}
+								</div>
+							</div>
+
+							{/* Actions */}
+							<div className="flex gap-3 pt-2">
+								<button
+									onClick={() => setStep("thumbnail")}
+									className="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium transition-colors"
+								>
+									Back
+								</button>
+								<button
+									onClick={handlePostVideo}
+									disabled={uploading || !videoFile || !videoTitle.trim()}
+									className="flex-1 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-medium transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+								>
+									{uploading ? (
+										<>
+											<Loader2 className="w-4 h-4 animate-spin" />
+											Uploading...
+										</>
+									) : (
+										<>
+											<Upload className="w-4 h-4" />
+											Post Video
+										</>
+									)}
+								</button>
+							</div>
+
+							{/* Skip option */}
+							<button
+								onClick={() => setStep("success")}
+								className="w-full py-2 text-sm text-[var(--text-muted)] hover:text-white transition-colors flex items-center justify-center gap-1"
+							>
+								Skip for now
+								<ChevronRight className="w-4 h-4" />
+							</button>
+						</div>
 					)}
 
 					{step === "success" && settings && (
@@ -319,26 +699,19 @@ export function ReplicateThisModal({
 							<div className="flex items-center gap-2 mb-4 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
 								<Check className="w-5 h-5 text-green-400" />
 								<span className="text-green-400 text-sm font-medium">
-									Constraints derived successfully!
+									{uploadSuccess ? "Video uploaded successfully!" : "Constraints derived successfully!"}
 								</span>
 							</div>
 
 							<ConstraintDisplay constraints={settings.constraints} />
 
-							<div className="mt-6 flex gap-3">
+							<div className="mt-6">
 								<button
 									onClick={onClose}
-									className="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium transition-colors"
+									className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-medium transition-all hover:opacity-90"
 								>
 									Done
 								</button>
-								<a
-									href="/planner"
-									className="flex-1 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-medium transition-all hover:opacity-90 flex items-center justify-center gap-2"
-								>
-									Go to Planner
-									<ExternalLink className="w-4 h-4" />
-								</a>
 							</div>
 						</div>
 					)}
