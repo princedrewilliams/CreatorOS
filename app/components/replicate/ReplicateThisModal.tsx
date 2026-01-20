@@ -8,7 +8,6 @@ import {
 	ChevronRight,
 	Check,
 	Loader2,
-	ExternalLink,
 	AlertCircle,
 	Upload,
 	Plus,
