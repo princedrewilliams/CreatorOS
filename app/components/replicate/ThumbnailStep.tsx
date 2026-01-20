@@ -7,11 +7,9 @@ import {
 	Type,
 	ChevronRight,
 	ExternalLink,
-	Crown,
 	Copy,
 	Check,
 } from "lucide-react";
-import { UpgradeModal } from "../ui/UpgradeModal";
 import type {
 	ThumbnailFormatProfile,
 	CanvaTemplateMatch,
@@ -31,21 +29,11 @@ export function ThumbnailStep({
 	formatProfile,
 	matchedTemplate,
 	suggestedColors,
-	isPro,
 	onOpenCanva,
 	onSkip,
 	onContinue,
 }: ThumbnailStepProps) {
-	const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 	const [copiedColor, setCopiedColor] = useState<string | null>(null);
-
-	const handleOpenTemplate = () => {
-		if (!isPro) {
-			setShowUpgradeModal(true);
-			return;
-		}
-		onOpenCanva();
-	};
 
 	const handleCopyColor = async (color: string) => {
 		try {
@@ -200,12 +188,9 @@ export function ThumbnailStep({
 					Skip
 				</button>
 				<button
-					onClick={handleOpenTemplate}
+					onClick={onOpenCanva}
 					className="flex-1 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-medium transition-all hover:opacity-90 flex items-center justify-center gap-2"
 				>
-					{!isPro && (
-						<Crown className="w-4 h-4 text-amber-400" />
-					)}
 					Open Canva Template
 					<ExternalLink className="w-4 h-4" />
 				</button>
@@ -219,13 +204,6 @@ export function ThumbnailStep({
 				Continue without template
 				<ChevronRight className="w-4 h-4" />
 			</button>
-
-			{/* Upgrade Modal */}
-			<UpgradeModal
-				isOpen={showUpgradeModal}
-				onClose={() => setShowUpgradeModal(false)}
-				feature="Thumbnail Templates"
-			/>
 		</div>
 	);
 }
