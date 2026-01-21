@@ -1412,6 +1412,7 @@ export async function POST(req: Request) {
 		const body = await req.json();
 		const channelUrl = body?.channelUrl?.trim();
 		const userNiche = body?.userNiche?.trim() || "";
+		const isPro = body?.isPro === true; // Only run AI for Pro users
 		if (!channelUrl) {
 			return NextResponse.json({ error: "channelUrl is required" }, { status: 400 });
 		}
@@ -1446,10 +1447,11 @@ export async function POST(req: Request) {
 
 		let soWhat: Record<string, SoWhatSection> = {};
 
-		if (openaiKey) {
+		// Only run AI-powered analysis for Pro users to protect OpenAI costs
+		if (openaiKey && isPro) {
 			const client = new OpenAI({ apiKey: openaiKey });
 
-			// Analyze hook consistency for format insights
+			// Analyze hook consistency for format insights (Pro only)
 			hookAnalysis = await analyzeHookConsistency(client, videos, channel.title);
 
 			// Build analysis with hook data
