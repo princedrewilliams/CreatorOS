@@ -4,15 +4,6 @@ import { setUserSubscription } from "@/lib/user-data";
 
 export async function POST(request: NextRequest) {
 	try {
-		const user = await getCurrentUser();
-		
-		if (!user) {
-			return NextResponse.json(
-				{ error: "Authentication required. Please login to purchase a plan." },
-				{ status: 401 }
-			);
-		}
-
 		const body = await request.json();
 		const { planType } = body; // "monthly" or "annual"
 
@@ -23,19 +14,23 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
+		// Try to get authenticated user, fall back to demo mode
+		const user = await getCurrentUser();
+		const userId = user?.whop_user_id || "demo-user";
+
 		// In production, you would:
 		// 1. Create a checkout session with Whop SDK
 		// 2. Process payment
 		// 3. Update subscription in database
 		// 4. Send confirmation email
 
-		// For now, we'll simulate the purchase
-		const subscription = setUserSubscription(user.whop_user_id, {
-			userId: user.whop_user_id,
+		// For now, we'll simulate the purchase (demo mode)
+		const subscription = setUserSubscription(userId, {
+			userId: userId,
 			isPro: true,
 			planType,
 			purchasedAt: new Date().toISOString(),
-			expiresAt: planType === "monthly" 
+			expiresAt: planType === "monthly"
 				? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
 				: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
 		});
@@ -43,7 +38,8 @@ export async function POST(request: NextRequest) {
 		return NextResponse.json({
 			success: true,
 			subscription,
-			message: "Subscription activated successfully!",
+			isPro: true,
+			message: "Pro activated successfully!",
 		});
 	} catch (error) {
 		console.error("[Purchase Subscription] Error:", error);
