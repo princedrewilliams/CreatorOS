@@ -183,22 +183,22 @@ export function ChannelSummary({
 										</h3>
 										<div className="grid grid-cols-2 gap-3">
 											<div className="p-3 bg-[var(--frosted-bg)] rounded-lg">
-												<p className="text-xs text-white/70">Niche</p>
+												<p className="text-xs text-white/60">Niche</p>
 												<p className="text-sm text-white mt-1">{summary.snapshot.niche}</p>
 											</div>
 											<div className="p-3 bg-[var(--frosted-bg)] rounded-lg">
-												<p className="text-xs text-white/70">Health Score</p>
+												<p className="text-xs text-white/60">Health Score</p>
 												<p className="text-sm text-white mt-1">
 													<span className={`font-semibold ${summary.snapshot.healthScore >= 70 ? "text-emerald-400" : summary.snapshot.healthScore >= 50 ? "text-amber-400" : "text-red-400"}`}>
 														{summary.snapshot.healthScore}
 													</span>
-													/100
+													<span className="text-white/60">/100</span>
 												</p>
 											</div>
 										</div>
 										<div className="flex items-center gap-2">
-											<span className="text-xs text-white/70">Confidence:</span>
-											<span className={`px-2 py-0.5 text-xs rounded-full border ${getConfidenceBadge(summary.confidenceLevel)}`}>
+											<span className="text-xs text-white/60">Confidence:</span>
+											<span className={`px-2 py-0.5 text-xs font-medium rounded-full border ${getConfidenceBadge(summary.confidenceLevel)}`}>
 												{summary.confidenceLevel}
 											</span>
 										</div>

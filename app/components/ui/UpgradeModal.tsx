@@ -1,8 +1,6 @@
 "use client";
 
-import { useState } from "react";
 import { X, FlaskConical, Copy, Calendar, Image, Check } from "lucide-react";
-import { useAppStore } from "@/lib/store";
 
 interface UpgradeModalProps {
 	isOpen: boolean;
@@ -34,36 +32,14 @@ const PRO_FEATURES = [
 ];
 
 export function UpgradeModal({ isOpen, onClose, feature }: UpgradeModalProps) {
-	const [loading, setLoading] = useState<"monthly" | "annual" | null>(null);
-	const [error, setError] = useState<string | null>(null);
-	const setIsPro = useAppStore((state) => state.setIsPro);
-
 	if (!isOpen) return null;
 
-	const handlePurchase = async (planType: "monthly" | "annual") => {
-		setLoading(planType);
-		setError(null);
+	const WHOP_MONTHLY_URL = "https://whop.com/checkout/plan_uCWZ74OHuB0JW";
+	const WHOP_ANNUAL_URL = "https://whop.com/checkout/plan_Mz6XWM8o9oz2C";
 
-		try {
-			const response = await fetch("/api/subscription/purchase", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ planType }),
-			});
-
-			const data = await response.json();
-
-			if (!response.ok) {
-				throw new Error(data.error || "Failed to process purchase");
-			}
-
-			setIsPro(true);
-			onClose();
-		} catch (err) {
-			setError(err instanceof Error ? err.message : "Purchase failed");
-		} finally {
-			setLoading(null);
-		}
+	const handlePurchase = (planType: "monthly" | "annual") => {
+		const url = planType === "monthly" ? WHOP_MONTHLY_URL : WHOP_ANNUAL_URL;
+		window.open(url, "_blank");
 	};
 
 	return (
@@ -123,20 +99,12 @@ export function UpgradeModal({ isOpen, onClose, feature }: UpgradeModalProps) {
 						))}
 					</div>
 
-					{/* Error */}
-					{error && (
-						<div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-							{error}
-						</div>
-					)}
-
 					{/* Pricing */}
 					<div className="space-y-3 mb-4">
 						{/* Monthly - Primary */}
 						<button
 							onClick={() => handlePurchase("monthly")}
-							disabled={loading !== null}
-							className="relative w-full p-4 rounded-xl border border-violet-500/50 bg-gradient-to-br from-violet-500/10 to-pink-500/10 hover:from-violet-500/20 hover:to-pink-500/20 transition-all disabled:opacity-50"
+							className="relative w-full p-4 rounded-xl border border-violet-500/50 bg-gradient-to-br from-violet-500/10 to-pink-500/10 hover:from-violet-500/20 hover:to-pink-500/20 transition-all"
 						>
 							<div className="flex items-center justify-between">
 								<div className="text-left">
@@ -145,18 +113,12 @@ export function UpgradeModal({ isOpen, onClose, feature }: UpgradeModalProps) {
 								</div>
 								<span className="text-xs text-violet-400 font-medium">Recommended</span>
 							</div>
-							{loading === "monthly" && (
-								<div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl">
-									<div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-								</div>
-							)}
 						</button>
 
 						{/* Annual */}
 						<button
 							onClick={() => handlePurchase("annual")}
-							disabled={loading !== null}
-							className="relative w-full p-4 rounded-xl border border-[var(--frosted-border)] bg-white/5 hover:bg-white/10 transition-all disabled:opacity-50"
+							className="relative w-full p-4 rounded-xl border border-[var(--frosted-border)] bg-white/5 hover:bg-white/10 transition-all"
 						>
 							<div className="flex items-center justify-between">
 								<div className="text-left">
@@ -165,11 +127,6 @@ export function UpgradeModal({ isOpen, onClose, feature }: UpgradeModalProps) {
 								</div>
 								<span className="text-xs text-emerald-400 font-medium">Save 2 months</span>
 							</div>
-							{loading === "annual" && (
-								<div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl">
-									<div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-								</div>
-							)}
 						</button>
 					</div>
 

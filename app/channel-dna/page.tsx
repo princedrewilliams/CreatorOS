@@ -467,7 +467,12 @@ function ChannelDNAContent() {
 						<span className="text-sm">Back</span>
 					</Link>
 
-					{!isPro && (
+					{isPro ? (
+						<div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-500/20 to-pink-500/20 border border-violet-500/30 rounded-xl text-sm font-medium">
+							<Crown className="w-4 h-4 text-amber-400" />
+							<span className="text-white">Pro Plan</span>
+						</div>
+					) : (
 						<button
 							onClick={() => setShowUpgradeModal(true)}
 							className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl hover:opacity-90 transition-all text-sm text-white font-medium"
