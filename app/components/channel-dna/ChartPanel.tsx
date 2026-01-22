@@ -68,7 +68,7 @@ export function ChartPanel({ title, description, score, takeaway, takeawayType =
 			</div>
 
 			{/* Chart area */}
-			<div className="h-52 chart-enter">{children}</div>
+			<div className="h-72 chart-enter">{children}</div>
 
 			{/* Takeaway strip at bottom */}
 			{takeaway && (

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, Calendar } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
 
 export default function DashboardPage() {
@@ -174,23 +174,6 @@ export default function DashboardPage() {
 							<p className="text-xs text-white/40">{feature.desc}</p>
 						</motion.div>
 					))}
-				</motion.div>
-
-				{/* Content Planner Link */}
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.5, delay: 0.9 }}
-					className="mt-10"
-				>
-					<Link
-						href="/planner"
-						className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all"
-					>
-						<Calendar className="w-4 h-4" />
-						<span>Content Planner</span>
-						<ArrowRight className="w-4 h-4" />
-					</Link>
 				</motion.div>
 
 				{/* Privacy Footer */}

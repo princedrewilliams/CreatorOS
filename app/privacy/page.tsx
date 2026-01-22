@@ -8,17 +8,17 @@ const sections = [
 	{
 		title: "1. Information We Collect",
 		content:
-			"We collect account information you provide, usage analytics, and third-party platform data you connect to CreatorOS. We do not sell personal information and only use it to deliver and improve the service.",
+			"We collect account information you provide, usage analytics, and data from YouTube when you connect your channel to CreatorOS. We do not sell personal information and only use it to deliver and improve the service.",
 	},
 	{
 		title: "2. How We Use Information",
 		content:
-			"CreatorOS uses your data to authenticate you, power analytics dashboards, and provide automation features. We may send transactional emails or product updates but never rent or sell your contact details.",
+			"CreatorOS uses your data to authenticate you, power analytics dashboards, and provide content creation features. We may send transactional emails or product updates but never rent or sell your contact details.",
 	},
 	{
 		title: "3. Third-Party Services",
 		content:
-			"We integrate with platforms such as YouTube, TikTok, Instagram, Whop, and Apify to deliver features. Each integration follows the respective platform policies. You can revoke access at any time from within those platforms.",
+			"We integrate with YouTube and Whop to deliver features. Each integration follows the respective platform policies. You can revoke access at any time from within those platforms or your Google Account settings.",
 	},
 	{
 		title: "4. Google User Data (YouTube Integration)",
@@ -56,72 +56,7 @@ const sections = [
 		),
 	},
 	{
-		title: "5. Instagram User Data",
-		content: (
-			<>
-				<strong>Data Accessed:</strong> When you connect your Instagram account to CreatorOS, we access the following types of Instagram user data through the Instagram Graph API:
-				<ul className="list-disc list-inside ml-4 mt-2 space-y-1">
-					<li>Account information: Username, account type (Business/Creator/Personal), user ID, and profile picture</li>
-					<li>Media posts: Post IDs, captions, media type (photo/video), publication timestamps, media URLs, and thumbnail URLs</li>
-					<li>Post engagement: Like counts and comment counts for your posts</li>
-					<li>Account insights: Follower count and profile views (for Business and Creator accounts only)</li>
-					<li>OAuth tokens: Long-lived access tokens (valid for 60 days) for authenticated API requests</li>
-				</ul>
-				<br />
-				<strong>Data Sharing:</strong> We do not share your Instagram user data with any third parties. Your Instagram data is used solely within CreatorOS to:
-				<ul className="list-disc list-inside ml-4 mt-2 space-y-1">
-					<li>Display analytics dashboards showing your account performance and post engagement</li>
-					<li>Show your Instagram posts with their metrics (likes, comments, views)</li>
-					<li>Store your connection status and basic account information for account management</li>
-				</ul>
-				We do not sell, rent, or share your Instagram user data with advertisers, data brokers, or any other third parties.
-				<br />
-				<br />
-				<strong>Data Storage & Protection:</strong> We implement industry-standard security measures to protect your Instagram user data:
-				<ul className="list-disc list-inside ml-4 mt-2 space-y-1">
-					<li>OAuth access tokens are stored in secure, HTTP-only cookies with SameSite protection</li>
-					<li>All API requests to Instagram services are made over HTTPS using encrypted connections</li>
-					<li>Analytics data is cached temporarily and displayed in your dashboard; raw data is not permanently stored</li>
-					<li>You can revoke access at any time by disconnecting your Instagram account in CreatorOS or through your Instagram account settings</li>
-					<li>When you disconnect your account, all stored tokens and associated data are immediately deleted</li>
-				</ul>
-			</>
-		),
-	},
-	{
-		title: "6. TikTok User Data",
-		content: (
-			<>
-				<strong>Data Accessed:</strong> When you connect your TikTok account to CreatorOS, we access the following types of TikTok user data through the TikTok Open API v2:
-				<ul className="list-disc list-inside ml-4 mt-2 space-y-1">
-					<li>User profile information: Username (unique_id), display name, nickname, and profile picture (avatar URL)</li>
-					<li>Video list: Video IDs, titles, descriptions, creation timestamps, and video thumbnails</li>
-					<li>Video statistics: Play counts (views), like counts (digg_count), comment counts, and share counts for your videos</li>
-					<li>OAuth tokens: Access tokens and refresh tokens for authenticated API requests</li>
-				</ul>
-				<br />
-				<strong>Data Sharing:</strong> We do not share your TikTok user data with any third parties. Your TikTok data is used solely within CreatorOS to:
-				<ul className="list-disc list-inside ml-4 mt-2 space-y-1">
-					<li>Display analytics dashboards showing your account performance and video engagement</li>
-					<li>Show your TikTok videos with their metrics (views, likes, comments, shares)</li>
-					<li>Store your connection status and basic account information for account management</li>
-				</ul>
-				We do not sell, rent, or share your TikTok user data with advertisers, data brokers, or any other third parties.
-				<br />
-				<br />
-				<strong>Data Storage & Protection:</strong> We implement industry-standard security measures to protect your TikTok user data:
-				<ul className="list-disc list-inside ml-4 mt-2 space-y-1">
-					<li>OAuth access tokens and refresh tokens are stored in secure, HTTP-only cookies with SameSite protection</li>
-					<li>All API requests to TikTok services are made over HTTPS using encrypted connections</li>
-					<li>Analytics data is cached temporarily and displayed in your dashboard; raw data is not permanently stored</li>
-					<li>You can revoke access at any time by disconnecting your TikTok account in CreatorOS or through your TikTok account settings</li>
-					<li>When you disconnect your account, all stored tokens and associated data are immediately deleted</li>
-				</ul>
-			</>
-		),
-	},
-	{
-		title: "7. Data Retention and Deletion",
+		title: "5. Data Retention and Deletion",
 		content: (
 			<>
 				We retain content and analytics data for as long as your account is active. You can request deletion of your data at any time through our{" "}
@@ -131,6 +66,16 @@ const sections = [
 				or by contacting support@creatoros.com. When you request deletion, we will permanently remove all your data from our systems within 30 days.
 			</>
 		),
+	},
+	{
+		title: "6. Security",
+		content:
+			"We use industry-standard encryption and security practices to protect your data. All connections are secured with HTTPS, and sensitive credentials are stored using secure, encrypted methods. We regularly review and update our security practices.",
+	},
+	{
+		title: "7. Your Rights",
+		content:
+			"You have the right to access, correct, or delete your personal data. You can disconnect your YouTube account at any time, which will remove your stored credentials and associated data. For data deletion requests or questions about your data, contact us at support@creatoros.com.",
 	},
 	{
 		title: "8. Contact",
@@ -150,14 +95,13 @@ export default function PrivacyPolicyPage() {
 					Privacy Policy
 				</Heading>
 				<Text size="4" color="gray" className="text-gray-11 dark:text-gray-11">
-					Effective date: {new Date().toISOString().slice(0, 10)}
+					Last updated: January 21, 2026
 				</Text>
 			</div>
 
 			<Card size="3" variant="surface" className="p-6 space-y-6">
 				<Text size="3" color="gray" className="text-gray-11 dark:text-gray-11">
-					At CreatorOS we respect your privacy and handle your information responsibly. This policy explains what data we
-					collect, how we use it, and the choices you have. By using CreatorOS you agree to the practices described here.
+					At CreatorOS we respect your privacy and handle your information responsibly. This policy explains what data we collect, how we use it, and the choices you have. By using CreatorOS you agree to the practices described here.
 				</Text>
 
 				{sections.map((section) => (
@@ -197,5 +141,3 @@ export default function PrivacyPolicyPage() {
 		</div>
 	);
 }
-
-

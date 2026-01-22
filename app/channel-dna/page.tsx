@@ -544,24 +544,6 @@ function ChannelDNAContent() {
 							<BarChart3 className="w-4 h-4" />
 							<span>Benchmarks</span>
 						</button>
-						<button
-							onClick={() => handleProFeature("Learning Lab", () => {
-								router.push(`/learning-lab?channelUrl=${encodeURIComponent(channelUrl)}`);
-							})}
-							className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-						>
-							<FlaskConical className="w-4 h-4" />
-							<span>Learning Lab</span>
-							{!isPro && <Crown className="w-3 h-3 text-amber-400" />}
-						</button>
-						<button
-							onClick={() => handleProFeature("Replicate This", () => setShowReplicateModal(true))}
-							className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-						>
-							<Copy className="w-4 h-4" />
-							<span>Replicate</span>
-							{!isPro && <Crown className="w-3 h-3 text-amber-400" />}
-						</button>
 
 						{/* Divider */}
 						<div className="w-px bg-white/10 mx-1 self-stretch" />
@@ -583,6 +565,29 @@ function ChannelDNAContent() {
 								</button>
 							);
 						})}
+
+						{/* Divider */}
+						<div className="w-px bg-white/10 mx-1 self-stretch" />
+
+						{/* Pro Features */}
+						<button
+							onClick={() => handleProFeature("Learning Lab", () => {
+								router.push(`/learning-lab?channelUrl=${encodeURIComponent(channelUrl)}`);
+							})}
+							className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+						>
+							<FlaskConical className="w-4 h-4" />
+							<span>Learning Lab</span>
+							{!isPro && <Crown className="w-3 h-3 text-amber-400" />}
+						</button>
+						<button
+							onClick={() => handleProFeature("Replicate This", () => setShowReplicateModal(true))}
+							className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+						>
+							<Copy className="w-4 h-4" />
+							<span>Replicate</span>
+							{!isPro && <Crown className="w-3 h-3 text-amber-400" />}
+						</button>
 					</div>
 				</div>
 

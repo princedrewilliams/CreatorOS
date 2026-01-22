@@ -1,6 +1,6 @@
 "use client";
 
-import { X, FlaskConical, Copy, Calendar, Image, Check } from "lucide-react";
+import { X, FlaskConical, Copy, Calendar, Image, Check, Search } from "lucide-react";
 
 interface UpgradeModalProps {
 	isOpen: boolean;
@@ -10,24 +10,39 @@ interface UpgradeModalProps {
 
 const PRO_FEATURES = [
 	{
-		icon: <FlaskConical className="w-4 h-4" />,
-		title: "Learning Lab Pro",
+		icon: <FlaskConical className="w-5 h-5" />,
+		title: "Learning Lab",
 		description: "Understand why videos perform — not just the numbers.",
+		iconColor: "text-emerald-400",
+		bgColor: "bg-emerald-500/20",
 	},
 	{
-		icon: <Copy className="w-4 h-4" />,
+		icon: <Copy className="w-5 h-5" />,
 		title: "Replicate This",
 		description: "Publish using the same structure as top channels.",
+		iconColor: "text-blue-400",
+		bgColor: "bg-blue-500/20",
 	},
 	{
-		icon: <Image className="w-4 h-4" />,
+		icon: <Image className="w-5 h-5" />,
 		title: "Thumbnail Templates",
 		description: "Design thumbnails that follow winning layouts.",
+		iconColor: "text-pink-400",
+		bgColor: "bg-pink-500/20",
 	},
 	{
-		icon: <Calendar className="w-4 h-4" />,
+		icon: <Calendar className="w-5 h-5" />,
 		title: "Smart Scheduling",
-		description: "Publish on-strategy every time.",
+		description: "Publish on-strategy, every time.",
+		iconColor: "text-amber-400",
+		bgColor: "bg-amber-500/20",
+	},
+	{
+		icon: <Search className="w-5 h-5" />,
+		title: "SEO Constraints",
+		description: "Optimize titles and descriptions for discoverability.",
+		iconColor: "text-cyan-400",
+		bgColor: "bg-cyan-500/20",
 	},
 ];
 
@@ -84,14 +99,14 @@ export function UpgradeModal({ isOpen, onClose, feature }: UpgradeModalProps) {
 					<div className="space-y-3 mb-6">
 						{PRO_FEATURES.map((item, index) => (
 							<div key={index} className="flex items-start gap-3">
-								<div className="flex-shrink-0 w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center text-violet-400">
+								<div className={`flex-shrink-0 w-9 h-9 rounded-lg ${item.bgColor} flex items-center justify-center ${item.iconColor}`}>
 									{item.icon}
 								</div>
 								<div>
 									<h3 className="text-sm font-medium text-white">
 										{item.title}
 									</h3>
-									<p className="text-xs text-[var(--text-muted)]">
+									<p className="text-xs text-white/80">
 										{item.description}
 									</p>
 								</div>
@@ -109,9 +124,9 @@ export function UpgradeModal({ isOpen, onClose, feature }: UpgradeModalProps) {
 							<div className="flex items-center justify-between">
 								<div className="text-left">
 									<span className="text-2xl font-bold text-white">$29</span>
-									<span className="text-[var(--text-muted)] text-sm"> / month</span>
+									<span className="text-white/90 text-sm"> / month</span>
 								</div>
-								<span className="text-xs text-violet-400 font-medium">Recommended</span>
+								<span className="text-xs text-white font-medium bg-violet-500/30 px-2 py-1 rounded">Recommended</span>
 							</div>
 						</button>
 
@@ -123,9 +138,9 @@ export function UpgradeModal({ isOpen, onClose, feature }: UpgradeModalProps) {
 							<div className="flex items-center justify-between">
 								<div className="text-left">
 									<span className="text-2xl font-bold text-white">$290</span>
-									<span className="text-[var(--text-muted)] text-sm"> / year</span>
+									<span className="text-white/90 text-sm"> / year</span>
 								</div>
-								<span className="text-xs text-emerald-400 font-medium">Save 2 months</span>
+								<span className="text-xs text-white font-medium bg-emerald-500/30 px-2 py-1 rounded">Save 2 months</span>
 							</div>
 						</button>
 					</div>
@@ -133,22 +148,22 @@ export function UpgradeModal({ isOpen, onClose, feature }: UpgradeModalProps) {
 					{/* Secondary CTA */}
 					<button
 						onClick={onClose}
-						className="w-full text-center text-sm text-[var(--text-muted)] hover:text-white transition-colors py-2"
+						className="w-full text-center text-sm text-white/60 hover:text-white transition-colors py-2"
 					>
 						Continue with Free Analytics
 					</button>
 
 					{/* Trust signals */}
-					<div className="flex items-center justify-center gap-4 mt-4 pt-4 border-t border-white/5">
-						<span className="flex items-center gap-1 text-xs text-[var(--text-muted)]">
+					<div className="flex items-center justify-center gap-2 sm:gap-4 mt-4 pt-4 border-t border-white/5 flex-wrap">
+						<span className="flex items-center gap-1 text-xs text-white/90">
 							<Check className="w-3 h-3 text-emerald-400" />
 							No credits
 						</span>
-						<span className="flex items-center gap-1 text-xs text-[var(--text-muted)]">
+						<span className="flex items-center gap-1 text-xs text-white/90">
 							<Check className="w-3 h-3 text-emerald-400" />
 							No hidden limits
 						</span>
-						<span className="flex items-center gap-1 text-xs text-[var(--text-muted)]">
+						<span className="flex items-center gap-1 text-xs text-white/90">
 							<Check className="w-3 h-3 text-emerald-400" />
 							Cancel anytime
 						</span>
