@@ -569,24 +569,20 @@ function ChannelDNAContent() {
 						{/* Divider */}
 						<div className="w-px bg-white/10 mx-1 self-stretch" />
 
-						{/* Pro Features */}
+						{/* Features - temporarily free, Pro gate kept for future */}
 						<button
-							onClick={() => handleProFeature("Learning Lab", () => {
-								router.push(`/learning-lab?channelUrl=${encodeURIComponent(channelUrl)}`);
-							})}
+							onClick={() => router.push(`/learning-lab?channelUrl=${encodeURIComponent(channelUrl)}`)}
 							className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
 						>
 							<FlaskConical className="w-4 h-4" />
 							<span>Learning Lab</span>
-							{!isPro && <Crown className="w-3 h-3 text-amber-400" />}
 						</button>
 						<button
-							onClick={() => handleProFeature("Replicate This", () => setShowReplicateModal(true))}
+							onClick={() => setShowReplicateModal(true)}
 							className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
 						>
 							<Copy className="w-4 h-4" />
 							<span>Replicate</span>
-							{!isPro && <Crown className="w-3 h-3 text-amber-400" />}
 						</button>
 					</div>
 				</div>
