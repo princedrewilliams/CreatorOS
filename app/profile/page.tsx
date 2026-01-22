@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import { Heading, Text, Card, Button, Badge } from "@whop/react/components";
 import { PersonIcon, Pencil1Icon, VideoIcon, Link2Icon } from "@radix-ui/react-icons";
+import { Crown } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import { BackButton } from "@/components/BackButton";
+import { CancelSubscriptionModal } from "@/components/CancelSubscriptionModal";
 
 const NICHE_CATEGORIES = [
 	{ id: "fitness", label: "Fitness", icon: "💪", color: "red" as const },
@@ -38,9 +40,10 @@ function isValidTikTokUrl(url: string): boolean {
 }
 
 export default function ProfilePage() {
-	const { user, socialConnections } = useAppStore();
+	const { user, socialConnections, isPro } = useAppStore();
 	const router = useRouter();
 	const [isEditing, setIsEditing] = useState(false);
+	const [showCancelModal, setShowCancelModal] = useState(false);
 	const [socialLinkErrors, setSocialLinkErrors] = useState({
 		youtube: "",
 		instagram: "",
@@ -341,6 +344,65 @@ export default function ProfilePage() {
 					</Card>
 				</div>
 
+				{/* Subscription */}
+				<div className="mb-6">
+					<Text size="2" weight="medium" className="mb-3 text-gray-12 dark:text-gray-12">
+						Subscription
+					</Text>
+					<Card size="2" variant="surface" className="p-4">
+						<div className="flex items-center justify-between">
+							<div className="flex items-center gap-3">
+								<div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+									isPro
+										? "bg-gradient-to-br from-amber-500 to-orange-500"
+										: "bg-gray-a4 dark:bg-gray-a5"
+								}`}>
+									<Crown className={`w-5 h-5 ${isPro ? "text-white" : "text-gray-11"}`} />
+								</div>
+								<div>
+									<div className="flex items-center gap-2">
+										<Text size="3" weight="medium" className="text-gray-12 dark:text-gray-12">
+											{isPro ? "Pro Plan" : "Free Plan"}
+										</Text>
+										<Badge
+											color={isPro ? "green" : "gray"}
+											size="1"
+											variant="soft"
+										>
+											{isPro ? "Active" : "Free"}
+										</Badge>
+									</div>
+									<Text size="1" color="gray" className="text-gray-11 dark:text-gray-11">
+										{isPro
+											? "Full access to all Pro features"
+											: "Upgrade to unlock all features"}
+									</Text>
+								</div>
+							</div>
+							{isPro ? (
+								<Button
+									variant="soft"
+									color="red"
+									size="2"
+									onClick={() => setShowCancelModal(true)}
+								>
+									Cancel Subscription
+								</Button>
+							) : (
+								<Button
+									variant="solid"
+									color="violet"
+									size="2"
+									onClick={() => router.push("/upgrade")}
+								>
+									<Crown className="w-4 h-4 mr-1" />
+									Upgrade to Pro
+								</Button>
+							)}
+						</div>
+					</Card>
+				</div>
+
 				{/* Social Media Links */}
 				<div>
 					<Text size="2" weight="medium" className="mb-3 text-gray-12 dark:text-gray-12">
@@ -492,6 +554,12 @@ export default function ProfilePage() {
 					</div>
 				</div>
 			</Card>
+
+			{/* Cancel Subscription Modal */}
+			<CancelSubscriptionModal
+				isOpen={showCancelModal}
+				onClose={() => setShowCancelModal(false)}
+			/>
 		</div>
 	);
 }
