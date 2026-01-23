@@ -57,7 +57,7 @@ export function InsightsPanel({
 	const overallScore = categorySeverity ? severityToScore[categorySeverity] : 60;
 
 	return (
-		<div className="bg-[var(--frosted-bg)] backdrop-blur-[var(--frosted-blur)] border border-[var(--frosted-border)] rounded-2xl p-5 h-full">
+		<div className="bg-[var(--frosted-bg)] backdrop-blur-[var(--frosted-blur)] border border-[var(--frosted-border)] rounded-2xl p-5 h-full chart-card-hover">
 			{/* Header with score */}
 			<div className="flex items-center justify-between mb-5">
 				<h3 className="text-base font-semibold text-white flex items-center gap-2">

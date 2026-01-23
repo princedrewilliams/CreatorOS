@@ -2,6 +2,46 @@
 
 import { X, FlaskConical, Copy, Calendar, Image, Check, Search } from "lucide-react";
 
+// Sparkle elements for decoration
+function SparkleElements() {
+	return (
+		<>
+			{[...Array(8)].map((_, i) => (
+				<div
+					key={i}
+					className={`sparkle sparkle-${(i % 5) + 1}`}
+					style={{
+						top: `${15 + Math.random() * 70}%`,
+						left: `${10 + Math.random() * 80}%`,
+						width: `${3 + Math.random() * 5}px`,
+						height: `${3 + Math.random() * 5}px`,
+					}}
+				/>
+			))}
+		</>
+	);
+}
+
+// Floating particles
+function FloatingParticles() {
+	return (
+		<div className="absolute inset-0 overflow-hidden pointer-events-none">
+			{[...Array(5)].map((_, i) => (
+				<div
+					key={i}
+					className="particle"
+					style={{
+						left: `${15 + i * 18}%`,
+						top: `${70 + (i % 2) * 15}%`,
+						animationDelay: `${i * 2}s`,
+						animationDuration: `${6 + i * 2}s`,
+					}}
+				/>
+			))}
+		</div>
+	);
+}
+
 interface UpgradeModalProps {
 	isOpen: boolean;
 	onClose: () => void;
@@ -65,10 +105,17 @@ export function UpgradeModal({ isOpen, onClose, feature }: UpgradeModalProps) {
 				onClick={onClose}
 			/>
 
-			{/* Modal */}
-			<div className="relative w-full max-w-md bg-[#0a0a12] border border-[var(--frosted-border)] rounded-2xl shadow-2xl overflow-hidden animate-scale-in">
-				{/* Gradient accent */}
-				<div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-violet-500 via-pink-500 to-amber-500" />
+			{/* Modal with rainbow animated border */}
+			<div className="relative w-full max-w-md rainbow-border-animated rounded-2xl shadow-2xl overflow-hidden animate-scale-in">
+				<div className="relative bg-[#0a0a12] rounded-2xl overflow-hidden">
+					{/* Animated gradient accent */}
+					<div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-violet-500 via-pink-500 to-amber-500 animate-pulse" />
+
+					{/* Sparkle effects */}
+					<SparkleElements />
+
+					{/* Floating particles */}
+					<FloatingParticles />
 
 				{/* Close button */}
 				<button
@@ -126,7 +173,7 @@ export function UpgradeModal({ isOpen, onClose, feature }: UpgradeModalProps) {
 									<span className="text-2xl font-bold text-white">$29</span>
 									<span className="text-white/90 text-sm"> / month</span>
 								</div>
-								<span className="text-xs text-white font-medium bg-violet-500/30 px-2 py-1 rounded">Recommended</span>
+								<span className="text-xs text-white font-medium bg-violet-500/30 px-2 py-1 rounded pulse-badge">Recommended</span>
 							</div>
 						</button>
 
@@ -168,6 +215,7 @@ export function UpgradeModal({ isOpen, onClose, feature }: UpgradeModalProps) {
 							Cancel anytime
 						</span>
 					</div>
+				</div>
 				</div>
 			</div>
 		</div>

@@ -128,16 +128,6 @@ function ChannelDNAContent() {
 	const [showBenchmarks, setShowBenchmarks] = useState(false);
 	const isPro = useAppStore((state) => state.isPro);
 
-	// Gate Pro features
-	const handleProFeature = (feature: string, action: () => void) => {
-		if (isPro) {
-			action();
-		} else {
-			setUpgradeFeature(feature);
-			setShowUpgradeModal(true);
-		}
-	};
-
 	const fetchAnalysis = useCallback(async () => {
 		if (!channelUrl) {
 			setError("No channel URL provided");
@@ -447,6 +437,12 @@ function ChannelDNAContent() {
 
 	return (
 		<div className="min-h-screen bg-[var(--page-bg)] page-transition">
+			{/* Grain texture overlay */}
+			<div className="grain-overlay" />
+
+			{/* Animated mesh gradient background */}
+			<div className="fixed inset-0 pointer-events-none mesh-gradient-bg opacity-40" />
+
 			{/* Subtle gradient overlay */}
 			<div
 				className="fixed inset-0 pointer-events-none"
@@ -521,7 +517,9 @@ function ChannelDNAContent() {
 								channelName={channel?.title || ""}
 								thumbnail={channel?.thumbnail || ""}
 							/>
-							<CircularScoreBadge score={score?.total || 0} size="lg" label="Score" />
+							<div className="score-badge-pulse">
+								<CircularScoreBadge score={score?.total || 0} size="lg" label="Score" />
+							</div>
 						</div>
 					</div>
 				</div>
@@ -529,36 +527,36 @@ function ChannelDNAContent() {
 				{/* Navigation - All buttons in one scrollable row */}
 				<div className="mb-6 animate-slide-up stagger-2">
 					<div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-						{/* Action Buttons */}
+						{/* Action Buttons with glow trail */}
 						<button
 							onClick={() => setShowSummary(true)}
-							className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+							className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5 nav-pill-glow group"
 						>
-							<FileText className="w-4 h-4" />
+							<FileText className="w-4 h-4 transition-transform group-hover:scale-110" />
 							<span>Summary</span>
 						</button>
 						<button
 							onClick={() => setShowBenchmarks(true)}
-							className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+							className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5 nav-pill-glow group"
 						>
-							<BarChart3 className="w-4 h-4" />
+							<BarChart3 className="w-4 h-4 transition-transform group-hover:scale-110" />
 							<span>Benchmarks</span>
 						</button>
 
 						{/* Divider */}
 						<div className="w-px bg-white/10 mx-1 self-stretch" />
 
-						{/* Analysis Tabs - inline */}
+						{/* Analysis Tabs - inline with glow effect */}
 						{TABS.map((tab) => {
 							const isActive = tab.id === activeTab;
 							return (
 								<button
 									key={tab.id}
 									onClick={() => setActiveTab(tab.id)}
-									className={`relative px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+									className={`relative px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 nav-pill-glow ${
 										isActive
-											? "bg-[var(--accent-muted)] text-white shadow-[0_0_20px_var(--accent-glow)]"
-											: "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+											? "bg-[var(--accent-muted)] text-white shadow-[0_0_20px_var(--accent-glow)] pulse-badge"
+											: "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5"
 									}`}
 								>
 									{tab.label}
@@ -572,16 +570,16 @@ function ChannelDNAContent() {
 						{/* Features - temporarily free, Pro gate kept for future */}
 						<button
 							onClick={() => router.push(`/learning-lab?channelUrl=${encodeURIComponent(channelUrl)}`)}
-							className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+							className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5 nav-pill-glow group"
 						>
-							<FlaskConical className="w-4 h-4" />
+							<FlaskConical className="w-4 h-4 transition-transform group-hover:scale-110 group-hover:rotate-12" />
 							<span>Learning Lab</span>
 						</button>
 						<button
 							onClick={() => setShowReplicateModal(true)}
-							className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+							className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5 nav-pill-glow group"
 						>
-							<Copy className="w-4 h-4" />
+							<Copy className="w-4 h-4 transition-transform group-hover:scale-110" />
 							<span>Replicate</span>
 						</button>
 					</div>

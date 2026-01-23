@@ -3,8 +3,48 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, Zap, Search, Dna } from "lucide-react";
 import Link from "next/link";
+
+// Floating particles component
+function FloatingParticles() {
+	return (
+		<div className="particles-container">
+			{[...Array(6)].map((_, i) => (
+				<div
+					key={i}
+					className="particle"
+					style={{
+						left: `${20 + i * 15}%`,
+						top: `${60 + (i % 3) * 10}%`,
+						animationDelay: `${i * 1.5}s`,
+						animationDuration: `${8 + i * 2}s`,
+					}}
+				/>
+			))}
+		</div>
+	);
+}
+
+// Sparkle elements for modal/button decoration
+function SparkleElements({ count = 5 }: { count?: number }) {
+	return (
+		<>
+			{[...Array(count)].map((_, i) => (
+				<div
+					key={i}
+					className={`sparkle sparkle-${(i % 5) + 1}`}
+					style={{
+						top: `${10 + Math.random() * 80}%`,
+						left: `${10 + Math.random() * 80}%`,
+						width: `${4 + Math.random() * 6}px`,
+						height: `${4 + Math.random() * 6}px`,
+					}}
+				/>
+			))}
+		</>
+	);
+}
 
 export default function DashboardPage() {
 	const [channelUrl, setChannelUrl] = useState("");
@@ -40,11 +80,30 @@ export default function DashboardPage() {
 
 	return (
 		<main className="relative min-h-screen overflow-hidden bg-[var(--page-bg)] text-white flex flex-col">
-			{/* Gradient overlays */}
-			<div className="absolute inset-0 -z-10">
+			{/* Grain texture overlay */}
+			<div className="grain-overlay" />
+
+			{/* Animated floating orbs */}
+			<div className="absolute inset-0 -z-10 overflow-hidden">
 				<div className="absolute inset-0 bg-gradient-to-b from-[#0a0012] via-[var(--page-bg)] to-[var(--page-bg)]" />
-				<div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[var(--accent-primary)]/20 rounded-full blur-[120px]" />
-				<div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-600/15 rounded-full blur-[100px]" />
+
+				{/* Primary animated orb */}
+				<div
+					className="floating-orb floating-orb-1 w-[600px] h-[600px] bg-[var(--accent-primary)]/25 top-[-10%] left-[10%]"
+				/>
+
+				{/* Secondary animated orb */}
+				<div
+					className="floating-orb floating-orb-2 w-[500px] h-[500px] bg-purple-600/20 bottom-[-15%] right-[5%]"
+				/>
+
+				{/* Tertiary animated orb */}
+				<div
+					className="floating-orb floating-orb-3 w-[350px] h-[350px] bg-cyan-500/15 top-[40%] right-[20%]"
+				/>
+
+				{/* Mesh gradient layer */}
+				<div className="absolute inset-0 mesh-gradient-bg opacity-50" />
 			</div>
 
 			{/* Header */}
@@ -72,7 +131,7 @@ export default function DashboardPage() {
 					<h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-[1.05] tracking-tight">
 						Reverse-Engineer
 						<br />
-						<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff5abf] via-[#ff3ea7] to-[#ff8bf5]">
+						<span className="text-shimmer">
 							YouTube Success
 						</span>
 					</h1>
@@ -94,8 +153,11 @@ export default function DashboardPage() {
 					className="w-full max-w-2xl mt-12"
 				>
 					<div className="relative">
-						{/* Glow effect */}
-						<div className="absolute -inset-1 bg-gradient-to-r from-[var(--accent-primary)]/30 via-purple-500/20 to-[var(--accent-primary)]/30 rounded-2xl blur-xl opacity-60" />
+						{/* Floating particles around input */}
+						<FloatingParticles />
+
+						{/* Animated glow effect */}
+						<div className="absolute -inset-1 bg-gradient-to-r from-[var(--accent-primary)]/30 via-purple-500/20 to-[var(--accent-primary)]/30 rounded-2xl blur-xl opacity-60 animate-pulse" />
 
 						<div className="relative bg-[#0a0a0a]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-2">
 							<form
@@ -118,7 +180,7 @@ export default function DashboardPage() {
 									<button
 										type="submit"
 										disabled={loading}
-										className="h-14 px-8 rounded-xl bg-gradient-to-r from-[var(--accent-primary)] to-[#ff79c9] text-white font-semibold text-base shadow-[0_10px_40px_rgba(236,72,153,0.4)] hover:shadow-[0_15px_50px_rgba(236,72,153,0.5)] hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+										className="h-14 px-8 rounded-xl bg-gradient-to-r from-[var(--accent-primary)] to-[#ff79c9] text-white font-semibold text-base shadow-[0_10px_40px_rgba(236,72,153,0.4)] hover:shadow-[0_15px_50px_rgba(236,72,153,0.5)] hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 btn-pulse-glow"
 									>
 										{loading ? (
 											<div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -149,7 +211,7 @@ export default function DashboardPage() {
 					</p>
 				</motion.div>
 
-				{/* Features grid */}
+				{/* Features grid with 3D hover effects */}
 				<motion.div
 					initial={{ opacity: 0, y: 30 }}
 					animate={{ opacity: 1, y: 0 }}
@@ -157,21 +219,39 @@ export default function DashboardPage() {
 					className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-16 w-full max-w-3xl"
 				>
 					{[
-						{ label: "Viral Score", desc: "View patterns that drive views" },
-						{ label: "SEO Analysis", desc: "Discover keyword strategies" },
-						{ label: "Content DNA", desc: "Understand what works" },
+						{ label: "Viral Score", desc: "View patterns that drive views", icon: Zap, color: "text-pink-400" },
+						{ label: "SEO Analysis", desc: "Discover keyword strategies", icon: Search, color: "text-purple-400" },
+						{ label: "Content DNA", desc: "Understand what works", icon: Dna, color: "text-cyan-400" },
 					].map((feature, i) => (
 						<motion.div
 							key={feature.label}
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.5, delay: 0.7 + i * 0.1 }}
-							className="p-5 rounded-xl bg-white/[0.03] border border-white/5 hover:border-white/10 transition-colors"
+							className="group relative p-5 rounded-xl bg-white/[0.03] border border-white/5 card-3d-hover overflow-hidden"
 						>
-							<h3 className="text-sm font-semibold text-white mb-1">
-								{feature.label}
-							</h3>
-							<p className="text-xs text-white/40">{feature.desc}</p>
+							{/* Animated border on hover */}
+							<div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+								<div className="absolute inset-0 rounded-xl border-glow-animated" />
+							</div>
+
+							{/* Sparkle on hover */}
+							<div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity">
+								<SparkleElements count={3} />
+							</div>
+
+							<div className="relative flex items-start gap-3">
+								{/* Animated icon */}
+								<div className={`${feature.color} transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12`}>
+									<feature.icon className="w-5 h-5" />
+								</div>
+								<div>
+									<h3 className="text-sm font-semibold text-white mb-1">
+										{feature.label}
+									</h3>
+									<p className="text-xs text-white/40">{feature.desc}</p>
+								</div>
+							</div>
 						</motion.div>
 					))}
 				</motion.div>
