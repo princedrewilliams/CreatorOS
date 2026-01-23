@@ -106,16 +106,26 @@ export default function DashboardPage() {
 			className="relative min-h-screen overflow-hidden bg-[var(--page-bg)] text-white flex flex-col"
 		>
 			{/* Glowing dots background */}
-			<div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+			<motion.div
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				transition={{ duration: 0.8, delay: 0.2 }}
+				className="fixed inset-0 pointer-events-none overflow-hidden -z-10"
+			>
 				<BackgroundDots />
-			</div>
+			</motion.div>
 
 			{/* Gradient overlays */}
-			<div className="absolute inset-0 -z-10">
+			<motion.div
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				transition={{ duration: 0.8, delay: 0.1 }}
+				className="absolute inset-0 -z-10"
+			>
 				<div className="absolute inset-0 bg-gradient-to-b from-[#0a0012] via-[var(--page-bg)] to-[var(--page-bg)]" />
-				<div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[var(--accent-primary)]/20 rounded-full blur-[120px]" />
-				<div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-600/15 rounded-full blur-[100px]" />
-			</div>
+				<div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[120px]" />
+				<div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[100px]" />
+			</motion.div>
 
 			{/* Header */}
 			<motion.header

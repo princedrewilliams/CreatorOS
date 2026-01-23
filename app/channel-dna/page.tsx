@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { ArrowLeft, FlaskConical, Copy, Crown, FileText, BarChart3 } from "lucide-react";
+import { ArrowLeft, FlaskConical, Copy, Crown } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { ReplicateThisModal } from "../components/replicate/ReplicateThisModal";
@@ -10,8 +10,6 @@ import { UpgradeModal } from "../components/ui/UpgradeModal";
 import { useAppStore } from "@/lib/store";
 
 import type { Tab } from "../components/ui/FrostedTabs";
-import { ChannelSummary } from "../components/channel-dna/ChannelSummary";
-import { NicheBenchmarks } from "../components/channel-dna/NicheBenchmarks";
 import { InsightsPanel } from "../components/channel-dna/InsightsPanel";
 import { ChartPanel } from "../components/channel-dna/ChartPanel";
 import { TabContent } from "../components/channel-dna/TabContent";
@@ -144,8 +142,6 @@ function ChannelDNAContent() {
 	const [showReplicateModal, setShowReplicateModal] = useState(false);
 	const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 	const [upgradeFeature, setUpgradeFeature] = useState<string | undefined>();
-	const [showSummary, setShowSummary] = useState(false);
-	const [showBenchmarks, setShowBenchmarks] = useState(false);
 	const isPro = useAppStore((state) => state.isPro);
 
 	const fetchAnalysis = useCallback(async () => {
@@ -546,35 +542,16 @@ function ChannelDNAContent() {
 				{/* Navigation - All buttons in one scrollable row */}
 				<div className="mb-6 animate-slide-up stagger-2">
 					<div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-						{/* Action Buttons with glow trail */}
-						<button
-							onClick={() => setShowSummary(true)}
-							className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5 nav-pill-glow group"
-						>
-							<FileText className="w-4 h-4 transition-transform group-hover:scale-110" />
-							<span>Summary</span>
-						</button>
-						<button
-							onClick={() => setShowBenchmarks(true)}
-							className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5 nav-pill-glow group"
-						>
-							<BarChart3 className="w-4 h-4 transition-transform group-hover:scale-110" />
-							<span>Benchmarks</span>
-						</button>
-
-						{/* Divider */}
-						<div className="w-px bg-white/10 mx-1 self-stretch" />
-
-						{/* Analysis Tabs - inline with glow effect */}
+						{/* Analysis Tabs */}
 						{TABS.map((tab) => {
 							const isActive = tab.id === activeTab;
 							return (
 								<button
 									key={tab.id}
 									onClick={() => setActiveTab(tab.id)}
-									className={`relative px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 nav-pill-glow ${
+									className={`relative px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 ${
 										isActive
-											? "bg-[var(--accent-muted)] text-white shadow-[0_0_20px_var(--accent-glow)] pulse-badge"
+											? "bg-[var(--accent-muted)] text-white"
 											: "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5"
 									}`}
 								>
@@ -669,32 +646,6 @@ function ChannelDNAContent() {
 				}}
 				feature={upgradeFeature}
 			/>
-
-			{/* Summary Modal */}
-			{showSummary && data && (
-				<ChannelSummary
-					channelName={channel?.title || "Channel"}
-					channelId={channel?.id || ""}
-					score={score || { total: 0, categories: {}, strengths: [], weaknesses: [] }}
-					metrics={data.data.metrics}
-					videos={data.data.videos}
-					isOpen={showSummary}
-					onClose={() => setShowSummary(false)}
-				/>
-			)}
-
-			{/* Benchmarks Modal */}
-			{showBenchmarks && data && (
-				<NicheBenchmarks
-					channelId={channel?.id || ""}
-					keywords={data.data.metrics.commonKeywords.map(k => k.word)}
-					subscriberCount={channel?.subscriberCount}
-					viewCount={channel?.viewCount}
-					videoCount={channel?.videoCount}
-					isOpen={showBenchmarks}
-					onClose={() => setShowBenchmarks(false)}
-				/>
-			)}
 		</div>
 	);
 }
