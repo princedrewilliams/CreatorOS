@@ -14,7 +14,6 @@ import {
 	Image as ImageIcon,
 } from "lucide-react";
 import { ConstraintDisplay } from "./ConstraintDisplay";
-import { useAppStore } from "@/lib/store";
 import type { ReplicationSettings, UserYouTubeChannel } from "@/lib/replicate/types";
 
 interface ReplicateThisModalProps {
@@ -40,7 +39,6 @@ export function ReplicateThisModal({
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [settings, setSettings] = useState<ReplicationSettings | null>(null);
-	const isPro = useAppStore((state) => state.isPro);
 
 	// Video upload state
 	const [videoFile, setVideoFile] = useState<File | null>(null);
