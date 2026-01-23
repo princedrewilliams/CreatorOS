@@ -267,11 +267,11 @@ export default function DashboardPage() {
 					initial={{ opacity: 0 }}
 					animate={{ opacity: 1 }}
 					transition={{ duration: 0.5, delay: 1 }}
-					className="mt-16 text-center"
+					className="fixed bottom-4 right-4"
 				>
-					<p className="text-xs text-white/40">
-						Disconnect accounts anytime • Request data deletion • <Link href="/privacy" className="text-[var(--accent-primary)]/70 hover:text-[var(--accent-primary)] underline">Privacy Policy</Link>
-					</p>
+					<Link href="/privacy" className="text-xs text-white/40 hover:text-white/60 transition-colors">
+						Privacy Policy
+					</Link>
 				</motion.div>
 			</section>
 		</main>
