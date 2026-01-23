@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, Zap, Search, Dna } from "lucide-react";
 import Link from "next/link";
 
 // Glowing dots for background
@@ -19,6 +19,46 @@ function BackgroundDots() {
 						left: `${2 + (i * 9) % 96}%`,
 						width: `${4 + (i % 4) * 2}px`,
 						height: `${4 + (i % 4) * 2}px`,
+					}}
+				/>
+			))}
+		</>
+	);
+}
+
+// Floating particles around input
+function FloatingParticles() {
+	return (
+		<div className="absolute inset-0 overflow-hidden pointer-events-none">
+			{[...Array(4)].map((_, i) => (
+				<div
+					key={i}
+					className={`absolute rounded-full bg-dot-glow sparkle sparkle-${(i % 5) + 1}`}
+					style={{
+						top: `${20 + i * 20}%`,
+						left: `${10 + i * 25}%`,
+						width: `${3 + (i % 2) * 2}px`,
+						height: `${3 + (i % 2) * 2}px`,
+					}}
+				/>
+			))}
+		</div>
+	);
+}
+
+// Sparkle elements for hover effects
+function SparkleElements({ count = 3 }: { count?: number }) {
+	return (
+		<>
+			{[...Array(count)].map((_, i) => (
+				<div
+					key={i}
+					className={`absolute rounded-full bg-dot-glow sparkle sparkle-${(i % 5) + 1}`}
+					style={{
+						top: `${20 + i * 30}%`,
+						left: `${20 + i * 25}%`,
+						width: `${3 + (i % 2)}px`,
+						height: `${3 + (i % 2)}px`,
 					}}
 				/>
 			))}
