@@ -890,49 +890,14 @@ p {
 	}
 }
 
-/* Glow trail for nav pills */
+/* Nav pill styling */
 .nav-pill-glow {
 	position: relative;
-	overflow: hidden;
 }
 
-.nav-pill-glow::after {
-	content: '';
-	position: absolute;
-	inset: 0;
-	background: linear-gradient(90deg, transparent, rgba(236, 72, 153, 0.3), transparent);
-	transform: translateX(-100%);
-	transition: transform 0.5s ease;
-}
-
-.nav-pill-glow:hover::after {
-	transform: translateX(100%);
-}
-
-/* Score badge pulse */
+/* Score badge styling */
 .score-badge-pulse {
 	position: relative;
-}
-
-.score-badge-pulse::after {
-	content: '';
-	position: absolute;
-	inset: -4px;
-	border-radius: 50%;
-	background: rgba(236, 72, 153, 0.3);
-	animation: score-pulse 2s ease-in-out infinite;
-	z-index: -1;
-}
-
-@keyframes score-pulse {
-	0%, 100% {
-		transform: scale(1);
-		opacity: 0.5;
-	}
-	50% {
-		transform: scale(1.1);
-		opacity: 0.2;
-	}
 }
 
 /* Chart card hover lift with glow */

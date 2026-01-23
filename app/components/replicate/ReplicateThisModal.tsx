@@ -59,15 +59,6 @@ export function ReplicateThisModal({
 		}
 	}, [isOpen]);
 
-	// Pre-populate tags from settings when available
-	useEffect(() => {
-		const powerWords = settings?.constraints?.title?.suggestedPowerWords || [];
-		const seoKeywords = settings?.constraints?.seo?.primaryKeywords || [];
-		const combinedTags = [...new Set([...powerWords, ...seoKeywords])].slice(0, 5);
-		if (combinedTags.length > 0) {
-			setVideoTags(combinedTags);
-		}
-	}, [settings]);
 
 	const checkYouTubeConnection = async () => {
 		setLoading(true);
@@ -497,7 +488,7 @@ export function ReplicateThisModal({
 									onChange={(e) => setVideoTitle(e.target.value)}
 									placeholder="Enter a compelling title..."
 									maxLength={settings?.constraints?.title?.maxLength || 100}
-									className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-[var(--frosted-border)] text-white placeholder-white/40 focus:outline-none focus:border-cyan-500/50 transition-colors"
+									className="w-full px-4 py-2.5 rounded-xl bg-[#0a0a0a] border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-cyan-500/50 transition-colors"
 								/>
 								<div className="text-xs text-white/70 mt-1">
 									{videoTitle.length}/{settings?.constraints?.title?.maxLength || 100} characters
@@ -514,7 +505,7 @@ export function ReplicateThisModal({
 									onChange={(e) => setVideoDescription(e.target.value)}
 									placeholder="Add a description for your video..."
 									rows={4}
-									className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-[var(--frosted-border)] text-white placeholder-white/40 focus:outline-none focus:border-cyan-500/50 transition-colors resize-none"
+									className="w-full px-4 py-2.5 rounded-xl bg-[#0a0a0a] border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-cyan-500/50 transition-colors resize-none"
 								/>
 							</div>
 
@@ -531,7 +522,7 @@ export function ReplicateThisModal({
 											className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
 												videoTags.includes(tag)
 													? "bg-cyan-500/20 border border-cyan-500/50 text-cyan-400"
-													: "bg-white/5 border border-[var(--frosted-border)] text-[var(--text-muted)] hover:bg-white/10 hover:text-white"
+													: "bg-white/10 border border-white/20 text-white hover:bg-white/20"
 											}`}
 										>
 											#{tag}
@@ -547,7 +538,7 @@ export function ReplicateThisModal({
 										onChange={(e) => setCustomTag(e.target.value)}
 										onKeyPress={(e) => e.key === "Enter" && handleAddCustomTag()}
 										placeholder="Add custom tag..."
-										className="flex-1 px-3 py-2 rounded-lg bg-black/40 border border-[var(--frosted-border)] text-white text-sm placeholder-white/40 focus:outline-none focus:border-cyan-500/50 transition-colors"
+										className="flex-1 px-3 py-2 rounded-lg bg-[#0a0a0a] border border-white/10 text-white text-sm placeholder-white/40 focus:outline-none focus:border-cyan-500/50 transition-colors"
 									/>
 									<button
 										onClick={handleAddCustomTag}
@@ -557,25 +548,6 @@ export function ReplicateThisModal({
 									</button>
 								</div>
 
-								{/* Selected tags display */}
-								{videoTags.length > 0 && (
-									<div className="flex flex-wrap gap-2 mt-3">
-										{videoTags.map((tag) => (
-											<span
-												key={tag}
-												className="px-2 py-1 rounded-md bg-cyan-500/20 text-cyan-400 text-xs flex items-center gap-1"
-											>
-												{tag}
-												<button
-													onClick={() => handleRemoveTag(tag)}
-													className="hover:text-white"
-												>
-													<X className="w-3 h-3" />
-												</button>
-											</span>
-										))}
-									</div>
-								)}
 							</div>
 
 							{/* Thumbnail Upload */}

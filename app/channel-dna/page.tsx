@@ -47,12 +47,12 @@ function BackgroundDots() {
 }
 
 const TABS: Tab[] = [
-	{ id: "viral", label: "Viral Score" },
-	{ id: "search", label: "Search & Discoverability" },
-	{ id: "upload", label: "Upload Consistency" },
-	{ id: "thumb", label: "Thumbnail Performance" },
-	{ id: "theme", label: "Theme Consistency" },
-	{ id: "format", label: "Format Consistency" },
+	{ id: "viral", label: "Viral" },
+	{ id: "search", label: "Search" },
+	{ id: "upload", label: "Upload" },
+	{ id: "thumb", label: "Thumbnail" },
+	{ id: "theme", label: "Theme" },
+	{ id: "format", label: "Format" },
 ];
 
 interface ChannelData {
