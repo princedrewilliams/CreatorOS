@@ -149,10 +149,6 @@ export function ReplicateThisModal({
 		}
 	};
 
-	const handleRemoveTag = (tag: string) => {
-		setVideoTags(videoTags.filter((t) => t !== tag));
-	};
-
 	const handleAddTagToDescription = (tag: string) => {
 		const hashtag = `#${tag.replace(/\s+/g, "")}`;
 		if (!videoDescription.includes(hashtag)) {
