@@ -26,6 +26,26 @@ import { ThumbnailCTRChart } from "../components/channel-dna/charts/ThumbnailCTR
 import { ThemeConsistencyChart } from "../components/channel-dna/charts/ThemeConsistencyChart";
 import { FormatConsistencyChart } from "../components/channel-dna/charts/FormatConsistencyChart";
 
+// Glowing dots for background
+function BackgroundDots() {
+	return (
+		<>
+			{[...Array(12)].map((_, i) => (
+				<div
+					key={i}
+					className={`absolute rounded-full bg-dot-glow sparkle sparkle-${(i % 5) + 1}`}
+					style={{
+						top: `${5 + (i * 8) % 90}%`,
+						left: `${3 + (i * 11) % 94}%`,
+						width: `${4 + (i % 3) * 2}px`,
+						height: `${4 + (i % 3) * 2}px`,
+					}}
+				/>
+			))}
+		</>
+	);
+}
+
 const TABS: Tab[] = [
 	{ id: "viral", label: "Viral Score" },
 	{ id: "search", label: "Search & Discoverability" },
@@ -437,11 +457,10 @@ function ChannelDNAContent() {
 
 	return (
 		<div className="min-h-screen bg-[var(--page-bg)] page-transition">
-			{/* Grain texture overlay */}
-			<div className="grain-overlay" />
-
-			{/* Animated mesh gradient background */}
-			<div className="fixed inset-0 pointer-events-none mesh-gradient-bg opacity-40" />
+			{/* Glowing dots background */}
+			<div className="fixed inset-0 pointer-events-none overflow-hidden">
+				<BackgroundDots />
+			</div>
 
 			{/* Subtle gradient overlay */}
 			<div

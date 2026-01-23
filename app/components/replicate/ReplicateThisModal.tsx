@@ -14,7 +14,6 @@ import {
 	Image as ImageIcon,
 } from "lucide-react";
 import { ConstraintDisplay } from "./ConstraintDisplay";
-import { ThumbnailStep } from "./ThumbnailStep";
 import { useAppStore } from "@/lib/store";
 import type { ReplicationSettings, UserYouTubeChannel } from "@/lib/replicate/types";
 
@@ -25,9 +24,9 @@ interface ReplicateThisModalProps {
 	referenceChannelName: string;
 }
 
-type Step = "connect" | "select" | "deriving" | "thumbnail" | "post" | "success";
+type Step = "connect" | "select" | "deriving" | "post" | "success";
 
-const STEPS: Step[] = ["connect", "select", "deriving", "thumbnail", "post", "success"];
+const STEPS: Step[] = ["connect", "select", "deriving", "post", "success"];
 
 export function ReplicateThisModal({
 	isOpen,
@@ -127,11 +126,7 @@ export function ReplicateThisModal({
 			}
 
 			setSettings(data.settings);
-			if (data.settings?.constraints?.thumbnail?.formatProfile) {
-				setStep("thumbnail");
-			} else {
-				setStep("post");
-			}
+			setStep("post");
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Failed to derive constraints");
 			setStep("select");
@@ -418,24 +413,6 @@ export function ReplicateThisModal({
 						</div>
 					)}
 
-					{step === "thumbnail" && settings?.constraints?.thumbnail && (
-						<ThumbnailStep
-							formatProfile={settings.constraints.thumbnail.formatProfile!}
-							matchedTemplate={settings.constraints.thumbnail.matchedTemplate!}
-							suggestedColors={settings.constraints.thumbnail.suggestedColors}
-							isPro={isPro}
-							onOpenCanva={() => {
-								window.open(
-									settings.constraints.thumbnail.matchedTemplate?.deepLinkUrl ||
-										"https://www.canva.com/design?create&type=TABzW6DJhNk&category=youtube-thumbnails",
-									"_blank"
-								);
-							}}
-							onSkip={() => setStep("post")}
-							onContinue={() => setStep("post")}
-						/>
-					)}
-
 					{step === "post" && (
 						<div className="space-y-5">
 							<div>
@@ -449,7 +426,7 @@ export function ReplicateThisModal({
 
 							{/* Video Upload */}
 							<div>
-								<label className="text-xs font-medium text-[var(--text-muted)] mb-2 block">
+								<label className="text-xs font-medium text-white mb-2 block">
 									Video File *
 								</label>
 								<label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-[var(--frosted-border)] rounded-xl cursor-pointer hover:border-cyan-500/50 hover:bg-white/5 transition-all">
@@ -480,7 +457,7 @@ export function ReplicateThisModal({
 
 							{/* Content Type */}
 							<div>
-								<label className="text-xs font-medium text-[var(--text-muted)] mb-2 block">
+								<label className="text-xs font-medium text-white mb-2 block">
 									Content Type
 								</label>
 								<div className="flex gap-2">
@@ -509,9 +486,9 @@ export function ReplicateThisModal({
 
 							{/* Title */}
 							<div>
-								<label className="text-xs font-medium text-[var(--text-muted)] mb-2 block">
+								<label className="text-xs font-medium text-white mb-2 block">
 									Title * {settings?.constraints?.title?.maxLength && (
-										<span className="text-[var(--text-muted)]">
+										<span className="text-white/70">
 											(max {settings.constraints.title.maxLength} chars)
 										</span>
 									)}
@@ -522,16 +499,16 @@ export function ReplicateThisModal({
 									onChange={(e) => setVideoTitle(e.target.value)}
 									placeholder="Enter a compelling title..."
 									maxLength={settings?.constraints?.title?.maxLength || 100}
-									className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-[var(--frosted-border)] text-white placeholder-[var(--text-muted)] focus:outline-none focus:border-cyan-500/50 transition-colors"
+									className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-[var(--frosted-border)] text-white placeholder-white/40 focus:outline-none focus:border-cyan-500/50 transition-colors"
 								/>
-								<div className="text-xs text-[var(--text-muted)] mt-1">
+								<div className="text-xs text-white/70 mt-1">
 									{videoTitle.length}/{settings?.constraints?.title?.maxLength || 100} characters
 								</div>
 							</div>
 
 							{/* Description */}
 							<div>
-								<label className="text-xs font-medium text-[var(--text-muted)] mb-2 block">
+								<label className="text-xs font-medium text-white mb-2 block">
 									Description
 								</label>
 								<textarea
@@ -539,13 +516,13 @@ export function ReplicateThisModal({
 									onChange={(e) => setVideoDescription(e.target.value)}
 									placeholder="Add a description for your video..."
 									rows={4}
-									className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-[var(--frosted-border)] text-white placeholder-[var(--text-muted)] focus:outline-none focus:border-cyan-500/50 transition-colors resize-none"
+									className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-[var(--frosted-border)] text-white placeholder-white/40 focus:outline-none focus:border-cyan-500/50 transition-colors resize-none"
 								/>
 							</div>
 
 							{/* Tags */}
 							<div>
-								<label className="text-xs font-medium text-[var(--text-muted)] mb-2 block">
+								<label className="text-xs font-medium text-white mb-2 block">
 									Tags (click to add to description)
 								</label>
 								<div className="flex flex-wrap gap-2 mb-3">
@@ -572,7 +549,7 @@ export function ReplicateThisModal({
 										onChange={(e) => setCustomTag(e.target.value)}
 										onKeyPress={(e) => e.key === "Enter" && handleAddCustomTag()}
 										placeholder="Add custom tag..."
-										className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-[var(--frosted-border)] text-white text-sm placeholder-[var(--text-muted)] focus:outline-none focus:border-cyan-500/50 transition-colors"
+										className="flex-1 px-3 py-2 rounded-lg bg-black/40 border border-[var(--frosted-border)] text-white text-sm placeholder-white/40 focus:outline-none focus:border-cyan-500/50 transition-colors"
 									/>
 									<button
 										onClick={handleAddCustomTag}
@@ -606,7 +583,7 @@ export function ReplicateThisModal({
 							{/* Thumbnail Upload */}
 							{contentType === "video" && (
 								<div>
-									<label className="text-xs font-medium text-[var(--text-muted)] mb-2 block">
+									<label className="text-xs font-medium text-white mb-2 block">
 										Custom Thumbnail (Optional)
 									</label>
 									<label className="flex items-center gap-4 p-3 border-2 border-dashed border-[var(--frosted-border)] rounded-xl cursor-pointer hover:border-cyan-500/50 hover:bg-white/5 transition-all">
@@ -617,15 +594,15 @@ export function ReplicateThisModal({
 												className="w-20 h-12 object-cover rounded-lg"
 											/>
 										) : (
-											<div className="w-20 h-12 bg-white/5 rounded-lg flex items-center justify-center">
-												<ImageIcon className="w-5 h-5 text-[var(--text-muted)]" />
+											<div className="w-20 h-12 bg-black/40 rounded-lg flex items-center justify-center">
+												<ImageIcon className="w-5 h-5 text-white/60" />
 											</div>
 										)}
 										<div className="flex-1">
 											<span className="text-sm text-white block">
 												{selectedThumbnail ? selectedThumbnail.name : "Click to upload thumbnail"}
 											</span>
-											<span className="text-xs text-[var(--text-muted)]">
+											<span className="text-xs text-white/70">
 												JPG or PNG, max 2MB
 											</span>
 										</div>
@@ -641,7 +618,7 @@ export function ReplicateThisModal({
 
 							{/* Visibility */}
 							<div>
-								<label className="text-xs font-medium text-[var(--text-muted)] mb-2 block">
+								<label className="text-xs font-medium text-white mb-2 block">
 									Visibility
 								</label>
 								<div className="flex gap-2">
@@ -664,7 +641,7 @@ export function ReplicateThisModal({
 							{/* Actions */}
 							<div className="flex gap-3 pt-2">
 								<button
-									onClick={() => setStep("thumbnail")}
+									onClick={() => setStep("select")}
 									className="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium transition-colors"
 								>
 									Back

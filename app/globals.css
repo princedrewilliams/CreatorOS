@@ -853,6 +853,12 @@ p {
 .sparkle-4 { animation-delay: 1.2s; }
 .sparkle-5 { animation-delay: 1.6s; }
 
+/* Glowing dot for background */
+.bg-dot-glow {
+	background: radial-gradient(circle, rgba(236, 72, 153, 0.8) 0%, rgba(139, 92, 246, 0.4) 40%, transparent 70%);
+	box-shadow: 0 0 8px rgba(236, 72, 153, 0.6), 0 0 16px rgba(139, 92, 246, 0.3);
+}
+
 /* Pulse animation for badges */
 .pulse-badge {
 	animation: pulse-glow 2s ease-in-out infinite;

@@ -3,42 +3,22 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, Zap, Search, Dna } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
 
-// Floating particles component
-function FloatingParticles() {
-	return (
-		<div className="particles-container">
-			{[...Array(6)].map((_, i) => (
-				<div
-					key={i}
-					className="particle"
-					style={{
-						left: `${20 + i * 15}%`,
-						top: `${60 + (i % 3) * 10}%`,
-						animationDelay: `${i * 1.5}s`,
-						animationDuration: `${8 + i * 2}s`,
-					}}
-				/>
-			))}
-		</div>
-	);
-}
-
-// Sparkle elements for modal/button decoration
-function SparkleElements({ count = 5 }: { count?: number }) {
+// Glowing dots for background
+function BackgroundDots() {
 	return (
 		<>
-			{[...Array(count)].map((_, i) => (
+			{[...Array(15)].map((_, i) => (
 				<div
 					key={i}
-					className={`sparkle sparkle-${(i % 5) + 1}`}
+					className={`absolute rounded-full bg-dot-glow sparkle sparkle-${(i % 5) + 1}`}
 					style={{
-						top: `${10 + Math.random() * 80}%`,
-						left: `${10 + Math.random() * 80}%`,
-						width: `${4 + Math.random() * 6}px`,
-						height: `${4 + Math.random() * 6}px`,
+						top: `${5 + (i * 7) % 90}%`,
+						left: `${2 + (i * 9) % 96}%`,
+						width: `${4 + (i % 4) * 2}px`,
+						height: `${4 + (i % 4) * 2}px`,
 					}}
 				/>
 			))}
@@ -80,30 +60,16 @@ export default function DashboardPage() {
 
 	return (
 		<main className="relative min-h-screen overflow-hidden bg-[var(--page-bg)] text-white flex flex-col">
-			{/* Grain texture overlay */}
-			<div className="grain-overlay" />
+			{/* Glowing dots background */}
+			<div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+				<BackgroundDots />
+			</div>
 
-			{/* Animated floating orbs */}
-			<div className="absolute inset-0 -z-10 overflow-hidden">
+			{/* Gradient overlays */}
+			<div className="absolute inset-0 -z-10">
 				<div className="absolute inset-0 bg-gradient-to-b from-[#0a0012] via-[var(--page-bg)] to-[var(--page-bg)]" />
-
-				{/* Primary animated orb */}
-				<div
-					className="floating-orb floating-orb-1 w-[600px] h-[600px] bg-[var(--accent-primary)]/25 top-[-10%] left-[10%]"
-				/>
-
-				{/* Secondary animated orb */}
-				<div
-					className="floating-orb floating-orb-2 w-[500px] h-[500px] bg-purple-600/20 bottom-[-15%] right-[5%]"
-				/>
-
-				{/* Tertiary animated orb */}
-				<div
-					className="floating-orb floating-orb-3 w-[350px] h-[350px] bg-cyan-500/15 top-[40%] right-[20%]"
-				/>
-
-				{/* Mesh gradient layer */}
-				<div className="absolute inset-0 mesh-gradient-bg opacity-50" />
+				<div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[var(--accent-primary)]/20 rounded-full blur-[120px]" />
+				<div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-600/15 rounded-full blur-[100px]" />
 			</div>
 
 			{/* Header */}

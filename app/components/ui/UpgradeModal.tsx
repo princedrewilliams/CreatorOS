@@ -1,6 +1,6 @@
 "use client";
 
-import { X, FlaskConical, Copy, Calendar, Image, Check, Search } from "lucide-react";
+import { X, FlaskConical, Copy, Check, Search } from "lucide-react";
 
 // Sparkle elements for decoration
 function SparkleElements() {
@@ -62,20 +62,6 @@ const PRO_FEATURES = [
 		description: "Publish using the same structure as top channels.",
 		iconColor: "text-blue-400",
 		bgColor: "bg-blue-500/20",
-	},
-	{
-		icon: <Image className="w-5 h-5" />,
-		title: "Thumbnail Templates",
-		description: "Design thumbnails that follow winning layouts.",
-		iconColor: "text-pink-400",
-		bgColor: "bg-pink-500/20",
-	},
-	{
-		icon: <Calendar className="w-5 h-5" />,
-		title: "Smart Scheduling",
-		description: "Publish on-strategy, every time.",
-		iconColor: "text-amber-400",
-		bgColor: "bg-amber-500/20",
 	},
 	{
 		icon: <Search className="w-5 h-5" />,
