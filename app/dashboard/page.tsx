@@ -99,7 +99,12 @@ export default function DashboardPage() {
 	};
 
 	return (
-		<main className="relative min-h-screen overflow-hidden bg-[var(--page-bg)] text-white flex flex-col">
+		<motion.main
+			initial={{ opacity: 0 }}
+			animate={{ opacity: 1 }}
+			transition={{ duration: 0.6, ease: "easeOut" }}
+			className="relative min-h-screen overflow-hidden bg-[var(--page-bg)] text-white flex flex-col"
+		>
 			{/* Glowing dots background */}
 			<div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
 				<BackgroundDots />
@@ -274,6 +279,6 @@ export default function DashboardPage() {
 					</Link>
 				</motion.div>
 			</section>
-		</main>
+		</motion.main>
 	);
 }
