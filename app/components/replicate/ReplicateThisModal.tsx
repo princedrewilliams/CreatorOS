@@ -451,7 +451,7 @@ export function ReplicateThisModal({
 										className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
 											contentType === "video"
 												? "bg-cyan-500/20 border border-cyan-500/50 text-cyan-400"
-												: "bg-white/5 border border-[var(--frosted-border)] text-[var(--text-muted)] hover:bg-white/10"
+												: "bg-white/5 border border-[var(--frosted-border)] text-white/80 hover:bg-white/10"
 										}`}
 									>
 										Regular Video
@@ -461,7 +461,7 @@ export function ReplicateThisModal({
 										className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
 											contentType === "shorts"
 												? "bg-cyan-500/20 border border-cyan-500/50 text-cyan-400"
-												: "bg-white/5 border border-[var(--frosted-border)] text-[var(--text-muted)] hover:bg-white/10"
+												: "bg-white/5 border border-[var(--frosted-border)] text-white/80 hover:bg-white/10"
 										}`}
 									>
 										YouTube Shorts
@@ -595,7 +595,7 @@ export function ReplicateThisModal({
 											className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium capitalize transition-all ${
 												videoVisibility === v
 													? "bg-cyan-500/20 border border-cyan-500/50 text-cyan-400"
-													: "bg-white/5 border border-[var(--frosted-border)] text-[var(--text-muted)] hover:bg-white/10"
+													: "bg-white/5 border border-[var(--frosted-border)] text-white/80 hover:bg-white/10"
 											}`}
 										>
 											{v}

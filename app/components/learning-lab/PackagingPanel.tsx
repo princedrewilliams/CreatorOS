@@ -318,13 +318,13 @@ export function PackagingPanel({ data }: PackagingPanelProps) {
 									{video.hooks.slice(0, 3).map((hook) => (
 										<span
 											key={hook}
-											className="text-xs px-2 py-0.5 rounded bg-violet-500/20 text-violet-400"
+											className="text-xs px-2 py-0.5 rounded bg-violet-500/20 text-white"
 										>
 											{hook}
 										</span>
 									))}
 									{video.lengthOptimal && (
-										<span className="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400">
+										<span className="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-white">
 											Optimal Length
 										</span>
 									)}

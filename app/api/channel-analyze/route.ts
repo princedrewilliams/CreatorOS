@@ -454,7 +454,7 @@ function deriveMetrics(videos: YoutubeVideo[]) {
 function computeSearchVisibility(
 	videos: YoutubeVideo[],
 	channelKeywords: { word: string; count: number }[]
-): { scores: { label: string; score: number }[]; median: number } {
+): { scores: { label: string; score: number; videoId: string }[]; median: number } {
 	if (!videos.length) {
 		return { scores: [], median: 50 };
 	}
@@ -508,6 +508,7 @@ function computeSearchVisibility(
 		return {
 			label: `V${index + 1}`,
 			score: Math.round(totalScore),
+			videoId: video.id,
 		};
 	});
 

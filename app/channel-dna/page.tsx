@@ -46,7 +46,7 @@ function BackgroundDots() {
 
 const TABS: Tab[] = [
 	{ id: "viral", label: "Viral" },
-	{ id: "search", label: "Search" },
+	{ id: "search", label: "SEO" },
 	{ id: "upload", label: "Upload" },
 	{ id: "thumb", label: "Thumbnail" },
 	{ id: "theme", label: "Theme" },
@@ -110,7 +110,7 @@ interface AnalysisResponse {
 			commonKeywords: { word: string; count: number }[];
 		};
 		searchVisibility?: {
-			scores: { label: string; score: number }[];
+			scores: { label: string; score: number; videoId?: string }[];
 			median: number;
 		};
 	};
@@ -290,6 +290,52 @@ function ChannelDNAContent() {
 			return {
 				insights: categoryData.insights,
 				severity: categoryData.severity || "neutral",
+			};
+		}
+
+		// Viral tab fallback: compute insights from video data
+		if (tabId === "viral" && !categoryData?.insights?.length) {
+			const videos = data?.data.videos || [];
+			const views = videos.map(v => v.views || 0).filter(v => v > 0);
+			const sortedViews = [...views].sort((a, b) => a - b);
+			const median = sortedViews[Math.floor(sortedViews.length / 2)] || 0;
+			const aboveMedian = views.filter(v => v > median).length;
+			const viral2x = views.filter(v => v >= median * 2).length;
+			const viewsCV = views.length > 1
+				? Math.sqrt(views.reduce((acc, v) => acc + Math.pow(v - (views.reduce((a, b) => a + b, 0) / views.length), 2), 0) / views.length) / (views.reduce((a, b) => a + b, 0) / views.length)
+				: 0;
+
+			return {
+				insights: [
+					{
+						id: "viral-median",
+						label: "Median Performance",
+						severity: aboveMedian > views.length / 2 ? "strong" : "weak",
+						evidence: `${aboveMedian} of ${views.length} videos exceeded median views.`,
+						impact: aboveMedian > views.length / 2
+							? "Strong repeatability indicates a working content formula."
+							: "Inconsistent performance suggests the formula needs refinement.",
+					},
+					{
+						id: "viral-breakout",
+						label: "Viral Breakouts",
+						severity: viral2x > 0 ? "strong" : "concerning",
+						evidence: `${viral2x} videos achieved 2x+ median views.`,
+						impact: viral2x > 0
+							? "Breakout videos show potential for viral hits."
+							: "No breakout hits detected - consider testing new formats.",
+					},
+					{
+						id: "viral-consistency",
+						label: "View Consistency",
+						severity: viewsCV < 0.8 ? "strong" : viewsCV < 1.5 ? "neutral" : "weak",
+						evidence: `View variance is ${viewsCV < 0.8 ? "low" : viewsCV < 1.5 ? "moderate" : "high"} across recent uploads.`,
+						impact: viewsCV < 0.8
+							? "Consistent performance enables predictable growth."
+							: "High variance makes growth unpredictable.",
+					},
+				],
+				severity: aboveMedian > views.length / 2 ? "strong" : "weak",
 			};
 		}
 
@@ -563,20 +609,36 @@ function ChannelDNAContent() {
 						{/* Divider */}
 						<div className="w-px bg-white/10 mx-1 self-stretch" />
 
-						{/* Features - temporarily free, Pro gate kept for future */}
+						{/* Pro Features */}
 						<button
-							onClick={() => router.push(`/learning-lab?channelUrl=${encodeURIComponent(channelUrl)}`)}
+							onClick={() => {
+								if (isPro) {
+									router.push(`/learning-lab?channelUrl=${encodeURIComponent(channelUrl)}`);
+								} else {
+									setUpgradeFeature("Learning Lab");
+									setShowUpgradeModal(true);
+								}
+							}}
 							className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5 nav-pill-glow group"
 						>
 							<FlaskConical className="w-4 h-4 transition-transform group-hover:scale-110 group-hover:rotate-12" />
 							<span>Learning Lab</span>
+							{!isPro && <Crown className="w-3 h-3 text-amber-400" />}
 						</button>
 						<button
-							onClick={() => setShowReplicateModal(true)}
+							onClick={() => {
+								if (isPro) {
+									setShowReplicateModal(true);
+								} else {
+									setUpgradeFeature("Replicate This");
+									setShowUpgradeModal(true);
+								}
+							}}
 							className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5 nav-pill-glow group"
 						>
 							<Copy className="w-4 h-4 transition-transform group-hover:scale-110" />
 							<span>Replicate</span>
+							{!isPro && <Crown className="w-3 h-3 text-amber-400" />}
 						</button>
 					</div>
 				</div>

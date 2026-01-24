@@ -3,22 +3,26 @@
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Loader2, FlaskConical, AlertCircle } from "lucide-react";
+import { ArrowLeft, Loader2, FlaskConical, AlertCircle, Crown, Lock } from "lucide-react";
 import Link from "next/link";
 import { LearningLabTabs, LEARNING_LAB_TABS } from "@/app/components/learning-lab/LearningLabTabs";
 import { PillarsPanel } from "@/app/components/learning-lab/PillarsPanel";
 import { PackagingPanel } from "@/app/components/learning-lab/PackagingPanel";
 import { CommunityPanel } from "@/app/components/learning-lab/CommunityPanel";
+import { UpgradeModal } from "@/app/components/ui/UpgradeModal";
+import { useAppStore } from "@/lib/store";
 import type { LearningLabResponse } from "@/lib/learning-lab/types";
 
 function LearningLabContent() {
 	const searchParams = useSearchParams();
 	const channelUrl = searchParams.get("channelUrl") || "";
+	const isPro = useAppStore((state) => state.isPro);
 
 	const [activeTab, setActiveTab] = useState(LEARNING_LAB_TABS[0].id);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [data, setData] = useState<LearningLabResponse | null>(null);
+	const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
 	const fetchAnalysis = useCallback(async () => {
 		if (!channelUrl) {
@@ -119,9 +123,48 @@ function LearningLabContent() {
 				</div>
 			</div>
 
+			{/* Upgrade Modal */}
+			<UpgradeModal
+				isOpen={showUpgradeModal}
+				onClose={() => setShowUpgradeModal(false)}
+				feature="Learning Lab"
+			/>
+
 			{/* Main Content */}
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-				{loading && (
+				{/* Pro Paywall */}
+				{!isPro && (
+					<motion.div
+						initial={{ opacity: 0, y: 10 }}
+						animate={{ opacity: 1, y: 0 }}
+						className="max-w-lg mx-auto text-center py-16"
+					>
+						<div className="w-20 h-20 rounded-full bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center mx-auto mb-6">
+							<Lock className="w-10 h-10 text-amber-400" />
+						</div>
+						<h2 className="text-2xl font-bold text-white mb-3">
+							Learning Lab is a Pro Feature
+						</h2>
+						<p className="text-[var(--text-muted)] mb-8 max-w-md mx-auto">
+							Unlock advanced channel analysis including content pillars, packaging psychology, and community engagement insights.
+						</p>
+						<button
+							onClick={() => setShowUpgradeModal(true)}
+							className="px-8 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold hover:opacity-90 transition-all flex items-center gap-2 mx-auto"
+						>
+							<Crown className="w-5 h-5" />
+							Upgrade to Pro
+						</button>
+						<Link
+							href={channelUrl ? `/channel-dna?url=${encodeURIComponent(channelUrl)}` : "/"}
+							className="mt-4 inline-block text-sm text-[var(--text-muted)] hover:text-white transition-colors"
+						>
+							Back to Channel DNA
+						</Link>
+					</motion.div>
+				)}
+
+				{isPro && loading && (
 					<div className="flex flex-col items-center justify-center py-24">
 						<Loader2 className="w-12 h-12 text-[var(--accent-primary)] animate-spin mb-4" />
 						<p className="text-lg text-white font-medium">Analyzing channel...</p>
@@ -131,7 +174,7 @@ function LearningLabContent() {
 					</div>
 				)}
 
-				{error && !loading && (
+				{isPro && error && !loading && (
 					<motion.div
 						initial={{ opacity: 0, y: 10 }}
 						animate={{ opacity: 1, y: 0 }}
@@ -151,7 +194,7 @@ function LearningLabContent() {
 					</motion.div>
 				)}
 
-				{data && !loading && !error && (
+				{isPro && data && !loading && !error && (
 					<motion.div
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
