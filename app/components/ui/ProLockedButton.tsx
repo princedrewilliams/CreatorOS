@@ -45,7 +45,7 @@ export function ProLockedButton({
 			{icon}
 			<span>{children}</span>
 			{!isPro && (
-				<span className="flex items-center gap-1 ml-1 px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-400 text-[10px] font-semibold uppercase tracking-wide">
+				<span className="flex items-center gap-1 ml-1 px-1.5 py-0.5 rounded-md bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] text-[10px] font-semibold uppercase tracking-wide">
 					<Crown className="w-3 h-3" />
 					Pro
 				</span>
@@ -67,8 +67,8 @@ export function ProLockedButton({
 				>
 					{content}
 					{!isPro && (
-						<div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-xl opacity-0 hover:opacity-100 transition-opacity">
-							<Lock className="w-4 h-4 text-white/60" />
+						<div className="absolute inset-0 flex items-center justify-center bg-[var(--surface-bg)]/30 rounded-xl opacity-0 hover:opacity-100 transition-opacity">
+							<Lock className="w-4 h-4 text-[var(--text-muted)]" />
 						</div>
 					)}
 				</button>

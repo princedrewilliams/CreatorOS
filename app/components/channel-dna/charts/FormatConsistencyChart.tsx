@@ -51,11 +51,11 @@ export function FormatConsistencyChart({ data, average }: FormatConsistencyChart
 						dataKey="label"
 						axisLine={false}
 						tickLine={false}
-						tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }}
+						tick={{ fill: "var(--text-muted)", fontSize: 11 }}
 						label={{
 							value: "Uploads (Old → New)",
 							position: "bottom",
-							fill: "rgba(255,255,255,0.4)",
+							fill: "var(--text-muted)",
 							fontSize: 10,
 							offset: -5,
 						}}
@@ -64,7 +64,7 @@ export function FormatConsistencyChart({ data, average }: FormatConsistencyChart
 						domain={[0, 100]}
 						axisLine={false}
 						tickLine={false}
-						tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }}
+						tick={{ fill: "var(--text-muted)", fontSize: 11 }}
 						tickFormatter={(v) => `${v}`}
 						width={40}
 						ticks={[0, 25, 50, 75, 100]}
@@ -72,40 +72,40 @@ export function FormatConsistencyChart({ data, average }: FormatConsistencyChart
 							value: "Format Similarity (0-100)",
 							angle: -90,
 							position: "insideLeft",
-							fill: "rgba(255,255,255,0.4)",
+							fill: "var(--text-muted)",
 							fontSize: 10,
 							dx: -5,
 						}}
 					/>
 					<Tooltip
 						contentStyle={{
-							background: "rgba(0,0,0,0.9)",
-							border: "1px solid rgba(236,72,153,0.3)",
+							background: "var(--surface-bg)",
+							border: "1px solid var(--accent-primary)",
 							borderRadius: "12px",
 							fontSize: "12px",
-							boxShadow: "0 8px 32px rgba(236,72,153,0.2)",
+							boxShadow: "0 8px 32px var(--accent-glow)",
 							backdropFilter: "blur(8px)",
 						}}
-						labelStyle={{ color: "rgba(255,255,255,0.7)", marginBottom: "4px" }}
+						labelStyle={{ color: "var(--text-muted)", marginBottom: "4px" }}
 						formatter={(value: number) => [
-							<span key="value" className="text-white font-medium">
-								<span className="text-white/60 text-xs block mb-1">
+							<span key="value" className="text-[var(--text-primary)] font-medium">
+								<span className="text-[var(--text-muted)] text-xs block mb-1">
 									Measures how closely this video matches the channel's most common format
 								</span>
-								Format Similarity: <span className="text-[#ec4899]">{value}</span>/100
+								Format Similarity: <span className="text-[var(--accent-primary)]">{value}</span>/100
 							</span>,
 							""
 						]}
 						separator=""
-						cursor={{ stroke: "rgba(236,72,153,0.3)", strokeWidth: 1 }}
+						cursor={{ stroke: "var(--accent-muted)", strokeWidth: 1 }}
 					/>
 					<ReferenceLine
 						y={average}
-						stroke="rgba(255,255,255,0.25)"
+						stroke="var(--border-default)"
 						strokeDasharray="6 4"
 						label={{
 							value: `Channel Average: ${average}`,
-							fill: "rgba(255,255,255,0.5)",
+							fill: "var(--text-muted)",
 							fontSize: 10,
 							position: "right",
 						}}

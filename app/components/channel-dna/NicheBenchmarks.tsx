@@ -85,10 +85,10 @@ export function NicheBenchmarks({
 	};
 
 	const getPercentileColor = (pct: number) => {
-		if (pct >= 75) return "text-emerald-400";
+		if (pct >= 75) return "text-[var(--status-success-text)]";
 		if (pct >= 50) return "text-[var(--text-primary)]";
-		if (pct >= 25) return "text-amber-400";
-		return "text-red-400";
+		if (pct >= 25) return "text-[var(--status-warning-text)]";
+		return "text-[var(--status-error-text)]";
 	};
 
 	return (
@@ -96,7 +96,7 @@ export function NicheBenchmarks({
 			{/* Trigger Button */}
 			<button
 				onClick={handleOpen}
-				className="flex items-center gap-2 px-4 py-2 bg-[var(--frosted-bg)] backdrop-blur-sm border border-[var(--frosted-border)] rounded-xl hover:bg-[var(--frosted-bg-hover)] transition-colors text-sm text-[var(--text-secondary)] hover:text-white"
+				className="flex items-center gap-2 px-4 py-2 bg-[var(--frosted-bg)] backdrop-blur-sm border border-[var(--frosted-border)] rounded-xl hover:bg-[var(--frosted-bg-hover)] transition-colors text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
 			>
 				<BarChart3 className="w-4 h-4" />
 				<span>Niche Benchmarks</span>
@@ -111,18 +111,18 @@ export function NicheBenchmarks({
 							onClick={() => setIsOpen(false)}
 						/>
 
-						<div className="relative w-full max-w-3xl my-8 bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-2xl">
+						<div className="relative w-full max-w-3xl my-8 bg-[var(--surface-bg)] border border-[var(--border-subtle)] rounded-2xl shadow-2xl">
 						{/* Header */}
-						<div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-white/10 bg-[#0a0a0a] rounded-t-2xl">
+						<div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-[var(--border-subtle)] bg-[var(--surface-bg)] rounded-t-2xl">
 							<div>
-								<h2 className="text-lg font-semibold text-white">Niche Benchmarks</h2>
+								<h2 className="text-lg font-semibold text-[var(--text-primary)]">Niche Benchmarks</h2>
 								<p className="text-sm text-[var(--text-muted)] mt-1">
 									Comparing against {data?.channels.length || 0} similar channels
 								</p>
 							</div>
 							<button
 								onClick={() => setIsOpen(false)}
-								className="p-2 rounded-lg hover:bg-white/10 transition-colors text-white text-xl font-bold"
+								className="p-2 rounded-lg hover:bg-[var(--surface-hover)] transition-colors text-[var(--text-primary)] text-xl font-bold"
 							>
 								×
 							</button>
@@ -137,10 +137,10 @@ export function NicheBenchmarks({
 								</div>
 							) : error ? (
 								<div className="text-center py-12">
-									<p className="text-red-400">{error}</p>
+									<p className="text-[var(--status-error-text)]">{error}</p>
 									<button
 										onClick={fetchBenchmarks}
-										className="mt-4 px-4 py-2 bg-white/5 rounded-lg hover:bg-white/10 transition-colors text-sm"
+										className="mt-4 px-4 py-2 bg-[var(--surface-elevated)] rounded-lg hover:bg-[var(--surface-hover)] transition-colors text-sm text-[var(--text-primary)]"
 									>
 										Try Again
 									</button>
@@ -149,7 +149,7 @@ export function NicheBenchmarks({
 								<>
 									{/* Position Summary */}
 									<div className="p-4 bg-gradient-to-r from-[var(--accent-primary)]/10 to-purple-500/10 border border-[var(--accent-primary)]/20 rounded-xl">
-										<h3 className="text-sm font-medium text-white mb-3">Your Position</h3>
+										<h3 className="text-sm font-medium text-[var(--text-primary)] mb-3">Your Position</h3>
 										<div className="grid grid-cols-2 gap-4 mb-3">
 											<div>
 												<p className="text-xs text-[var(--text-muted)]">Subscriber Percentile</p>
@@ -175,23 +175,23 @@ export function NicheBenchmarks({
 											Niche Medians
 										</h3>
 										<div className="grid grid-cols-3 gap-3">
-											<div className="p-3 bg-white/5 rounded-lg">
+											<div className="p-3 bg-[var(--surface-elevated)] rounded-lg">
 												<Users className="w-4 h-4 text-[var(--text-muted)] mb-2" />
-												<p className="text-lg font-semibold text-white">
+												<p className="text-lg font-semibold text-[var(--text-primary)]">
 													{formatNumber(data.medianSubscribers)}
 												</p>
 												<p className="text-xs text-[var(--text-muted)]">Subscribers</p>
 											</div>
-											<div className="p-3 bg-white/5 rounded-lg">
+											<div className="p-3 bg-[var(--surface-elevated)] rounded-lg">
 												<TrendingUp className="w-4 h-4 text-[var(--text-muted)] mb-2" />
-												<p className="text-lg font-semibold text-white">
+												<p className="text-lg font-semibold text-[var(--text-primary)]">
 													{formatNumber(data.medianViews)}
 												</p>
 												<p className="text-xs text-[var(--text-muted)]">Total Views</p>
 											</div>
-											<div className="p-3 bg-white/5 rounded-lg">
+											<div className="p-3 bg-[var(--surface-elevated)] rounded-lg">
 												<BarChart3 className="w-4 h-4 text-[var(--text-muted)] mb-2" />
-												<p className="text-lg font-semibold text-white">
+												<p className="text-lg font-semibold text-[var(--text-primary)]">
 													{data.medianVideos}
 												</p>
 												<p className="text-xs text-[var(--text-muted)]">Videos</p>
@@ -208,7 +208,7 @@ export function NicheBenchmarks({
 											{data.topPatterns.map((pattern, i) => (
 												<div
 													key={i}
-													className="flex items-start gap-2 p-3 bg-white/5 rounded-lg"
+													className="flex items-start gap-2 p-3 bg-[var(--surface-elevated)] rounded-lg"
 												>
 													<ChevronRight className="w-4 h-4 text-[var(--accent-primary)] mt-0.5" />
 													<p className="text-sm text-[var(--text-primary)]">{pattern}</p>
@@ -229,7 +229,7 @@ export function NicheBenchmarks({
 													href={`https://youtube.com/channel/${channel.id}`}
 													target="_blank"
 													rel="noopener noreferrer"
-													className="flex items-center gap-3 p-3 bg-white/5 border border-white/5 rounded-lg hover:border-white/20 transition-colors"
+													className="flex items-center gap-3 p-3 bg-[var(--surface-elevated)] border border-[var(--border-subtle)] rounded-lg hover:border-[var(--border-default)] transition-colors"
 												>
 													<img
 														src={channel.thumbnail}
@@ -237,7 +237,7 @@ export function NicheBenchmarks({
 														className="w-10 h-10 rounded-full"
 													/>
 													<div className="flex-1 min-w-0">
-														<p className="text-sm text-white truncate">{channel.title}</p>
+														<p className="text-sm text-[var(--text-primary)] truncate">{channel.title}</p>
 														<p className="text-xs text-[var(--text-muted)]">
 															{formatNumber(channel.subscriberCount)} subs
 														</p>

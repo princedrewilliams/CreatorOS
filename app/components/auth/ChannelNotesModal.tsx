@@ -54,20 +54,20 @@ export function ChannelNotesModal({
 		<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
 			{/* Backdrop */}
 			<div
-				className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+				className="absolute inset-0 bg-black/60 dark:bg-black/60 backdrop-blur-sm"
 				onClick={onClose}
 			/>
 
 			{/* Modal */}
-			<div className="relative w-full max-w-lg bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 shadow-2xl">
+			<div className="relative w-full max-w-lg bg-[var(--surface-bg)] border border-[var(--border-subtle)] rounded-2xl p-6 shadow-2xl">
 				{/* Header */}
 				<div className="flex items-center justify-between mb-4">
-					<h2 className="text-lg font-semibold text-white">
+					<h2 className="text-lg font-semibold text-[var(--text-primary)]">
 						Notes for {channelName}
 					</h2>
 					<button
 						onClick={onClose}
-						className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+						className="p-2 rounded-lg hover:bg-[var(--surface-hover)] transition-colors"
 					>
 						<X className="w-5 h-5 text-[var(--text-muted)]" />
 					</button>
@@ -78,14 +78,14 @@ export function ChannelNotesModal({
 					value={notes}
 					onChange={(e) => setNotes(e.target.value)}
 					placeholder="Add your notes about this channel..."
-					className="w-full h-40 bg-white/[0.03] border border-white/10 rounded-xl p-4 text-white placeholder:text-[var(--text-muted)] resize-none focus:outline-none focus:border-[var(--accent-primary)]/50"
+					className="w-full h-40 bg-[var(--surface-elevated)] border border-[var(--border-subtle)] rounded-xl p-4 text-[var(--text-primary)] placeholder:text-[var(--text-muted)] resize-none focus:outline-none focus:border-[var(--accent-primary)]/50"
 				/>
 
 				{/* Footer */}
 				<div className="flex justify-end gap-3 mt-4">
 					<button
 						onClick={onClose}
-						className="px-4 py-2 rounded-xl text-[var(--text-secondary)] hover:bg-white/[0.05] transition-colors"
+						className="px-4 py-2 rounded-xl text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] transition-colors"
 					>
 						Cancel
 					</button>

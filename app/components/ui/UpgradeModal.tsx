@@ -83,14 +83,14 @@ export function UpgradeModal({ isOpen, onClose, feature }: UpgradeModalProps) {
 			/>
 
 			{/* Modal */}
-			<div className="relative w-full max-w-lg mx-4 bg-[var(--frosted-bg)] backdrop-blur-xl border border-[var(--frosted-border)] rounded-2xl shadow-2xl overflow-hidden animate-scale-in">
+			<div className="relative w-full max-w-lg mx-4 bg-[var(--surface-bg)] backdrop-blur-xl border border-[var(--border-subtle)] rounded-2xl shadow-2xl overflow-hidden animate-scale-in">
 				{/* Gradient accent */}
 				<div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-violet-500 via-pink-500 to-amber-500" />
 
 				{/* Close button */}
 				<button
 					onClick={onClose}
-					className="absolute top-4 right-4 p-1 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-white/10 transition-colors"
+					className="absolute top-4 right-4 p-1 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors"
 				>
 					<X className="w-5 h-5" />
 				</button>
@@ -102,12 +102,12 @@ export function UpgradeModal({ isOpen, onClose, feature }: UpgradeModalProps) {
 						<div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 mb-4">
 							<Crown className="w-6 h-6 text-white" />
 						</div>
-						<h2 className="text-xl font-semibold text-white mb-2">
+						<h2 className="text-xl font-semibold text-[var(--text-primary)] mb-2">
 							Upgrade to Pro
 						</h2>
 						{feature && (
 							<p className="text-[var(--text-secondary)] text-sm">
-								<span className="text-white font-medium">{feature}</span> is a Pro feature
+								<span className="text-[var(--text-primary)] font-medium">{feature}</span> is a Pro feature
 							</p>
 						)}
 					</div>
@@ -117,13 +117,13 @@ export function UpgradeModal({ isOpen, onClose, feature }: UpgradeModalProps) {
 						{PRO_BENEFITS.map((benefit, index) => (
 							<div
 								key={index}
-								className="flex items-start gap-3 p-3 rounded-xl bg-white/5"
+								className="flex items-start gap-3 p-3 rounded-xl bg-[var(--surface-elevated)]"
 							>
 								<div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500/20 to-pink-500/20 flex items-center justify-center text-violet-400">
 									{benefit.icon}
 								</div>
 								<div>
-									<h3 className="text-sm font-medium text-white">
+									<h3 className="text-sm font-medium text-[var(--text-primary)]">
 										{benefit.title}
 									</h3>
 									<p className="text-xs text-[var(--text-muted)]">
@@ -136,7 +136,7 @@ export function UpgradeModal({ isOpen, onClose, feature }: UpgradeModalProps) {
 
 					{/* Error */}
 					{error && (
-						<div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+						<div className="mb-4 p-3 rounded-lg bg-[var(--status-error-bg)] border border-[var(--status-error-border)] text-[var(--status-error-text)] text-sm">
 							{error}
 						</div>
 					)}
@@ -147,18 +147,18 @@ export function UpgradeModal({ isOpen, onClose, feature }: UpgradeModalProps) {
 						<button
 							onClick={() => handlePurchase("monthly")}
 							disabled={loading !== null}
-							className="relative p-4 rounded-xl border border-[var(--frosted-border)] bg-white/5 hover:bg-white/10 transition-all group disabled:opacity-50"
+							className="relative p-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-elevated)] hover:bg-[var(--surface-hover)] transition-all group disabled:opacity-50"
 						>
 							<div className="text-left">
-								<span className="text-2xl font-bold text-white">$19</span>
+								<span className="text-2xl font-bold text-[var(--text-primary)]">$19</span>
 								<span className="text-[var(--text-muted)] text-sm">/mo</span>
 							</div>
 							<p className="text-xs text-[var(--text-muted)] mt-1">
 								Monthly billing
 							</p>
 							{loading === "monthly" && (
-								<div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl">
-									<div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+								<div className="absolute inset-0 flex items-center justify-center bg-[var(--surface-bg)]/80 rounded-xl">
+									<div className="w-5 h-5 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin" />
 								</div>
 							)}
 						</button>
@@ -173,15 +173,15 @@ export function UpgradeModal({ isOpen, onClose, feature }: UpgradeModalProps) {
 								Save 35%
 							</div>
 							<div className="text-left">
-								<span className="text-2xl font-bold text-white">$149</span>
+								<span className="text-2xl font-bold text-[var(--text-primary)]">$149</span>
 								<span className="text-[var(--text-muted)] text-sm">/yr</span>
 							</div>
 							<p className="text-xs text-[var(--text-muted)] mt-1">
 								$12.42/mo billed annually
 							</p>
 							{loading === "annual" && (
-								<div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl">
-									<div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+								<div className="absolute inset-0 flex items-center justify-center bg-[var(--surface-bg)]/80 rounded-xl">
+									<div className="w-5 h-5 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin" />
 								</div>
 							)}
 						</button>
