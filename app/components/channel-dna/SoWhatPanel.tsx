@@ -45,14 +45,14 @@ export function SoWhatPanel({ section, userNiche, channelName }: SoWhatPanelProp
 			{isExpanded && (
 				<div className="space-y-3">
 					{/* Context */}
-					<div className="backdrop-blur-[var(--frosted-blur)] border border-[var(--frosted-border)] bg-[var(--frosted-bg)] rounded-xl p-4">
+					<div className="backdrop-blur-[var(--frosted-blur)] border border-[var(--frosted-border)] bg-[var(--frosted-bg)] rounded-xl p-4 insight-card">
 						<p className="text-sm text-[var(--text-primary)] leading-relaxed">
 							{section.context}
 						</p>
 					</div>
 
 					{/* What This Creator Does Well */}
-					<div className="backdrop-blur-[var(--frosted-blur)] border border-emerald-500/30 bg-emerald-500/5 rounded-xl p-4">
+					<div className="backdrop-blur-[var(--frosted-blur)] border border-emerald-500/30 bg-emerald-500/5 rounded-xl p-4 transition-all duration-300 hover:border-emerald-500/50 hover:shadow-[0_8px_32px_rgba(16,185,129,0.15)]">
 						<div className="flex items-center gap-2 mb-2">
 							<TrendingUp className="w-4 h-4 text-emerald-400" />
 							<span className="text-xs font-medium text-emerald-400 uppercase tracking-wide">
@@ -69,7 +69,7 @@ export function SoWhatPanel({ section, userNiche, channelName }: SoWhatPanelProp
 					</div>
 
 					{/* What Limits Their Approach */}
-					<div className="backdrop-blur-[var(--frosted-blur)] border border-amber-500/30 bg-amber-500/5 rounded-xl p-4">
+					<div className="backdrop-blur-[var(--frosted-blur)] border border-amber-500/30 bg-amber-500/5 rounded-xl p-4 transition-all duration-300 hover:border-amber-500/50 hover:shadow-[0_8px_32px_rgba(245,158,11,0.15)]">
 						<div className="flex items-center gap-2 mb-2">
 							<AlertCircle className="w-4 h-4 text-amber-400" />
 							<span className="text-xs font-medium text-amber-400 uppercase tracking-wide">
@@ -86,7 +86,7 @@ export function SoWhatPanel({ section, userNiche, channelName }: SoWhatPanelProp
 					</div>
 
 					{/* If You Post [NICHE] Content */}
-					<div className="backdrop-blur-[var(--frosted-blur)] border border-[var(--accent-primary)]/30 bg-[var(--accent-primary)]/5 rounded-xl p-4">
+					<div className="backdrop-blur-[var(--frosted-blur)] border border-[var(--accent-primary)]/30 bg-[var(--accent-primary)]/5 rounded-xl p-4 transition-all duration-300 hover:border-[var(--accent-primary)]/50 hover:shadow-[0_8px_32px_rgba(236,72,153,0.15)]">
 						<div className="flex items-center gap-2 mb-2">
 							<Target className="w-4 h-4 text-[var(--accent-primary)]" />
 							<span className="text-xs font-medium text-[var(--accent-primary)] uppercase tracking-wide">

@@ -1,19 +1,21 @@
 "use client";
 
 import { Suspense, useState, useEffect, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
-import { ArrowLeft, FlaskConical, Copy } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { ArrowLeft, FlaskConical, Copy, Crown } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { ReplicateThisModal } from "../components/replicate/ReplicateThisModal";
+import { UpgradeModal } from "../components/ui/UpgradeModal";
+import { useAppStore } from "@/lib/store";
 
-import { FrostedTabs, type Tab } from "../components/ui/FrostedTabs";
-import { ChannelHeader } from "../components/channel-dna/ChannelHeader";
-import { ChannelSummary } from "../components/channel-dna/ChannelSummary";
-import { NicheBenchmarks } from "../components/channel-dna/NicheBenchmarks";
+import type { Tab } from "../components/ui/FrostedTabs";
 import { InsightsPanel } from "../components/channel-dna/InsightsPanel";
 import { ChartPanel } from "../components/channel-dna/ChartPanel";
 import { TabContent } from "../components/channel-dna/TabContent";
 import { SoWhatPanel } from "../components/channel-dna/SoWhatPanel";
+import { CircularScoreBadge } from "../components/ui/CircularScoreBadge";
+import { SaveChannelButton } from "../components/auth/SaveChannelButton";
 
 import { ViralMedianChart } from "../components/channel-dna/charts/ViralMedianChart";
 import { SearchVisibilityChart } from "../components/channel-dna/charts/SearchVisibilityChart";
@@ -22,13 +24,33 @@ import { ThumbnailCTRChart } from "../components/channel-dna/charts/ThumbnailCTR
 import { ThemeConsistencyChart } from "../components/channel-dna/charts/ThemeConsistencyChart";
 import { FormatConsistencyChart } from "../components/channel-dna/charts/FormatConsistencyChart";
 
+// Glowing dots for background
+function BackgroundDots() {
+	return (
+		<>
+			{[...Array(12)].map((_, i) => (
+				<div
+					key={i}
+					className={`absolute rounded-full bg-dot-glow sparkle sparkle-${(i % 5) + 1}`}
+					style={{
+						top: `${5 + (i * 8) % 90}%`,
+						left: `${3 + (i * 11) % 94}%`,
+						width: `${4 + (i % 3) * 2}px`,
+						height: `${4 + (i % 3) * 2}px`,
+					}}
+				/>
+			))}
+		</>
+	);
+}
+
 const TABS: Tab[] = [
-	{ id: "viral", label: "Viral Score" },
-	{ id: "search", label: "Search & Discoverability" },
-	{ id: "upload", label: "Upload Consistency" },
-	{ id: "thumb", label: "Thumbnail Performance" },
-	{ id: "theme", label: "Theme Consistency" },
-	{ id: "format", label: "Format Consistency" },
+	{ id: "viral", label: "Viral" },
+	{ id: "search", label: "SEO" },
+	{ id: "upload", label: "Upload" },
+	{ id: "thumb", label: "Thumbnail" },
+	{ id: "theme", label: "Theme" },
+	{ id: "format", label: "Format" },
 ];
 
 interface ChannelData {
@@ -88,7 +110,7 @@ interface AnalysisResponse {
 			commonKeywords: { word: string; count: number }[];
 		};
 		searchVisibility?: {
-			scores: { label: string; score: number }[];
+			scores: { label: string; score: number; videoId?: string }[];
 			median: number;
 		};
 	};
@@ -110,6 +132,7 @@ interface AnalysisResponse {
 
 function ChannelDNAContent() {
 	const searchParams = useSearchParams();
+	const router = useRouter();
 	const channelUrl = searchParams.get("url") || "";
 
 	const [activeTab, setActiveTab] = useState(TABS[0].id);
@@ -117,6 +140,9 @@ function ChannelDNAContent() {
 	const [error, setError] = useState<string | null>(null);
 	const [data, setData] = useState<AnalysisResponse | null>(null);
 	const [showReplicateModal, setShowReplicateModal] = useState(false);
+	const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+	const [upgradeFeature, setUpgradeFeature] = useState<string | undefined>();
+	const isPro = useAppStore((state) => state.isPro);
 
 	const fetchAnalysis = useCallback(async () => {
 		if (!channelUrl) {
@@ -132,7 +158,7 @@ function ChannelDNAContent() {
 			const res = await fetch("/api/channel-analyze", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ channelUrl }),
+				body: JSON.stringify({ channelUrl, isPro }),
 			});
 
 			if (!res.ok) {
@@ -147,7 +173,7 @@ function ChannelDNAContent() {
 		} finally {
 			setLoading(false);
 		}
-	}, [channelUrl]);
+	}, [channelUrl, isPro]);
 
 	useEffect(() => {
 		fetchAnalysis();
@@ -230,7 +256,6 @@ function ChannelDNAContent() {
 		if (!data?.data.videos) return { data: [], average: 50 };
 		const videos = data.data.videos.slice(0, 10);
 
-		// Calculate format similarity based on video duration clustering
 		const durations = videos.map(v => v.durationSec || 0).filter(d => d > 0);
 		const avgDuration = durations.length ? durations.reduce((a, b) => a + b, 0) / durations.length : 300;
 
@@ -248,7 +273,6 @@ function ChannelDNAContent() {
 		return { data: scores, average };
 	};
 
-	// Map tab IDs to analysis category names
 	const tabToCategoryMap: Record<string, string> = {
 		viral: "Viral Potential",
 		search: "Discoverability / SEO",
@@ -258,7 +282,6 @@ function ChannelDNAContent() {
 		format: "Format Consistency",
 	};
 
-	// Get insights from API response with severity data
 	const getInsightsForTab = (tabId: string): { insights: ScoredInsight[]; severity: Severity } => {
 		const categoryName = tabToCategoryMap[tabId];
 		const categoryData = data?.analysis?.[categoryName];
@@ -270,7 +293,52 @@ function ChannelDNAContent() {
 			};
 		}
 
-		// Fallback for legacy or missing data
+		// Viral tab fallback: compute insights from video data
+		if (tabId === "viral" && !categoryData?.insights?.length) {
+			const videos = data?.data.videos || [];
+			const views = videos.map(v => v.views || 0).filter(v => v > 0);
+			const sortedViews = [...views].sort((a, b) => a - b);
+			const median = sortedViews[Math.floor(sortedViews.length / 2)] || 0;
+			const aboveMedian = views.filter(v => v > median).length;
+			const viral2x = views.filter(v => v >= median * 2).length;
+			const viewsCV = views.length > 1
+				? Math.sqrt(views.reduce((acc, v) => acc + Math.pow(v - (views.reduce((a, b) => a + b, 0) / views.length), 2), 0) / views.length) / (views.reduce((a, b) => a + b, 0) / views.length)
+				: 0;
+
+			return {
+				insights: [
+					{
+						id: "viral-median",
+						label: "Median Performance",
+						severity: aboveMedian > views.length / 2 ? "strong" : "weak",
+						evidence: `${aboveMedian} of ${views.length} videos exceeded median views.`,
+						impact: aboveMedian > views.length / 2
+							? "Strong repeatability indicates a working content formula."
+							: "Inconsistent performance suggests the formula needs refinement.",
+					},
+					{
+						id: "viral-breakout",
+						label: "Viral Breakouts",
+						severity: viral2x > 0 ? "strong" : "concerning",
+						evidence: `${viral2x} videos achieved 2x+ median views.`,
+						impact: viral2x > 0
+							? "Breakout videos show potential for viral hits."
+							: "No breakout hits detected - consider testing new formats.",
+					},
+					{
+						id: "viral-consistency",
+						label: "View Consistency",
+						severity: viewsCV < 0.8 ? "strong" : viewsCV < 1.5 ? "neutral" : "weak",
+						evidence: `View variance is ${viewsCV < 0.8 ? "low" : viewsCV < 1.5 ? "moderate" : "high"} across recent uploads.`,
+						impact: viewsCV < 0.8
+							? "Consistent performance enables predictable growth."
+							: "High variance makes growth unpredictable.",
+					},
+				],
+				severity: aboveMedian > views.length / 2 ? "strong" : "weak",
+			};
+		}
+
 		return {
 			insights: [{
 				id: `${tabId}-fallback`,
@@ -310,7 +378,6 @@ function ChannelDNAContent() {
 		},
 	};
 
-	// Compute takeaways for each chart
 	const getChartTakeaway = (tabId: string): { text: string; type: "positive" | "negative" | "neutral" } => {
 		const videos = data?.data.videos || [];
 		const views = videos.map(v => v.views || 0).filter(v => v > 0);
@@ -331,7 +398,7 @@ function ChannelDNAContent() {
 				if (freq.includes("Weekly")) return { text: `${freq} uploads - adequate for steady growth`, type: "neutral" };
 				return { text: `${freq} - increasing frequency could accelerate growth`, type: "negative" };
 			}
-				case "search": {
+			case "search": {
 				const titleLen = data?.data.metrics?.averageTitleLength || 0;
 				if (titleLen >= 40 && titleLen <= 60) return { text: `${titleLen} char avg title length - optimal for discovery`, type: "positive" };
 				if (titleLen >= 30 && titleLen <= 70) return { text: `${titleLen} char avg titles - acceptable range`, type: "neutral" };
@@ -432,6 +499,11 @@ function ChannelDNAContent() {
 
 	return (
 		<div className="min-h-screen bg-[var(--page-bg)] page-transition">
+			{/* Glowing dots background */}
+			<div className="fixed inset-0 pointer-events-none overflow-hidden">
+				<BackgroundDots />
+			</div>
+
 			{/* Subtle gradient overlay */}
 			<div
 				className="fixed inset-0 pointer-events-none"
@@ -442,69 +514,133 @@ function ChannelDNAContent() {
 			/>
 
 			<div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
-				{/* Back link */}
-				<Link
-					href="/"
-					className="inline-flex items-center gap-2 text-[var(--text-muted)] hover:text-white transition-colors mb-6 animate-fade-in"
-				>
-					<ArrowLeft className="w-4 h-4" />
-					<span className="text-sm">Back</span>
-				</Link>
+				{/* Top Bar - Back and Upgrade */}
+				<div className="flex items-center justify-between mb-6 animate-fade-in">
+					<Link
+						href="/"
+						className="inline-flex items-center gap-2 text-[var(--text-muted)] hover:text-white transition-colors"
+					>
+						<ArrowLeft className="w-4 h-4" />
+						<span className="text-sm">Back</span>
+					</Link>
 
-				{/* Header */}
-				<div className="mb-8 animate-slide-up">
-					<div className="flex items-start justify-between gap-4">
-						<div className="flex-1">
-							<ChannelHeader
-								channelId={channel?.id || ""}
-								thumbnail={channel?.thumbnail || ""}
-								name={channel?.title || "Channel"}
-								summary={getSummary()}
-								score={score?.total || 0}
-							/>
+					{isPro ? (
+						<div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-500/20 to-pink-500/20 border border-violet-500/30 rounded-xl text-sm font-medium">
+							<Crown className="w-4 h-4 text-amber-400" />
+							<span className="text-white">Pro Plan</span>
 						</div>
-						{data && (
-							<div className="flex flex-col sm:flex-row gap-2 animate-slide-in-right">
-								<ChannelSummary
-									channelName={channel?.title || "Channel"}
-									channelId={channel?.id || ""}
-									score={score || { total: 0, categories: {}, strengths: [], weaknesses: [] }}
-									metrics={data.data.metrics}
-									videos={data.data.videos}
+					) : (
+						<button
+							onClick={() => setShowUpgradeModal(true)}
+							className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl hover:opacity-90 transition-all text-sm text-white font-medium"
+						>
+							<Crown className="w-4 h-4" />
+							<span>Upgrade to Pro</span>
+						</button>
+					)}
+				</div>
+
+				{/* Channel Header - Centered on Mobile */}
+				<div className="mb-8 animate-slide-up">
+					<div className="flex flex-col items-center text-center sm:flex-row sm:text-left sm:items-start gap-4 sm:gap-6">
+						{/* Avatar */}
+						<div className="relative w-20 h-20 sm:w-16 sm:h-16 rounded-full overflow-hidden ring-2 ring-white/10 flex-shrink-0">
+							{channel?.thumbnail ? (
+								<Image
+									src={channel.thumbnail}
+									alt={channel?.title || "Channel"}
+									fill
+									className="object-cover"
 								/>
-								<NicheBenchmarks
-									channelId={channel?.id || ""}
-									keywords={data.data.metrics.commonKeywords.map(k => k.word)}
-									subscriberCount={channel?.subscriberCount}
-									viewCount={channel?.viewCount}
-									videoCount={channel?.videoCount}
-								/>
-								<Link
-									href={`/learning-lab?channelUrl=${encodeURIComponent(channelUrl)}`}
-									className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-violet-500 to-pink-500 text-white text-sm font-medium hover:opacity-90 transition-all btn-glow"
-								>
-									<FlaskConical className="w-4 h-4" />
-									<span>Learning Lab</span>
-								</Link>
-								<button
-									onClick={() => setShowReplicateModal(true)}
-									className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-medium hover:opacity-90 transition-all btn-glow"
-								>
-									<Copy className="w-4 h-4" />
-									<span>Replicate This</span>
-								</button>
+							) : (
+								<div className="w-full h-full bg-white/10 flex items-center justify-center">
+									<span className="text-2xl font-bold text-white/40">
+										{channel?.title?.charAt(0) || "?"}
+									</span>
+								</div>
+							)}
+						</div>
+
+						{/* Channel info - centered on mobile */}
+						<div className="flex-1 min-w-0">
+							<h1 className="text-2xl sm:text-2xl font-bold text-white">
+								{channel?.title || "Channel"}
+							</h1>
+							<p className="text-sm text-[var(--text-secondary)] mt-1 line-clamp-2 max-w-md mx-auto sm:mx-0">
+								{getSummary()}
+							</p>
+						</div>
+
+						{/* Score and Save */}
+						<div className="flex items-center gap-3 flex-shrink-0">
+							<SaveChannelButton
+								channelId={channel?.id || ""}
+								channelName={channel?.title || ""}
+								thumbnail={channel?.thumbnail || ""}
+							/>
+							<div className="score-badge-pulse">
+								<CircularScoreBadge score={score?.total || 0} size="lg" label="Score" />
 							</div>
-						)}
+						</div>
 					</div>
 				</div>
 
-				{/* Tabs */}
+				{/* Navigation - All buttons in one scrollable row */}
 				<div className="mb-6 animate-slide-up stagger-2">
-					<FrostedTabs
-						tabs={TABS}
-						activeTab={activeTab}
-						onTabChange={setActiveTab}
-					/>
+					<div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+						{/* Analysis Tabs */}
+						{TABS.map((tab) => {
+							const isActive = tab.id === activeTab;
+							return (
+								<button
+									key={tab.id}
+									onClick={() => setActiveTab(tab.id)}
+									className={`relative px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 ${
+										isActive
+											? "bg-[var(--accent-muted)] text-white"
+											: "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5"
+									}`}
+								>
+									{tab.label}
+								</button>
+							);
+						})}
+
+						{/* Divider */}
+						<div className="w-px bg-white/10 mx-1 self-stretch" />
+
+						{/* Pro Features */}
+						<button
+							onClick={() => {
+								if (isPro) {
+									router.push(`/learning-lab?channelUrl=${encodeURIComponent(channelUrl)}`);
+								} else {
+									setUpgradeFeature("Learning Lab");
+									setShowUpgradeModal(true);
+								}
+							}}
+							className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5 nav-pill-glow group"
+						>
+							<FlaskConical className="w-4 h-4 transition-transform group-hover:scale-110 group-hover:rotate-12" />
+							<span>Learning Lab</span>
+							{!isPro && <Crown className="w-3 h-3 text-amber-400" />}
+						</button>
+						<button
+							onClick={() => {
+								if (isPro) {
+									setShowReplicateModal(true);
+								} else {
+									setUpgradeFeature("Replicate This");
+									setShowUpgradeModal(true);
+								}
+							}}
+							className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5 nav-pill-glow group"
+						>
+							<Copy className="w-4 h-4 transition-transform group-hover:scale-110" />
+							<span>Replicate</span>
+							{!isPro && <Crown className="w-3 h-3 text-amber-400" />}
+						</button>
+					</div>
 				</div>
 
 				{/* Tab Content */}
@@ -513,7 +649,6 @@ function ChannelDNAContent() {
 					const takeaway = getChartTakeaway(activeTab);
 					const soWhatSection = data?.soWhat?.[activeTab];
 
-					// Map tab to score category
 					const tabToScoreCategory: Record<string, string> = {
 						viral: "Viral Potential",
 						search: "Discoverability / SEO",
@@ -562,6 +697,16 @@ function ChannelDNAContent() {
 				onClose={() => setShowReplicateModal(false)}
 				channelUrl={channelUrl}
 				referenceChannelName={channel?.title || "Channel"}
+			/>
+
+			{/* Upgrade Modal */}
+			<UpgradeModal
+				isOpen={showUpgradeModal}
+				onClose={() => {
+					setShowUpgradeModal(false);
+					setUpgradeFeature(undefined);
+				}}
+				feature={upgradeFeature}
 			/>
 		</div>
 	);

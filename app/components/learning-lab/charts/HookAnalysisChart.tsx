@@ -58,14 +58,14 @@ export function HookAnalysisChart({ data }: HookAnalysisChartProps) {
 					type="number"
 					axisLine={false}
 					tickLine={false}
-					tick={{ fill: "var(--text-muted)", fontSize: 11 }}
+					tick={{ fill: "#ffffff", fontSize: 11 }}
 				/>
 				<YAxis
 					type="category"
 					dataKey="hook"
 					axisLine={false}
 					tickLine={false}
-					tick={{ fill: "var(--text-muted)", fontSize: 11 }}
+					tick={{ fill: "#ffffff", fontSize: 11 }}
 					width={75}
 				/>
 				<Tooltip

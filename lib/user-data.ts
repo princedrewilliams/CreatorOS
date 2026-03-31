@@ -21,6 +21,7 @@ export interface UserSubscription {
 	planType?: "monthly" | "annual";
 	purchasedAt?: string;
 	expiresAt?: string;
+	cancelledAt?: string;
 }
 
 export interface UserStripeConnection {
@@ -73,6 +74,20 @@ export function getUserSubscription(userId: string): UserSubscription | null {
 export function setUserSubscription(userId: string, subscription: UserSubscription) {
 	userSubscriptions.set(userId, subscription);
 	return subscription;
+}
+
+export function cancelUserSubscription(userId: string): UserSubscription {
+	const currentSubscription = getUserSubscription(userId);
+	const cancelledSubscription: UserSubscription = {
+		userId,
+		isPro: false,
+		planType: currentSubscription?.planType,
+		purchasedAt: currentSubscription?.purchasedAt,
+		expiresAt: undefined,
+		cancelledAt: new Date().toISOString(),
+	};
+	userSubscriptions.set(userId, cancelledSubscription);
+	return cancelledSubscription;
 }
 
 // Stripe Connections

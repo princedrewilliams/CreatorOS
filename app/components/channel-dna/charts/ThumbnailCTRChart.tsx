@@ -138,11 +138,12 @@ export function ThumbnailCTRChart({ data }: ThumbnailCTRChartProps) {
 					<XAxis
 						dataKey="ctrProxy"
 						name="Engagement Rate"
+						type="number"
 						axisLine={false}
 						tickLine={false}
 						tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }}
 						tickFormatter={(v) => `${v}%`}
-						domain={[0, "auto"]}
+						domain={[0, "dataMax"]}
 						label={{
 							value: "Engagement Rate →",
 							position: "bottom",

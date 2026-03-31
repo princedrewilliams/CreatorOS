@@ -45,7 +45,7 @@ export function ChartPanel({ title, description, score, takeaway, takeawayType =
 	const Icon = styles.icon;
 
 	return (
-		<div className="bg-[var(--frosted-bg)] backdrop-blur-[var(--frosted-blur)] border border-[var(--frosted-border)] rounded-2xl p-5 h-full">
+		<div className="bg-[var(--frosted-bg)] backdrop-blur-[var(--frosted-blur)] border border-[var(--frosted-border)] rounded-2xl p-5 h-full chart-card-hover">
 			{/* Header with title and optional score */}
 			<div className="flex items-center justify-between mb-4">
 				<div className="flex items-center gap-2">
@@ -68,7 +68,7 @@ export function ChartPanel({ title, description, score, takeaway, takeawayType =
 			</div>
 
 			{/* Chart area */}
-			<div className="h-52 chart-enter">{children}</div>
+			<div className="h-72 chart-enter">{children}</div>
 
 			{/* Takeaway strip at bottom */}
 			{takeaway && (

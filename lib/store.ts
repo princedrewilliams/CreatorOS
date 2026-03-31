@@ -68,6 +68,7 @@ interface AppState {
 	isPro: boolean;
 	setIsPro: (isPro: boolean) => void;
 	syncProStatus: () => Promise<void>;
+	cancelSubscription: () => Promise<{ success: boolean; error?: string }>;
 	sidebarOpen: boolean;
 	setSidebarOpen: (open: boolean) => void;
 	tasks: Task[];
@@ -101,6 +102,21 @@ export const useAppStore = create<AppState>()(
 					}
 				} catch (error) {
 					console.error("Failed to sync Pro status:", error);
+				}
+			},
+			cancelSubscription: async () => {
+				try {
+					const response = await fetch("/api/subscription/cancel", {
+						method: "POST",
+					});
+					const data = await response.json();
+					if (response.ok) {
+						set({ isPro: false });
+						return { success: true };
+					}
+					return { success: false, error: data.error };
+				} catch (error) {
+					return { success: false, error: "Failed to cancel subscription" };
 				}
 			},
 			sidebarOpen: false,

@@ -69,26 +69,12 @@ const TEMPLATE_CONFIGS: Record<CanvaTemplateType, TemplateConfig> = {
 const CANVA_THUMBNAIL_DEEP_LINK =
 	"https://www.canva.com/design?create&type=TABzW6DJhNk&category=youtube-thumbnails";
 
-// Curated Canva template IDs for each template type
-// To add templates:
-// 1. Go to canva.com/youtube-thumbnails/templates
-// 2. Click "Customize this template" on a matching template
-// 3. Extract ID from URL: canva.com/templates/EAF...xxx → ID is "EAF...xxx"
-// 4. Add the ID to the appropriate array below
-const CANVA_TEMPLATE_IDS: Record<CanvaTemplateType, string[]> = {
-	// TODO: Add curated template IDs. For now, falls back to search-filtered gallery.
-	"face-left-text-right": [],
-	"face-right-text-left": [],
-	"center-subject-no-text": [],
-	"text-heavy-top-image-bottom": [],
-};
-
-// Search queries for template gallery fallback (when no specific template ID)
+// Search queries for template gallery - these create working URLs
 const CANVA_TEMPLATE_SEARCH_QUERIES: Record<CanvaTemplateType, string> = {
-	"face-left-text-right": "face portrait",
-	"face-right-text-left": "portrait person",
-	"center-subject-no-text": "minimal clean",
-	"text-heavy-top-image-bottom": "bold text typography",
+	"face-left-text-right": "youtube thumbnail face portrait bold text",
+	"face-right-text-left": "youtube thumbnail portrait person bold",
+	"center-subject-no-text": "youtube thumbnail minimal clean simple",
+	"text-heavy-top-image-bottom": "youtube thumbnail bold text typography",
 };
 
 /**
@@ -262,26 +248,17 @@ export function aggregateFormatProfile(
 
 /**
  * Build Canva deep link URL for a specific template type
- * Uses curated template IDs when available, falls back to search-filtered gallery
+ * Opens Canva template gallery filtered by relevant search terms
  */
 export function buildCanvaDeepLink(templateType?: CanvaTemplateType): string {
 	if (!templateType) {
 		return CANVA_THUMBNAIL_DEEP_LINK;
 	}
 
-	const templateIds = CANVA_TEMPLATE_IDS[templateType];
-
-	// Use curated template if available
-	if (templateIds && templateIds.length > 0) {
-		// Pick random template for variety
-		const templateId = templateIds[Math.floor(Math.random() * templateIds.length)];
-		return `https://www.canva.com/templates/${templateId}`;
-	}
-
-	// Fallback to filtered template gallery
+	// Use search query to filter template gallery
 	const searchQuery = CANVA_TEMPLATE_SEARCH_QUERIES[templateType];
 	if (searchQuery) {
-		return `https://www.canva.com/youtube-thumbnails/templates/?query=${encodeURIComponent(searchQuery)}`;
+		return `https://www.canva.com/templates/?query=${encodeURIComponent(searchQuery)}`;
 	}
 
 	return CANVA_THUMBNAIL_DEEP_LINK;

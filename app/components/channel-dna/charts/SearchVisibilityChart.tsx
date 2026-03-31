@@ -13,6 +13,7 @@ import {
 interface DataPoint {
 	label: string;
 	score: number;
+	videoId?: string;
 }
 
 interface SearchVisibilityChartProps {
@@ -28,7 +29,7 @@ export function SearchVisibilityChart({ data, median }: SearchVisibilityChartPro
 			{/* Chart */}
 			<div className="flex-1 min-h-0">
 				<ResponsiveContainer width="100%" height="100%">
-					<AreaChart data={data} margin={{ top: 20, right: 20, left: 10, bottom: 10 }}>
+					<AreaChart data={data} margin={{ top: 20, right: 80, left: 10, bottom: 10 }}>
 						{/* SVG Definitions */}
 						<defs>
 							{/* Area gradient */}
@@ -76,7 +77,7 @@ export function SearchVisibilityChart({ data, median }: SearchVisibilityChartPro
 							stroke="rgba(255,255,255,0.25)"
 							strokeDasharray="6 4"
 							label={{
-								value: `Channel Baseline: ${median}`,
+								value: `Baseline: ${median}`,
 								position: "right",
 								fill: "rgba(255,255,255,0.5)",
 								fontSize: 10,
@@ -114,17 +115,47 @@ export function SearchVisibilityChart({ data, median }: SearchVisibilityChartPro
 							filter="url(#searchGlow)"
 							animationDuration={1500}
 							animationEasing="ease-out"
-							dot={{
-								fill: "#ec4899",
-								r: 4,
-								strokeWidth: 2,
-								stroke: "rgba(236,72,153,0.3)",
+							dot={(props: any) => {
+								const { cx, cy, payload } = props;
+								const handleClick = () => {
+									if (payload?.videoId) {
+										window.open(`https://www.youtube.com/watch?v=${payload.videoId}`, '_blank');
+									}
+								};
+								return (
+									<circle
+										key={payload?.label}
+										cx={cx}
+										cy={cy}
+										r={4}
+										fill="#ec4899"
+										stroke="rgba(236,72,153,0.3)"
+										strokeWidth={2}
+										onClick={handleClick}
+										style={{ cursor: payload?.videoId ? 'pointer' : 'default' }}
+									/>
+								);
 							}}
-							activeDot={{
-								r: 6,
-								fill: "#ec4899",
-								stroke: "rgba(236,72,153,0.4)",
-								strokeWidth: 2,
+							activeDot={(props: any) => {
+								const { cx, cy, payload } = props;
+								const handleClick = () => {
+									if (payload?.videoId) {
+										window.open(`https://www.youtube.com/watch?v=${payload.videoId}`, '_blank');
+									}
+								};
+								return (
+									<circle
+										key={`active-${payload?.label}`}
+										cx={cx}
+										cy={cy}
+										r={6}
+										fill="#ec4899"
+										stroke="rgba(236,72,153,0.4)"
+										strokeWidth={2}
+										onClick={handleClick}
+										style={{ cursor: payload?.videoId ? 'pointer' : 'default' }}
+									/>
+								);
 							}}
 						/>
 					</AreaChart>

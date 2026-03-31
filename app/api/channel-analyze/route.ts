@@ -333,6 +333,76 @@ async function fetchVideoDetails(ids: string[]): Promise<YoutubeVideo[]> {
 	return results;
 }
 
+// Analyze hook and intro consistency across videos using AI
+interface HookAnalysisResult {
+	hookConsistencyScore: number;
+	commonHookPatterns: string[];
+	introStyleConsistency: "high" | "medium" | "low";
+	pacingConsistency: "high" | "medium" | "low";
+	hookExamples: { videoTitle: string; hookStyle: string }[];
+	recommendation: string;
+}
+
+async function analyzeHookConsistency(
+	client: OpenAI,
+	videos: YoutubeVideo[],
+	channelName: string
+): Promise<HookAnalysisResult | null> {
+	const recentVideos = videos.slice(0, 10);
+	if (recentVideos.length < 3) return null;
+
+	const videoData = recentVideos.map(v => ({
+		title: v.title,
+		durationSec: v.durationSec,
+		views: v.views,
+	}));
+
+	const prompt = `Analyze hook and intro consistency for ${channelName}'s YouTube videos.
+
+VIDEO DATA:
+${JSON.stringify(videoData, null, 2)}
+
+Analyze these specific patterns:
+1. HOOK TYPE CONSISTENCY: Do titles use the same hook style? (question hooks, bold statements, curiosity gaps, number lists, "How to...", etc.)
+2. INTRO LENGTH SIGNALS: Based on video duration patterns, do videos likely have consistent intro lengths?
+3. PACING: Is there a consistent video length that suggests a repeatable format?
+
+SCORING CRITERIA for hookConsistencyScore (0-100):
+- 85-100: 80%+ of videos use the same 1-2 hook types
+- 70-84: 60-79% consistency in hook patterns
+- 50-69: Mixed hook styles but some patterns visible
+- 0-49: No consistent hook pattern detected
+
+Return this exact JSON:
+{
+  "hookConsistencyScore": <0-100>,
+  "commonHookPatterns": ["pattern1", "pattern2"],
+  "introStyleConsistency": "high" | "medium" | "low",
+  "pacingConsistency": "high" | "medium" | "low",
+  "hookExamples": [
+    { "videoTitle": "<actual title>", "hookStyle": "<detected style>" }
+  ],
+  "recommendation": "<one specific, actionable suggestion>"
+}`;
+
+	try {
+		const completion = await client.chat.completions.create({
+			model: "gpt-4.1-mini",
+			messages: [
+				{ role: "system", content: "You are a YouTube content analyst. Return only valid JSON. Be precise." },
+				{ role: "user", content: prompt },
+			],
+			response_format: { type: "json_object" },
+		});
+
+		const content = completion.choices?.[0]?.message?.content || "{}";
+		return JSON.parse(content) as HookAnalysisResult;
+	} catch (err) {
+		console.error("Hook analysis failed:", err);
+		return null;
+	}
+}
+
 function deriveMetrics(videos: YoutubeVideo[]) {
 	if (!videos.length) {
 		return {
@@ -384,7 +454,7 @@ function deriveMetrics(videos: YoutubeVideo[]) {
 function computeSearchVisibility(
 	videos: YoutubeVideo[],
 	channelKeywords: { word: string; count: number }[]
-): { scores: { label: string; score: number }[]; median: number } {
+): { scores: { label: string; score: number; videoId: string }[]; median: number } {
 	if (!videos.length) {
 		return { scores: [], median: 50 };
 	}
@@ -438,6 +508,7 @@ function computeSearchVisibility(
 		return {
 			label: `V${index + 1}`,
 			score: Math.round(totalScore),
+			videoId: video.id,
 		};
 	});
 
@@ -453,8 +524,9 @@ function buildHeuristicAnalysis(payload: {
 	videos: YoutubeVideo[];
 	metrics: ReturnType<typeof deriveMetrics>;
 	scores: ReturnType<typeof computeScores>;
+	hookAnalysis?: HookAnalysisResult | null;
 }): Record<string, CategoryAnalysis> {
-	const { channel, videos, metrics, scores } = payload;
+	const { channel, videos, metrics, scores, hookAnalysis } = payload;
 
 	// Calculate key statistics for evidence-based insights
 	const views = videos.map((v) => v.views || 0).filter(v => v > 0);
@@ -826,42 +898,149 @@ function buildHeuristicAnalysis(payload: {
 		? durations.reduce((sum, d) => sum + Math.pow(d - avgDuration, 2), 0) / durations.length
 		: 0;
 	const durationCV = avgDuration > 0 ? Math.sqrt(durationVariance) / avgDuration : 1;
-	const formatScore = Math.max(20, Math.min(100, Math.round(100 - durationCV * 80)));
+
+	// Combine duration consistency with hook analysis if available
+	const durationScore = Math.max(20, Math.min(100, Math.round(100 - durationCV * 80)));
+	const hookScore = hookAnalysis?.hookConsistencyScore || durationScore;
+	const formatScore = hookAnalysis
+		? Math.round((durationScore * 0.4) + (hookScore * 0.6)) // Weight hooks more heavily
+		: durationScore;
 	const formatSeverity: Severity = formatScore >= 70 ? "strong" : formatScore >= 40 ? "neutral" : "weak";
 
-	const formatInsights: ScoredInsight[] = [
-		{
-			id: "format-length",
-			label: "Video Length Consistency",
+	// Build specific format insights
+	const formatInsights: ScoredInsight[] = [];
+
+	// 1. RECOGNIZABLE FORMAT PATTERN - The rewritten insight
+	// Definition: Whether viewers can predict video structure from the first 30 seconds
+	const hookPatterns = hookAnalysis?.commonHookPatterns || [];
+	const hookExamples = hookAnalysis?.hookExamples?.slice(0, 2) || [];
+	const introConsistency = hookAnalysis?.introStyleConsistency || "medium";
+
+	const recognizableFormatSeverity: Severity =
+		hookAnalysis && hookScore >= 70 ? "strong" :
+		hookAnalysis && hookScore >= 50 ? "neutral" : "weak";
+
+	// Build evidence based on actual detected signals
+	let recognizableEvidence = "";
+	if (hookAnalysis && hookPatterns.length > 0) {
+		const patternList = hookPatterns.slice(0, 2).join(" and ");
+		if (hookScore >= 70) {
+			recognizableEvidence = `This channel uses a repeatable format: ${patternList}. ` +
+				`${introConsistency === "high" ? "Intros follow a consistent structure. " : ""}` +
+				`${hookExamples.length > 0 ? `Example: "${hookExamples[0].videoTitle}" uses a ${hookExamples[0].hookStyle}.` : ""}`;
+		} else if (hookScore >= 50) {
+			recognizableEvidence = `Some format patterns detected (${patternList}), but not used consistently. ` +
+				`${introConsistency !== "high" ? "Intro styles vary between videos." : ""}`;
+		} else {
+			recognizableEvidence = `No consistent format pattern detected. Videos open differently each time ` +
+				`(hooks, pacing, and structure vary significantly).`;
+		}
+	} else {
+		// Fallback when no AI analysis - still identify patterns
+		const avgMinutes = Math.round(avgDuration / 60);
+		const titles = videos.map(v => v.title || "");
+		const patterns: string[] = [];
+
+		if (titles.filter(t => t.includes("?")).length >= 2) patterns.push("question hooks");
+		if (titles.filter(t => t.toLowerCase().includes("how")).length >= 2) patterns.push("how-to style");
+		if (titles.filter(t => /\d+/.test(t)).length >= 2) patterns.push("numbered lists");
+
+		const detectedPatterns = patterns.length > 0 ? patterns.join(", ") : "similar topic focus";
+
+		recognizableEvidence = formatSeverity === "strong"
+			? `Videos maintain consistent ~${avgMinutes} min format with ${detectedPatterns}.`
+			: `Pattern detected: ${avgMinutes}-min videos with ${detectedPatterns}. Room to strengthen consistency.`;
+	}
+
+	formatInsights.push({
+		id: "format-recognizable",
+		label: "Recognizable Format Pattern",
+		severity: recognizableFormatSeverity,
+		evidence: recognizableEvidence,
+		impact: recognizableFormatSeverity === "strong"
+			? "Viewers know what to expect, improving retention and watch time."
+			: "Unpredictable formats make it harder for viewers to commit to watching.",
+		action: formatScore < 90 ? (hookAnalysis?.recommendation ||
+			"Pick your top-performing video's structure (hook style, intro length, pacing) and use it for the next 5 uploads.") : undefined,
+	});
+
+	// 2. VIDEO LENGTH CONSISTENCY
+	formatInsights.push({
+		id: "format-length",
+		label: "Video Length Consistency",
+		severity: durationScore >= 70 ? "strong" : durationScore >= 40 ? "neutral" : "weak",
+		evidence: durationScore >= 70
+			? `Videos stay within a tight length range (~${Math.round(avgDuration / 60)} min average, low variance).`
+			: durationScore >= 40
+			? `Video lengths vary moderately (~${Math.round(avgDuration / 60)} min average).`
+			: `Video lengths vary significantly (from shorts to long-form) with no clear pattern.`,
+		impact: durationScore >= 70
+			? "Consistent length helps the algorithm recommend your content to the right viewers."
+			: "Mixed video lengths confuse both viewers and the algorithm about your content type.",
+	});
+
+	// 3. HOOK STYLE CONSISTENCY (only if we have hook analysis)
+	if (hookAnalysis) {
+		const hookStyleSeverity: Severity =
+			hookScore >= 70 ? "strong" : hookScore >= 50 ? "neutral" : "weak";
+
+		formatInsights.push({
+			id: "format-hooks",
+			label: "Hook Style Consistency",
+			severity: hookStyleSeverity,
+			evidence: hookStyleSeverity === "strong"
+				? `Hooks are consistent: ${hookPatterns.join(", ")}. Viewers recognize your style within seconds.`
+				: hookStyleSeverity === "neutral"
+				? `Some hook patterns detected (${hookPatterns.join(", ")}), but not applied consistently.`
+				: `Hook styles vary widely. Each video opens differently, making it hard to build viewer expectations.`,
+			impact: hookStyleSeverity === "strong"
+				? "Consistent hooks train viewers to stay past the first 10 seconds."
+				: "Inconsistent hooks lead to higher early drop-off rates.",
+			examples: hookExamples.map(e => `"${e.videoTitle}" → ${e.hookStyle}`),
+		});
+	} else {
+		// Fallback insight when no AI analysis - always find some pattern
+		// Detect patterns from video data
+		const avgMinutes = Math.round(avgDuration / 60);
+		const titlePatterns: string[] = [];
+
+		// Check for common title patterns
+		const titles = videos.map(v => v.title || "");
+		const hasQuestions = titles.filter(t => t.includes("?")).length >= 2;
+		const hasHowTo = titles.filter(t => t.toLowerCase().includes("how to")).length >= 2;
+		const hasNumbers = titles.filter(t => /\d+/.test(t)).length >= 2;
+		const hasColons = titles.filter(t => t.includes(":")).length >= 2;
+
+		if (hasQuestions) titlePatterns.push("question-based titles");
+		if (hasHowTo) titlePatterns.push("how-to format");
+		if (hasNumbers) titlePatterns.push("numbered titles");
+		if (hasColons) titlePatterns.push("title:subtitle format");
+
+		let detectedPattern = titlePatterns.length > 0
+			? titlePatterns.slice(0, 2).join(" and ")
+			: `${avgMinutes}-minute videos`;
+
+		formatInsights.push({
+			id: "format-structure",
+			label: "Format Structure",
 			severity: formatSeverity,
 			evidence: formatSeverity === "strong"
-				? `Videos maintain consistent length (~${Math.round(avgDuration / 60)} min average).`
-				: formatSeverity === "neutral"
-				? `Video lengths vary moderately (~${Math.round(avgDuration / 60)} min average).`
-				: `Video lengths vary significantly (${Math.round(avgDuration / 60)} min average with high variance).`,
-			impact: formatSeverity === "strong"
-				? "Consistent format helps viewers know what to expect."
-				: "Varying formats may confuse viewer expectations.",
-		},
-		{
-			id: "format-structure",
-			label: "Format Pattern",
-			severity: formatScore >= 60 ? "strong" : "neutral",
-			evidence: formatScore >= 60
-				? "Videos follow a recognizable format pattern."
-				: "No consistent format pattern detected.",
-			impact: "Repeatable formats improve production efficiency and viewer retention.",
-		},
-		{
-			id: "format-action",
-			label: "Format Recommendation",
-			severity: "neutral",
-			evidence: formatSeverity === "strong"
-				? "Continue with the channel's proven format."
-				: "Identify the channel's highest-performing format and repeat it more often.",
-			impact: "Consistent formats build audience expectations and improve retention.",
-		},
-	];
+				? `Videos follow a ${avgMinutes}-min format with ${detectedPattern}.`
+				: `Pattern detected: ${detectedPattern}. Could be applied more consistently.`,
+			impact: "Repeatable structures improve production speed and viewer retention.",
+		});
+	}
+
+	// 4. Follow-up suggestion for scores below 90% - keep it short
+	if (formatScore < 90) {
+		formatInsights.push({
+			id: "format-improvement",
+			label: "Format Improvement Opportunity",
+			severity: formatScore < 50 ? "weak" : "neutral",
+			evidence: hookAnalysis?.recommendation || "Use your best-performing video's structure as a template.",
+			impact: "Consistent formats boost retention.",
+		});
+	}
 
 	// WINNING TOPICS
 	const topicsScore = scores.categories["Winning Topics"];
@@ -1234,6 +1413,7 @@ export async function POST(req: Request) {
 		const body = await req.json();
 		const channelUrl = body?.channelUrl?.trim();
 		const userNiche = body?.userNiche?.trim() || "";
+		const isPro = body?.isPro === true; // Only run AI for Pro users
 		if (!channelUrl) {
 			return NextResponse.json({ error: "channelUrl is required" }, { status: 400 });
 		}
@@ -1253,7 +1433,8 @@ export async function POST(req: Request) {
 		const payload = { channel, videos, metrics, searchVisibility };
 
 		const openaiKey = process.env.OPENAI_API_KEY;
-		let analysis: Record<string, CategoryAnalysis> = buildHeuristicAnalysis({ ...payload, scores: score });
+		let hookAnalysis: HookAnalysisResult | null = null;
+		let analysis: Record<string, CategoryAnalysis>;
 
 		let aiSummary: {
 			summary: string;
@@ -1267,8 +1448,15 @@ export async function POST(req: Request) {
 
 		let soWhat: Record<string, SoWhatSection> = {};
 
-		if (openaiKey) {
+		// Only run AI-powered analysis for Pro users to protect OpenAI costs
+		if (openaiKey && isPro) {
 			const client = new OpenAI({ apiKey: openaiKey });
+
+			// Analyze hook consistency for format insights (Pro only)
+			hookAnalysis = await analyzeHookConsistency(client, videos, channel.title);
+
+			// Build analysis with hook data
+			analysis = buildHeuristicAnalysis({ ...payload, scores: score, hookAnalysis });
 			const prompt = `
 You are a precise YouTube growth analyst. You will receive deterministic scores (0-100) already calculated. DO NOT create or change numeric scores.
 Return JSON with: { "summary": string, "recommendations": [3 strings], "double_down": string }.
@@ -1307,6 +1495,9 @@ ${JSON.stringify({ score, payload }, null, 2)}
 
 			// Always generate So What sections
 			soWhat = await generateSoWhat(client, channel.title, effectiveNiche, payload, score);
+		} else {
+			// Fallback: Build analysis without AI hook analysis
+			analysis = buildHeuristicAnalysis({ ...payload, scores: score });
 		}
 
 		// Include detected niche in response for frontend

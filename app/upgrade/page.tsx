@@ -97,7 +97,7 @@ export default function UpgradePage() {
 					<Heading size="8" as="h1" className="mb-2 text-gray-12 dark:text-gray-12">
 						Upgrade to Pro
 					</Heading>
-					<Text size="4" color="gray" className="text-gray-11 dark:text-gray-11">
+					<Text size="4" color="gray" className="text-white">
 						Unlock all features and take your content creation to the next level
 					</Text>
 				</div>
@@ -159,14 +159,14 @@ export default function UpgradePage() {
 									<Heading size="5" as="h3" className="mb-2 text-gray-12 dark:text-gray-12">
 										{plan.name}
 									</Heading>
-									<Text size="3" color="gray" className="mb-4 text-gray-11 dark:text-gray-11">
+									<Text size="3" color="gray" className="mb-4 text-white">
 										{plan.description}
 									</Text>
 									<div className="flex items-baseline gap-2">
 										<Heading size="8" weight="bold" className="text-gray-12 dark:text-gray-12">
 											{plan.price}
 										</Heading>
-										<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
+										<Text size="2" color="gray" className="text-white">
 											{plan.period}
 										</Text>
 									</div>
@@ -176,7 +176,7 @@ export default function UpgradePage() {
 									{plan.features.map((feature) => (
 										<div key={feature} className="flex items-center gap-2">
 											<CheckIcon className="w-4 h-4 text-green-11 dark:text-green-10 flex-shrink-0" />
-											<Text size="2" color="gray" className="text-gray-11 dark:text-gray-11">
+											<Text size="2" color="gray" className="text-white">
 												{feature}
 											</Text>
 										</div>
@@ -209,7 +209,7 @@ export default function UpgradePage() {
 
 			{/* Info Card */}
 			<Card size="2" variant="surface" className="p-4 bg-blue-a2 dark:bg-blue-a3 border-blue-6 dark:border-blue-5">
-				<Text size="2" color="gray" align="center" className="text-gray-11 dark:text-gray-11">
+				<Text size="2" color="gray" align="center" className="text-white">
 					All plans include a 14-day money-back guarantee. Cancel anytime.
 					<br />
 					Your subscription is tied to your account and syncs across all devices.

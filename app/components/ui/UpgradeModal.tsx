@@ -1,8 +1,46 @@
 "use client";
 
-import { useState } from "react";
-import { X, Crown, FlaskConical, Copy, Calendar, Search, Image } from "lucide-react";
-import { useAppStore } from "@/lib/store";
+import { X, FlaskConical, Copy, Check, Search } from "lucide-react";
+
+// Sparkle elements for decoration
+function SparkleElements() {
+	return (
+		<>
+			{[...Array(8)].map((_, i) => (
+				<div
+					key={i}
+					className={`sparkle sparkle-${(i % 5) + 1}`}
+					style={{
+						top: `${15 + Math.random() * 70}%`,
+						left: `${10 + Math.random() * 80}%`,
+						width: `${3 + Math.random() * 5}px`,
+						height: `${3 + Math.random() * 5}px`,
+					}}
+				/>
+			))}
+		</>
+	);
+}
+
+// Floating particles
+function FloatingParticles() {
+	return (
+		<div className="absolute inset-0 overflow-hidden pointer-events-none">
+			{[...Array(5)].map((_, i) => (
+				<div
+					key={i}
+					className="particle"
+					style={{
+						left: `${15 + i * 18}%`,
+						top: `${70 + (i % 2) * 15}%`,
+						animationDelay: `${i * 2}s`,
+						animationDuration: `${6 + i * 2}s`,
+					}}
+				/>
+			))}
+		</div>
+	);
+}
 
 interface UpgradeModalProps {
 	isOpen: boolean;
@@ -10,87 +48,65 @@ interface UpgradeModalProps {
 	feature?: string;
 }
 
-const PRO_BENEFITS = [
+const PRO_FEATURES = [
 	{
-		icon: <FlaskConical className="w-4 h-4" />,
+		icon: <FlaskConical className="w-5 h-5" />,
 		title: "Learning Lab",
-		description: "Deep analysis of any channel's content strategy",
+		description: "Understand why videos perform — not just the numbers.",
+		iconColor: "text-emerald-400",
+		bgColor: "bg-emerald-500/20",
 	},
 	{
-		icon: <Copy className="w-4 h-4" />,
+		icon: <Copy className="w-5 h-5" />,
 		title: "Replicate This",
-		description: "Derive content constraints from top performers",
+		description: "Publish using the same structure as top channels.",
+		iconColor: "text-blue-400",
+		bgColor: "bg-blue-500/20",
 	},
 	{
-		icon: <Calendar className="w-4 h-4" />,
-		title: "Advanced Scheduling",
-		description: "Plan and schedule content with constraints",
-	},
-	{
-		icon: <Search className="w-4 h-4" />,
+		icon: <Search className="w-5 h-5" />,
 		title: "SEO Constraints",
-		description: "Optimize titles and descriptions automatically",
-	},
-	{
-		icon: <Image className="w-4 h-4" />,
-		title: "Thumbnail Templates",
-		description: "Generate thumbnails matching top performers",
+		description: "Optimize titles and descriptions for discoverability.",
+		iconColor: "text-cyan-400",
+		bgColor: "bg-cyan-500/20",
 	},
 ];
 
 export function UpgradeModal({ isOpen, onClose, feature }: UpgradeModalProps) {
-	const [loading, setLoading] = useState<"monthly" | "annual" | null>(null);
-	const [error, setError] = useState<string | null>(null);
-	const setIsPro = useAppStore((state) => state.setIsPro);
-
 	if (!isOpen) return null;
 
-	const handlePurchase = async (planType: "monthly" | "annual") => {
-		setLoading(planType);
-		setError(null);
+	const WHOP_MONTHLY_URL = "https://whop.com/checkout/plan_uCWZ74OHuB0JW";
+	const WHOP_ANNUAL_URL = "https://whop.com/checkout/plan_Mz6XWM8o9oz2C";
 
-		try {
-			const response = await fetch("/api/subscription/purchase", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ planType }),
-			});
-
-			const data = await response.json();
-
-			if (!response.ok) {
-				throw new Error(data.error || "Failed to process purchase");
-			}
-
-			// Update local store
-			setIsPro(true);
-
-			// Close modal and show success
-			onClose();
-		} catch (err) {
-			setError(err instanceof Error ? err.message : "Purchase failed");
-		} finally {
-			setLoading(null);
-		}
+	const handlePurchase = (planType: "monthly" | "annual") => {
+		const url = planType === "monthly" ? WHOP_MONTHLY_URL : WHOP_ANNUAL_URL;
+		window.open(url, "_blank");
 	};
 
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center">
+		<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
 			{/* Backdrop */}
 			<div
-				className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+				className="absolute inset-0 bg-black/80 backdrop-blur-md"
 				onClick={onClose}
 			/>
 
-			{/* Modal */}
-			<div className="relative w-full max-w-lg mx-4 bg-[var(--frosted-bg)] backdrop-blur-xl border border-[var(--frosted-border)] rounded-2xl shadow-2xl overflow-hidden animate-scale-in">
-				{/* Gradient accent */}
-				<div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-violet-500 via-pink-500 to-amber-500" />
+			{/* Modal with rainbow animated border */}
+			<div className="relative w-full max-w-md rainbow-border-animated rounded-2xl shadow-2xl overflow-hidden animate-scale-in">
+				<div className="relative bg-[#0a0a12] rounded-2xl overflow-hidden">
+					{/* Animated gradient accent */}
+					<div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-violet-500 via-pink-500 to-amber-500 animate-pulse" />
+
+					{/* Sparkle effects */}
+					<SparkleElements />
+
+					{/* Floating particles */}
+					<FloatingParticles />
 
 				{/* Close button */}
 				<button
 					onClick={onClose}
-					className="absolute top-4 right-4 p-1 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-white/10 transition-colors"
+					className="absolute top-4 right-4 p-1 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-white/10 transition-colors z-10"
 				>
 					<X className="w-5 h-5" />
 				</button>
@@ -98,99 +114,94 @@ export function UpgradeModal({ isOpen, onClose, feature }: UpgradeModalProps) {
 				{/* Content */}
 				<div className="p-6">
 					{/* Header */}
-					<div className="text-center mb-6">
-						<div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 mb-4">
-							<Crown className="w-6 h-6 text-white" />
-						</div>
+					<div className="mb-6">
 						<h2 className="text-xl font-semibold text-white mb-2">
-							Upgrade to Pro
+							Unlock Pro
 						</h2>
+						<p className="text-[var(--text-secondary)] text-sm">
+							Replicate proven creators, publish with data-backed constraints, and access advanced insights.
+						</p>
 						{feature && (
-							<p className="text-[var(--text-secondary)] text-sm">
-								<span className="text-white font-medium">{feature}</span> is a Pro feature
+							<p className="text-[var(--text-muted)] text-xs mt-2">
+								<span className="text-violet-400">{feature}</span> requires Pro
 							</p>
 						)}
 					</div>
 
-					{/* Benefits */}
+					{/* Features */}
 					<div className="space-y-3 mb-6">
-						{PRO_BENEFITS.map((benefit, index) => (
-							<div
-								key={index}
-								className="flex items-start gap-3 p-3 rounded-xl bg-white/5"
-							>
-								<div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500/20 to-pink-500/20 flex items-center justify-center text-violet-400">
-									{benefit.icon}
+						{PRO_FEATURES.map((item, index) => (
+							<div key={index} className="flex items-start gap-3">
+								<div className={`flex-shrink-0 w-9 h-9 rounded-lg ${item.bgColor} flex items-center justify-center ${item.iconColor}`}>
+									{item.icon}
 								</div>
 								<div>
 									<h3 className="text-sm font-medium text-white">
-										{benefit.title}
+										{item.title}
 									</h3>
-									<p className="text-xs text-[var(--text-muted)]">
-										{benefit.description}
+									<p className="text-xs text-white/80">
+										{item.description}
 									</p>
 								</div>
 							</div>
 						))}
 					</div>
 
-					{/* Error */}
-					{error && (
-						<div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-							{error}
-						</div>
-					)}
-
-					{/* Pricing buttons */}
-					<div className="grid grid-cols-2 gap-3">
-						{/* Monthly */}
+					{/* Pricing */}
+					<div className="space-y-3 mb-4">
+						{/* Monthly - Primary */}
 						<button
 							onClick={() => handlePurchase("monthly")}
-							disabled={loading !== null}
-							className="relative p-4 rounded-xl border border-[var(--frosted-border)] bg-white/5 hover:bg-white/10 transition-all group disabled:opacity-50"
+							className="relative w-full p-4 rounded-xl border border-violet-500/50 bg-gradient-to-br from-violet-500/10 to-pink-500/10 hover:from-violet-500/20 hover:to-pink-500/20 transition-all"
 						>
-							<div className="text-left">
-								<span className="text-2xl font-bold text-white">$19</span>
-								<span className="text-[var(--text-muted)] text-sm">/mo</span>
-							</div>
-							<p className="text-xs text-[var(--text-muted)] mt-1">
-								Monthly billing
-							</p>
-							{loading === "monthly" && (
-								<div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl">
-									<div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+							<div className="flex items-center justify-between">
+								<div className="text-left">
+									<span className="text-2xl font-bold text-white">$29</span>
+									<span className="text-white/90 text-sm"> / month</span>
 								</div>
-							)}
+								<span className="text-xs text-white font-medium bg-violet-500/30 px-2 py-1 rounded pulse-badge">Recommended</span>
+							</div>
 						</button>
 
 						{/* Annual */}
 						<button
 							onClick={() => handlePurchase("annual")}
-							disabled={loading !== null}
-							className="relative p-4 rounded-xl border border-violet-500/50 bg-gradient-to-br from-violet-500/10 to-pink-500/10 hover:from-violet-500/20 hover:to-pink-500/20 transition-all group disabled:opacity-50"
+							className="relative w-full p-4 rounded-xl border border-[var(--frosted-border)] bg-white/5 hover:bg-white/10 transition-all"
 						>
-							<div className="absolute -top-2 -right-2 px-2 py-0.5 rounded-full bg-gradient-to-r from-violet-500 to-pink-500 text-[10px] font-semibold text-white uppercase">
-								Save 35%
-							</div>
-							<div className="text-left">
-								<span className="text-2xl font-bold text-white">$149</span>
-								<span className="text-[var(--text-muted)] text-sm">/yr</span>
-							</div>
-							<p className="text-xs text-[var(--text-muted)] mt-1">
-								$12.42/mo billed annually
-							</p>
-							{loading === "annual" && (
-								<div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl">
-									<div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+							<div className="flex items-center justify-between">
+								<div className="text-left">
+									<span className="text-2xl font-bold text-white">$290</span>
+									<span className="text-white/90 text-sm"> / year</span>
 								</div>
-							)}
+								<span className="text-xs text-white font-medium bg-emerald-500/30 px-2 py-1 rounded">Save 2 months</span>
+							</div>
 						</button>
 					</div>
 
-					{/* Footer */}
-					<p className="text-center text-xs text-[var(--text-muted)] mt-4">
-						Cancel anytime. 7-day money-back guarantee.
-					</p>
+					{/* Secondary CTA */}
+					<button
+						onClick={onClose}
+						className="w-full text-center text-sm text-white/60 hover:text-white transition-colors py-2"
+					>
+						Continue with Free Analytics
+					</button>
+
+					{/* Trust signals */}
+					<div className="flex items-center justify-center gap-2 sm:gap-4 mt-4 pt-4 border-t border-white/5 flex-wrap">
+						<span className="flex items-center gap-1 text-xs text-white/90">
+							<Check className="w-3 h-3 text-emerald-400" />
+							No credits
+						</span>
+						<span className="flex items-center gap-1 text-xs text-white/90">
+							<Check className="w-3 h-3 text-emerald-400" />
+							No hidden limits
+						</span>
+						<span className="flex items-center gap-1 text-xs text-white/90">
+							<Check className="w-3 h-3 text-emerald-400" />
+							Cancel anytime
+						</span>
+					</div>
+				</div>
 				</div>
 			</div>
 		</div>

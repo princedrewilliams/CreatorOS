@@ -34,6 +34,9 @@ interface NicheBenchmarksProps {
 	subscriberCount?: number;
 	viewCount?: number;
 	videoCount?: number;
+	// Optional controlled mode props
+	isOpen?: boolean;
+	onClose?: () => void;
 }
 
 function formatNumber(num: number): string {
@@ -48,11 +51,18 @@ export function NicheBenchmarks({
 	subscriberCount,
 	viewCount,
 	videoCount,
+	isOpen: controlledIsOpen,
+	onClose,
 }: NicheBenchmarksProps) {
-	const [isOpen, setIsOpen] = useState(false);
+	// Support both controlled (parent manages state) and uncontrolled (internal state) modes
+	const [internalIsOpen, setInternalIsOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [data, setData] = useState<NicheBenchmark | null>(null);
 	const [error, setError] = useState<string | null>(null);
+
+	// Use controlled state if provided, otherwise use internal state
+	const isControlled = controlledIsOpen !== undefined;
+	const isOpen = isControlled ? controlledIsOpen : internalIsOpen;
 
 	const fetchBenchmarks = async () => {
 		setLoading(true);
@@ -80,9 +90,24 @@ export function NicheBenchmarks({
 	};
 
 	const handleOpen = () => {
-		setIsOpen(true);
+		if (!isControlled) {
+			setInternalIsOpen(true);
+		}
 		if (!data) fetchBenchmarks();
 	};
+
+	const handleClose = () => {
+		if (isControlled && onClose) {
+			onClose();
+		} else {
+			setInternalIsOpen(false);
+		}
+	};
+
+	// Auto-fetch when controlled mode opens
+	if (isControlled && isOpen && !data && !loading && !error) {
+		fetchBenchmarks();
+	}
 
 	const getPercentileColor = (pct: number) => {
 		if (pct >= 75) return "text-emerald-400";
@@ -93,14 +118,16 @@ export function NicheBenchmarks({
 
 	return (
 		<>
-			{/* Trigger Button */}
-			<button
-				onClick={handleOpen}
-				className="flex items-center gap-2 px-4 py-2 bg-[var(--frosted-bg)] backdrop-blur-sm border border-[var(--frosted-border)] rounded-xl hover:bg-[var(--frosted-bg-hover)] transition-colors text-sm text-[var(--text-secondary)] hover:text-white"
-			>
-				<BarChart3 className="w-4 h-4" />
-				<span>Niche Benchmarks</span>
-			</button>
+			{/* Trigger Button - only show in uncontrolled mode */}
+			{!isControlled && (
+				<button
+					onClick={handleOpen}
+					className="flex items-center gap-2 px-4 py-2 bg-[var(--frosted-bg)] backdrop-blur-sm border border-[var(--frosted-border)] rounded-xl hover:bg-[var(--frosted-bg-hover)] transition-colors text-sm text-[var(--text-secondary)] hover:text-white"
+				>
+					<BarChart3 className="w-4 h-4" />
+					<span>Niche Benchmarks</span>
+				</button>
+			)}
 
 			{/* Modal */}
 			{isOpen && (
@@ -108,7 +135,7 @@ export function NicheBenchmarks({
 					<div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-y-auto">
 						<div
 							className="fixed inset-0 bg-black/80 backdrop-blur-sm"
-							onClick={() => setIsOpen(false)}
+							onClick={handleClose}
 						/>
 
 						<div className="relative w-full max-w-3xl my-8 bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-2xl">
@@ -121,7 +148,7 @@ export function NicheBenchmarks({
 								</p>
 							</div>
 							<button
-								onClick={() => setIsOpen(false)}
+								onClick={handleClose}
 								className="p-2 rounded-lg hover:bg-white/10 transition-colors text-white text-xl font-bold"
 							>
 								×

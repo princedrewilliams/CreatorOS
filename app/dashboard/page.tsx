@@ -1,82 +1,294 @@
 "use client";
 
-import { Heading, Text, Button } from "@whop/react/components";
-import { CalendarIcon, ArrowRightIcon } from "@radix-ui/react-icons";
-import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { ArrowRight, Sparkles, Zap, Search, Dna } from "lucide-react";
+import Link from "next/link";
+
+// Glowing dots for background
+function BackgroundDots() {
+	return (
+		<>
+			{[...Array(15)].map((_, i) => (
+				<div
+					key={i}
+					className={`absolute rounded-full bg-dot-glow sparkle sparkle-${(i % 5) + 1}`}
+					style={{
+						top: `${5 + (i * 7) % 90}%`,
+						left: `${2 + (i * 9) % 96}%`,
+						width: `${4 + (i % 4) * 2}px`,
+						height: `${4 + (i % 4) * 2}px`,
+					}}
+				/>
+			))}
+		</>
+	);
+}
+
+// Floating particles around input
+function FloatingParticles() {
+	return (
+		<div className="absolute inset-0 overflow-hidden pointer-events-none">
+			{[...Array(4)].map((_, i) => (
+				<div
+					key={i}
+					className={`absolute rounded-full bg-dot-glow sparkle sparkle-${(i % 5) + 1}`}
+					style={{
+						top: `${20 + i * 20}%`,
+						left: `${10 + i * 25}%`,
+						width: `${3 + (i % 2) * 2}px`,
+						height: `${3 + (i % 2) * 2}px`,
+					}}
+				/>
+			))}
+		</div>
+	);
+}
+
+// Sparkle elements for hover effects
+function SparkleElements({ count = 3 }: { count?: number }) {
+	return (
+		<>
+			{[...Array(count)].map((_, i) => (
+				<div
+					key={i}
+					className={`absolute rounded-full bg-dot-glow sparkle sparkle-${(i % 5) + 1}`}
+					style={{
+						top: `${20 + i * 30}%`,
+						left: `${20 + i * 25}%`,
+						width: `${3 + (i % 2)}px`,
+						height: `${3 + (i % 2)}px`,
+					}}
+				/>
+			))}
+		</>
+	);
+}
 
 export default function DashboardPage() {
+	const [channelUrl, setChannelUrl] = useState("");
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+	const router = useRouter();
+
+	const handleAnalyze = async () => {
+		if (!channelUrl.trim()) {
+			setError("Please enter a channel URL or username.");
+			return;
+		}
+		setError(null);
+		setLoading(true);
+		try {
+			const res = await fetch("/api/channel-analyze", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ channelUrl: channelUrl.trim() }),
+			});
+			if (!res.ok) {
+				const errData = await res.json().catch(() => ({}));
+				throw new Error(errData.error || "Analysis failed. Please try again.");
+			}
+			await res.json();
+			router.push(`/channel-dna?url=${encodeURIComponent(channelUrl.trim())}`);
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Analysis failed. Please try again.");
+		} finally {
+			setLoading(false);
+		}
+	};
+
 	return (
-		<div className="relative min-h-screen">
-			{/* Gradient Background */}
-			<div className="fixed inset-0 bg-gradient-to-br from-gray-12 via-blue-12 to-purple-12 -z-10">
-				<div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(59,130,246,0.3),transparent_50%)]"></div>
-				<div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(147,51,234,0.2),transparent_50%)]"></div>
-				<div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_20%,rgba(37,99,235,0.25),transparent_50%)]"></div>
-			</div>
+		<motion.main
+			initial={{ opacity: 0 }}
+			animate={{ opacity: 1 }}
+			transition={{ duration: 0.6, ease: "easeOut" }}
+			className="relative min-h-screen overflow-hidden bg-[var(--page-bg)] text-white flex flex-col"
+		>
+			{/* Glowing dots background */}
+			<motion.div
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				transition={{ duration: 0.8, delay: 0.2 }}
+				className="fixed inset-0 pointer-events-none overflow-hidden -z-10"
+			>
+				<BackgroundDots />
+			</motion.div>
 
-			<div className="relative space-y-6 sm:space-y-8 max-w-7xl mx-auto px-3 py-4 sm:px-4 sm:py-6 lg:px-8 lg:py-8">
-				{/* Header */}
-				<div className="text-center pt-8 pb-12">
-					<Heading size="9" as="h1" className="mb-4 text-white sm:text-9">
-						Reverse-Engineer What Makes YouTube Channels Win
-					</Heading>
-					<Text size="4" className="text-white/80 sm:text-5 max-w-2xl mx-auto">
-						Analyze posting patterns, titles, thumbnails, and content strategy — instantly.
-					</Text>
+			{/* Gradient overlays */}
+			<motion.div
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				transition={{ duration: 0.8, delay: 0.1 }}
+				className="absolute inset-0 -z-10"
+			>
+				<div className="absolute inset-0 bg-gradient-to-b from-[#0a0012] via-[var(--page-bg)] to-[var(--page-bg)]" />
+				<div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[120px]" />
+				<div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[100px]" />
+			</motion.div>
+
+			{/* Header */}
+			<motion.header
+				initial={{ opacity: 0, y: -20 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ duration: 0.5 }}
+				className="relative z-20 flex items-center justify-between px-6 py-4 max-w-7xl mx-auto w-full"
+			>
+				<div className="flex items-center gap-2">
+					<Sparkles className="w-6 h-6 text-[var(--accent-primary)]" />
+					<span className="text-xl font-bold">CreatorOS</span>
 				</div>
+			</motion.header>
 
-				{/* Tools Section */}
-				<div className="max-w-4xl mx-auto">
-					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
+			{/* Hero section - centered vertically */}
+			<section className="relative z-10 flex-1 flex flex-col items-center justify-center max-w-6xl mx-auto px-5 md:px-10 pb-20">
+				{/* Hero text with animations */}
+				<motion.div
+					initial={{ opacity: 0, y: 30 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.7, delay: 0.1 }}
+					className="text-center space-y-6 max-w-5xl"
+				>
+					<h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-[1.05] tracking-tight">
+						Reverse-Engineer
+						<br />
+						<span className="text-shimmer">
+							YouTube Success
+						</span>
+					</h1>
+					<motion.p
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						transition={{ duration: 0.7, delay: 0.3 }}
+						className="text-lg md:text-xl lg:text-2xl text-white/60 max-w-2xl mx-auto leading-relaxed"
 					>
-						<Link href="/channel-dna">
-							<Button
-								variant="solid"
-								color="blue"
-								size="4"
-								className="w-full py-6 text-lg"
-							>
-								Channel Deconstruction Engine
-								<ArrowRightIcon className="ml-2 w-5 h-5" />
-							</Button>
-						</Link>
-					</motion.div>
-				</div>
+						Analyze any channel's patterns, titles, thumbnails, and strategy in seconds.
+					</motion.p>
+				</motion.div>
 
-				{/* Content Planner - At Bottom */}
-				<div className="max-w-4xl mx-auto pb-12">
-					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ delay: 0.2 }}
-					>
-						<Link href="/planner">
-							<Button
-								variant="ghost"
-								color="blue"
-								size="4"
-								className="w-full py-6 text-lg border-2 border-blue-8/50 hover:border-blue-8"
-							>
-								<CalendarIcon className="mr-2 w-5 h-5" />
-								Content Planner
-								<ArrowRightIcon className="ml-2 w-5 h-5" />
-							</Button>
-						</Link>
-					</motion.div>
-				</div>
+				{/* Input bar */}
+				<motion.div
+					initial={{ opacity: 0, y: 30 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.7, delay: 0.4 }}
+					className="w-full max-w-2xl mt-12"
+				>
+					<div className="relative">
+						{/* Floating particles around input */}
+						<FloatingParticles />
 
-				{/* Privacy Footer Items */}
-				<div className="mt-8 pt-6 border-t border-white/20">
-					<div className="text-center">
-						<Text size="1" className="text-white/80">
-							✓ Disconnect accounts anytime • ✓ Request data deletion • <Link href="/privacy" className="text-blue-400 underline hover:text-blue-300">Privacy Policy</Link>
-						</Text>
+						{/* Animated glow effect */}
+						<div className="absolute -inset-1 bg-gradient-to-r from-[var(--accent-primary)]/30 via-purple-500/20 to-[var(--accent-primary)]/30 rounded-2xl blur-xl opacity-60 animate-pulse" />
+
+						<div className="relative bg-[#0a0a0a]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-2">
+							<form
+								onSubmit={(e) => {
+									e.preventDefault();
+									void handleAnalyze();
+								}}
+								className="flex flex-col gap-3"
+							>
+								<div className="flex flex-col sm:flex-row gap-2">
+									<div className="flex-1">
+										<input
+											type="text"
+											value={channelUrl}
+											onChange={(e) => setChannelUrl(e.target.value)}
+											placeholder="youtube.com/@channelname"
+											className="w-full h-14 px-5 bg-white/[0.03] border border-white/10 rounded-xl text-white placeholder:text-white/40 text-base focus:outline-none focus:border-[var(--accent-primary)]/50 transition-colors"
+										/>
+									</div>
+									<button
+										type="submit"
+										disabled={loading}
+										className="h-14 px-8 rounded-xl bg-gradient-to-r from-[var(--accent-primary)] to-[#ff79c9] text-white font-semibold text-base shadow-[0_10px_40px_rgba(236,72,153,0.4)] hover:shadow-[0_15px_50px_rgba(236,72,153,0.5)] hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 btn-pulse-glow"
+									>
+										{loading ? (
+											<div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+										) : (
+											<>
+												Analyze
+												<ArrowRight className="w-4 h-4" />
+											</>
+										)}
+									</button>
+								</div>
+							</form>
+							{error && (
+								<motion.p
+									initial={{ opacity: 0, y: -10 }}
+									animate={{ opacity: 1, y: 0 }}
+									className="text-sm text-red-400 mt-3 px-2"
+								>
+									{error}
+								</motion.p>
+							)}
+						</div>
 					</div>
-				</div>
-			</div>
-		</div>
+
+					{/* Example hint */}
+					<p className="text-center text-white/30 text-sm mt-4">
+						Try: youtube.com/@MrBeast or @mkbhd
+					</p>
+				</motion.div>
+
+				{/* Features grid with 3D hover effects */}
+				<motion.div
+					initial={{ opacity: 0, y: 30 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.7, delay: 0.6 }}
+					className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-16 w-full max-w-3xl"
+				>
+					{[
+						{ label: "Viral Score", desc: "View patterns that drive views", icon: Zap, color: "text-pink-400" },
+						{ label: "SEO Analysis", desc: "Discover keyword strategies", icon: Search, color: "text-purple-400" },
+						{ label: "Content DNA", desc: "Understand what works", icon: Dna, color: "text-cyan-400" },
+					].map((feature, i) => (
+						<motion.div
+							key={feature.label}
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 0.5, delay: 0.7 + i * 0.1 }}
+							className="group relative p-5 rounded-xl bg-white/[0.03] border border-white/5 card-3d-hover overflow-hidden"
+						>
+							{/* Animated border on hover */}
+							<div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+								<div className="absolute inset-0 rounded-xl border-glow-animated" />
+							</div>
+
+							{/* Sparkle on hover */}
+							<div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity">
+								<SparkleElements count={3} />
+							</div>
+
+							<div className="relative flex items-start gap-3">
+								{/* Animated icon */}
+								<div className={`${feature.color} transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12`}>
+									<feature.icon className="w-5 h-5" />
+								</div>
+								<div>
+									<h3 className="text-sm font-semibold text-white mb-1">
+										{feature.label}
+									</h3>
+									<p className="text-xs text-white/40">{feature.desc}</p>
+								</div>
+							</div>
+						</motion.div>
+					))}
+				</motion.div>
+
+				{/* Privacy Footer */}
+				<motion.div
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					transition={{ duration: 0.5, delay: 1 }}
+					className="fixed bottom-4 right-4"
+				>
+					<Link href="/privacy" className="text-xs text-white/40 hover:text-white/60 transition-colors">
+						Privacy Policy
+					</Link>
+				</motion.div>
+			</section>
+		</motion.main>
 	);
 }
